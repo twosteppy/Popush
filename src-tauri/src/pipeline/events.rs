@@ -14,7 +14,7 @@ pub struct StepStarted {
     pub step_name: String,
 }
 
-/// `pipeline:step-output` — one line of live output from a running step.
+/// `pipeline:step-output`, one line of live output from a running step.
 #[derive(Debug, Clone, Serialize)]
 pub struct StepOutput {
     pub pipeline_id: PipelineId,

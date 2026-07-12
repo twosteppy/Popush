@@ -70,4 +70,4 @@ nested under the server:
 
 The loader validates the file on read and rejects a malformed config with a
 message that names the field and the problem. If the file does not exist yet,
-that is fine — first launch shows the empty state and an "Add a server" button.
+that is fine, first launch shows the empty state and an "Add a server" button.

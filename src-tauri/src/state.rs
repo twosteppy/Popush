@@ -27,7 +27,7 @@ struct Inner {
     site_status: HashMap<SiteId, SiteStatus>,
     /// In-flight pipeline cancellation flags.
     cancelled: HashMap<PipelineId, bool>,
-    /// The command log (D8) — every remote command, inspectable at any time.
+    /// The command log (D8), every remote command, inspectable at any time.
     command_log: Vec<CommandLogEntry>,
 }
 
@@ -53,7 +53,7 @@ impl AppState {
             return;
         };
         let Ok(text) = std::fs::read_to_string(&path) else {
-            // No config yet — first launch. Not an error.
+            // No config yet, first launch. Not an error.
             return;
         };
         match popush_core::config::load_from_str(&text) {
@@ -105,10 +105,7 @@ impl AppState {
     }
 
     /// Remove a server by id and persist.
-    pub fn remove_server(
-        &self,
-        id: &ServerId,
-    ) -> Result<bool, popush_core::error::ConfigError> {
+    pub fn remove_server(&self, id: &ServerId) -> Result<bool, popush_core::error::ConfigError> {
         let mut guard = self.inner.lock().unwrap();
         let Some(config) = guard.config.as_mut() else {
             return Ok(false);

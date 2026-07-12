@@ -1,6 +1,6 @@
 //! Adapter runtime (§9): runs each adapter's command over SSH and hands the raw
-//! output to the corresponding pure parser in `popush_core::adapters`. The parse —
-//! where honest status is won (D12) — is tested in the core crate; this layer only
+//! output to the corresponding pure parser in `popush_core::adapters`. The parse -
+//! where honest status is won (D12), is tested in the core crate; this layer only
 //! issues the command and records it in the log (D8).
 
 use popush_core::adapters::{docker, pm2, static_site, systemd, Capabilities};

@@ -1,5 +1,5 @@
 //! systemd adapter (§9.3). Start/stop/restart need root; Popush never prompts for
-//! a password (§9.3) — the commands assume a passwordless sudoers entry the wizard
+//! a password (§9.3), the commands assume a passwordless sudoers entry the wizard
 //! *generates for the user to install by hand*, or a user unit. Popush never edits
 //! sudoers itself.
 

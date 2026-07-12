@@ -2,8 +2,8 @@
 //!
 //! This is the pure, testable half of host-key verification: turning the on-disk
 //! file into the structured entries [`super::hostkey::HostKeyVerifier`] consults.
-//! Reading the file from disk happens in the binary; the parsing — and the fiddly
-//! host-pattern handling — is here so it can be tested without a filesystem.
+//! Reading the file from disk happens in the binary; the parsing, and the fiddly
+//! host-pattern handling, is here so it can be tested without a filesystem.
 //!
 //! Hashed host lines (`|1|...`) cannot be matched by plaintext host and are
 //! skipped: Popush compares against the plaintext host it is connecting to, and a
@@ -14,7 +14,7 @@
 use super::hostkey::KnownHost;
 
 /// Parse the contents of a `known_hosts` file, keeping only entries whose host is
-/// stored in plaintext. Malformed lines are skipped, not fatal — one bad line must
+/// stored in plaintext. Malformed lines are skipped, not fatal, one bad line must
 /// not blind Popush to the rest of the file.
 pub fn parse(contents: &str) -> Vec<KnownHost> {
     let mut out = Vec::new();
@@ -68,7 +68,7 @@ fn normalize_host(host: &str) -> String {
         if let Some(closing) = inner.strip_suffix(']') {
             return closing.to_string();
         }
-        // `[host]:port` — keep the whole pattern.
+        // `[host]:port`, keep the whole pattern.
         return host.to_string();
     }
     host.to_string()

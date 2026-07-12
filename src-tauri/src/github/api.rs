@@ -1,4 +1,4 @@
-//! Optional GitHub API client (Phase 10, §11.5) — the I/O half.
+//! Optional GitHub API client (Phase 10, §11.5), the I/O half.
 //!
 //! Strictly optional: every core feature works with no token. When the user
 //! supplies a fine-grained read-only PAT, it is stored in the **system keyring

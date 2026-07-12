@@ -1,4 +1,4 @@
-//! Optional GitHub features (Phase 10, §11.5) — the pure parsing half.
+//! Optional GitHub features (Phase 10, §11.5), the pure parsing half.
 //!
 //! These are strictly optional: every core feature works with no token. When, and
 //! only when, the user supplies a fine-grained read-only PAT, Popush can show the
@@ -31,7 +31,7 @@ pub enum CiStatus {
     Failing,
     /// Checks are still running.
     Pending,
-    /// No checks are configured for this commit — the default when nothing is known.
+    /// No checks are configured for this commit, the default when nothing is known.
     #[default]
     None,
 }

@@ -1,6 +1,6 @@
 //! SSH socket I/O for the binary (§8): the connection pool, `ssh-agent`
-//! delegation, and host-key verification wired to `russh`. The *decisions* —
-//! command construction and host-key verdicts — come from `popush_core::ssh`;
+//! delegation, and host-key verification wired to `russh`. The *decisions* -
+//! command construction and host-key verdicts, come from `popush_core::ssh`;
 //! this layer only performs I/O (D14).
 //!
 //! ## Verification note (Agent Rule 3)

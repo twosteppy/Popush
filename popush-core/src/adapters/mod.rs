@@ -1,11 +1,11 @@
 //! Service adapters (§9). Each adapter knows how to check, start, stop, restart,
-//! and tail logs for one service type, and — crucially — what it *cannot* do,
+//! and tail logs for one service type, and, crucially, what it *cannot* do,
 //! via [`Capabilities`]. `capabilities()` is what stops the UI lying (§9.1): a
 //! static site has no Restart button, rather than a Restart button that fails.
 //!
 //! The socket I/O (actually running the command) lives in the binary. Everything
-//! here — the command each operation issues, and the parse from raw output to a
-//! [`SiteStatus`] — is pure and golden-file tested against **real captured
+//! here, the command each operation issues, and the parse from raw output to a
+//! [`SiteStatus`], is pure and golden-file tested against **real captured
 //! output** (§23.1), because the parse is where honesty (D12) is won or lost.
 
 pub mod docker;

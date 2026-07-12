@@ -4,7 +4,7 @@
 //! is presented for the user to verify by fingerprint and **never auto-accepted**;
 //! a known host whose key has **changed** is refused, because that is the
 //! signature of a man-in-the-middle. The refusal is not one-click dismissible in
-//! the UI (§8.3 gate); this module only produces the decision — the UI enforces
+//! the UI (§8.3 gate); this module only produces the decision, the UI enforces
 //! the friction.
 //!
 //! This is decision logic over already-parsed data, so it is pure and unit-tested

@@ -45,7 +45,7 @@ pub struct ShipContext<'a> {
 }
 
 /// Run the whole pipeline. Emits step and pipeline events; returns when the run
-/// reaches a terminal state. Never returns a generic error — a failure is emitted
+/// reaches a terminal state. Never returns a generic error, a failure is emitted
 /// as a structured [`UserMessage`] (§12.4).
 pub async fn run_pipeline(ctx: ShipContext<'_>) {
     let started = Instant::now();

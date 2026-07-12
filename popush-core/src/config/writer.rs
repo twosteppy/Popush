@@ -1,5 +1,5 @@
 //! Writing config back to disk (§7): the in-app "Add a server" and "Add a site"
-//! flows persist here so a user never has to hand-edit TOML — while the file stays
+//! flows persist here so a user never has to hand-edit TOML, while the file stays
 //! human-editable and secret-free (D6, D7). The serialisation and the upsert/remove
 //! logic are pure and tested; the binary does the actual file write.
 

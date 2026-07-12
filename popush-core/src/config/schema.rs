@@ -2,7 +2,7 @@
 //!
 //! These are the types that cross the IPC boundary; `ts-rs` generates their
 //! TypeScript twins into `src/types/generated.ts` (Resolved Decision: ts-rs).
-//! Hand-editing the generated file is forbidden — it is build output.
+//! Hand-editing the generated file is forbidden, it is build output.
 
 use std::path::PathBuf;
 
@@ -35,7 +35,7 @@ fn default_schema_version() -> u32 {
 }
 
 impl Default for Config {
-    /// An empty, current-version config — the starting point on first launch (D2)
+    /// An empty, current-version config, the starting point on first launch (D2)
     /// and the base the in-app "Add a server" flow builds on.
     fn default() -> Self {
         Self {

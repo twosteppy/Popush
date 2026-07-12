@@ -5,8 +5,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    // WebKitGTK workaround for Linux (D1 target). On many Fedora/KDE setups —
-    // especially with newer WebKitGTK, Wayland, or certain GPU drivers — the
+    // WebKitGTK workaround for Linux (D1 target). On many Fedora/KDE setups -
+    // especially with newer WebKitGTK, Wayland, or certain GPU drivers, the
     // webview's DMABUF/GPU compositing path crashes the process the instant the
     // window would appear, exiting before anything renders. Disabling the DMABUF
     // renderer and hardware compositing is the well-established fix and costs only

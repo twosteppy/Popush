@@ -1,6 +1,6 @@
 //! Wizard fixes: preview-then-apply, never destructive, always reversible (§11.1,
-//! D13). The key invariant — **key generation can never overwrite an existing
-//! key** — is enforced *by construction* here (§Phase 6 gate): the fix builder
+//! D13). The key invariant, **key generation can never overwrite an existing
+//! key**, is enforced *by construction* here (§Phase 6 gate): the fix builder
 //! returns `None` when a key already exists, so no code path can reach
 //! `ssh-keygen` for a key that is present.
 
@@ -39,7 +39,7 @@ pub enum Fix {
 
 /// Build the key-generation fix (C1).
 ///
-/// **Returns `None` when a key already exists** — this is the by-construction
+/// **Returns `None` when a key already exists**, this is the by-construction
 /// guarantee (D13 rule 2, Phase 6 gate) that Popush can never overwrite a key.
 /// The caller cannot obtain a `GenerateLocalKey` fix, and therefore cannot reach
 /// `ssh-keygen`, when `existing_key` is `Some`.

@@ -30,7 +30,7 @@ updates come from your package manager.
 |---|---|
 | A compromised local machine | An attacker with code execution on your desktop already has your agent and your keys. Nothing at this layer can help. |
 | A malicious `build_command` | You configure your own build commands. Popush is a tool that runs the commands you asked it to run. See "The honest weakness" in the README. |
-| A supply-chain attack on a dependency | Mitigated by `cargo-audit` and `cargo-deny` in CI and by a deliberately small dependency tree. Mitigated, not eliminated — stated honestly. |
+| A supply-chain attack on a dependency | Mitigated by `cargo-audit` and `cargo-deny` in CI and by a deliberately small dependency tree. Mitigated, not eliminated, stated honestly. |
 
 ## The honest weakness
 
