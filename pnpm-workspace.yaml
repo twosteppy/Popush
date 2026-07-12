@@ -1,0 +1,11 @@
+# pnpm 10+ reads settings from here rather than the "pnpm" field in package.json.
+#
+# The overrides pin postcss and nanoid to releases old enough to satisfy a
+# minimum-release-age supply-chain policy. They pulled brand-new transitive
+# versions otherwise; these older ones are functionally equivalent for Tailwind +
+# Vite and keep `pnpm install` passing under stricter policies.
+onlyBuiltDependencies:
+  - esbuild
+overrides:
+  postcss: 8.4.49
+  nanoid: 3.3.7
