@@ -40,6 +40,14 @@ The first release.
 - **Packaging**: Flatpak (Flathub-ready, portal-based per-repo access), RPM, and
   AppImage, with a desktop file, icons, and AppStream metainfo.
 
+- **Optional GitHub features** (Phase 10): with a fine-grained read-only PAT
+  stored in the system keyring only, the latest commit, CI status, and open-PR
+  count. Every core feature works with no token.
+- **Log redaction**: tokens, `Authorization` headers, and key material are
+  stripped from logs before they are written; logs are local-only.
+- **Integration harness**: a containerised test VPS with a sample site per
+  service type, driven by the integration suite over real SSH.
+
 ### Notes
 
 - Linux only. Fedora 44 + KDE Plasma is the first-class target.
