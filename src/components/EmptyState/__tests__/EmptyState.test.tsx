@@ -40,11 +40,7 @@ describe('EmptyState onboarding', () => {
 
   it('shows the calm "select a site" hint once servers exist', () => {
     render(
-      <EmptyState
-        hasServers
-        onAddServer={() => {}}
-        onRunWizard={() => {}}
-      />,
+      <EmptyState hasServers onAddServer={() => {}} onRunWizard={() => {}} />,
     );
     expect(screen.getByText(/Select a site/)).toBeInTheDocument();
     expect(
