@@ -18,7 +18,10 @@ pub struct AppState {
 struct Inner {
     /// Loaded config, or `None` before first load / on load error.
     config: Option<Config>,
-    /// Live SSH connection pools, one per server, opened lazily (§8.1).
+    /// Live SSH connection pools, one per server, opened lazily (§8.1). Read by
+    /// the connection-pool lifecycle wiring (the remaining integration point noted
+    /// in docs/DECISIONS.md); allowed dead until those command handlers land.
+    #[allow(dead_code)]
     connections: HashMap<ServerId, SshPool>,
     /// Last known status per site (§6.3).
     site_status: HashMap<SiteId, SiteStatus>,

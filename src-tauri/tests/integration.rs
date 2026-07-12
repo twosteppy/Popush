@@ -91,10 +91,15 @@ async fn docker_adapter_reports_status() {
     };
     let pool = SshPool::connect(server, known).await.expect("connect");
     let out = pool
-        .exec(popush_core::adapters::docker::status_command("/srv/docker-site"))
+        .exec(popush_core::adapters::docker::status_command(
+            "/srv/docker-site",
+        ))
         .await
         .expect("run status");
     // The parser is unit-tested; here we assert real compose output parses at all.
     let status = popush_core::adapters::docker::parse_status(&out.stdout);
-    assert!(status.is_ok(), "real compose output should parse: {status:?}");
+    assert!(
+        status.is_ok(),
+        "real compose output should parse: {status:?}"
+    );
 }
