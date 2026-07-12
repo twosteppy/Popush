@@ -34,6 +34,18 @@ fn default_schema_version() -> u32 {
     1
 }
 
+impl Default for Config {
+    /// An empty, current-version config — the starting point on first launch (D2)
+    /// and the base the in-app "Add a server" flow builds on.
+    fn default() -> Self {
+        Self {
+            schema_version: CURRENT_SCHEMA_VERSION,
+            preferences: Preferences::default(),
+            servers: Vec::new(),
+        }
+    }
+}
+
 /// User preferences block.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 pub struct Preferences {

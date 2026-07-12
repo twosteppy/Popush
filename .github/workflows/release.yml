@@ -42,6 +42,19 @@ jobs:
           path: |
             src-tauri/target/release/bundle/appimage/*.AppImage
             src-tauri/target/release/bundle/rpm/*.rpm
+      - name: Attach packages to the GitHub Release (on tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/rpm/*.rpm
+          body: |
+            Popush — Your VPS, one click away. Built by twostep.
+
+            Download the `.AppImage`, make it executable (`chmod +x`), and run it —
+            or clone the repo and run `bash install.sh` to get a launcher icon and a
+            Desktop shortcut automatically.
 
   flatpak:
     name: Build Flatpak

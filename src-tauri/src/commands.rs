@@ -140,6 +140,43 @@ pub async fn apply_wizard_fix(
         .map_err(|detail| AppError::Git(popush_core::error::GitError::Operation { detail }))
 }
 
+/// Add or replace a server from the in-app form, persisting to `config.toml`
+/// (§7). The user never has to hand-edit TOML; the file stays human-editable.
+#[tauri::command]
+pub async fn add_server(
+    state: State<'_, AppState>,
+    server: ServerConfig,
+) -> Result<(), AppError> {
+    state.add_or_update_server(server).map_err(AppError::Config)
+}
+
+/// Remove a server by id and persist.
+#[tauri::command]
+pub async fn remove_server(
+    state: State<'_, AppState>,
+    server_id: ServerId,
+) -> Result<(), AppError> {
+    state.remove_server(&server_id).map_err(AppError::Config)?;
+    Ok(())
+}
+
+/// The whole config snapshot (for the settings/config views).
+#[tauri::command]
+pub async fn get_config(
+    state: State<'_, AppState>,
+) -> Result<popush_core::config::Config, AppError> {
+    Ok(state.config_snapshot())
+}
+
+/// The absolute path to `config.toml`, so the UI can offer "open in your editor"
+/// (§7.1) — the app is not the sole source of truth (D6).
+#[tauri::command]
+pub async fn config_file_path() -> Result<String, AppError> {
+    Ok(crate::state::config_path()
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "~/.config/popush/config.toml".into()))
+}
+
 /// The full command log (D8).
 #[tauri::command]
 pub async fn command_log(state: State<'_, AppState>) -> Result<Vec<CommandLogEntry>, AppError> {
