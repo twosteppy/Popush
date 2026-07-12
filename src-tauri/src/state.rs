@@ -78,6 +78,48 @@ impl AppState {
             .unwrap_or_default()
     }
 
+    /// Snapshot the whole config (or a fresh default if none is loaded).
+    pub fn config_snapshot(&self) -> Config {
+        self.inner
+            .lock()
+            .unwrap()
+            .config
+            .clone()
+            .unwrap_or_default()
+    }
+
+    /// Add or replace a server (the in-app "Add a server" flow), then persist the
+    /// config to disk so the change survives a restart (§7, D6). Writing goes
+    /// through `popush_core`, which keeps the file human-editable and secret-free.
+    pub fn add_or_update_server(
+        &self,
+        server: popush_core::config::ServerConfig,
+    ) -> Result<(), popush_core::error::ConfigError> {
+        let mut guard = self.inner.lock().unwrap();
+        let config = guard.config.get_or_insert_with(Config::default);
+        popush_core::config::upsert_server(config, server);
+        popush_core::config::validate(config)?;
+        let toml = popush_core::config::to_toml(config)?;
+        drop(guard);
+        write_config_file(&toml)
+    }
+
+    /// Remove a server by id and persist.
+    pub fn remove_server(
+        &self,
+        id: &ServerId,
+    ) -> Result<bool, popush_core::error::ConfigError> {
+        let mut guard = self.inner.lock().unwrap();
+        let Some(config) = guard.config.as_mut() else {
+            return Ok(false);
+        };
+        let removed = popush_core::config::remove_server(config, id);
+        let toml = popush_core::config::to_toml(config)?;
+        drop(guard);
+        write_config_file(&toml)?;
+        Ok(removed)
+    }
+
     /// Append an entry to the command log (D8).
     pub fn record_command(&self, entry: CommandLogEntry) {
         self.inner.lock().unwrap().command_log.push(entry);
@@ -124,4 +166,24 @@ impl Default for AppState {
 pub fn config_path() -> Option<std::path::PathBuf> {
     directories::ProjectDirs::from("dev", "popush", "popush")
         .map(|d| d.config_dir().join("config.toml"))
+}
+
+/// Write the config TOML to the XDG path, creating the directory if needed.
+fn write_config_file(toml: &str) -> Result<(), popush_core::error::ConfigError> {
+    let path = config_path().ok_or_else(|| popush_core::error::ConfigError::Unreadable {
+        path: "~/.config/popush/config.toml".into(),
+        detail: "could not resolve the XDG config directory".into(),
+    })?;
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| {
+            popush_core::error::ConfigError::Unreadable {
+                path: parent.to_path_buf(),
+                detail: e.to_string(),
+            }
+        })?;
+    }
+    std::fs::write(&path, toml).map_err(|e| popush_core::error::ConfigError::Unreadable {
+        path,
+        detail: e.to_string(),
+    })
 }

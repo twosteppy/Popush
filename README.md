@@ -16,6 +16,27 @@ step.
 
 Linux only. Fedora 44 with KDE Plasma is the first-class target.
 
+## Install (one command)
+
+```sh
+git clone https://github.com/twosteppy/popush.git
+cd popush
+bash install.sh
+```
+
+That is the whole thing. `install.sh` installs the build prerequisites, builds
+Popush, and adds it to your application launcher **and** puts a double-clickable
+icon on your Desktop — so you never have to remember a command to open it again.
+Search your launcher for "Popush", or double-click the icon on your Desktop.
+
+It never touches your `~/.ssh` or your servers; it only builds and installs the
+app. To remove the desktop integration later, run `bash uninstall.sh` (your
+config is left untouched).
+
+First run: if you do not have an SSH key yet, create one with
+`ssh-keygen -t ed25519`, then click **Add your first server** — no config files,
+no terminal.
+
 ## Screenshots
 
 ![Main window](docs/screenshots/main.png)
