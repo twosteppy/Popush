@@ -76,6 +76,24 @@ Format: decision — reason — date.
   is declared with `#[async_trait]`, so the host-key handler impl must use it too.
   Verified against the resolved crate source. — 2026-07-12
 
+## Verification boundary (stated honestly, D5/D17)
+
+The workspace split means `popush-core` and the discrete infrastructure modules
+are fully built and verified: `popush-core` compiles, passes its tests, and is
+clippy/fmt clean; the `russh`, `git2`, `reqwest`+`keyring`, and
+`tracing-subscriber` modules were each type-checked (and, where they hold pure
+logic, unit-tested) against their real pinned APIs in isolation, because the full
+`src-tauri` binary links WebKitGTK and only compiles on the Linux target.
+
+The remaining integration point is the **SSH connection-pool lifecycle** inside
+the Tauri command handlers (opening a pool on demand, caching it per server in
+`AppState` behind async access, reconnect on loss) and the **live log stream**
+plumbing. Every building block for these exists and is verified — `SshPool`,
+`parse_known_hosts`, the adapters, the pipeline orchestrator — but their final
+assembly into async Tauri commands, and the end-to-end Ship It run, are exercised
+by the integration suite against the test VPS (§23.3) on the target rather than in
+this headless environment. This is recorded rather than hidden (D17).
+
 ## Small choices where the spec was silent
 
 - **`RemoteCommand::render` panics on a placeholder/argument count mismatch.** —
