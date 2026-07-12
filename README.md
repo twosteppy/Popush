@@ -26,7 +26,7 @@ bash install.sh
 
 That is the whole thing. `install.sh` installs the build prerequisites, builds
 Popush, and adds it to your application launcher **and** puts a double-clickable
-icon on your Desktop — so you never have to remember a command to open it again.
+icon on your Desktop, so you never have to remember a command to open it again.
 Search your launcher for "Popush", or double-click the icon on your Desktop.
 
 It never touches your `~/.ssh` or your servers; it only builds and installs the
@@ -34,7 +34,7 @@ app. To remove the desktop integration later, run `bash uninstall.sh` (your
 config is left untouched).
 
 First run: if you do not have an SSH key yet, create one with
-`ssh-keygen -t ed25519`, then click **Add your first server** — no config files,
+`ssh-keygen -t ed25519`, then click **Add your first server**, no config files,
 no terminal.
 
 ## Screenshots
@@ -108,7 +108,7 @@ is not Popush's concern; it talks only to `SSH_AUTH_SOCK`.
 
 Popush is a Cargo workspace with two crates:
 
-- **`popush-core`** — all business logic (SSH command construction, config,
+- **`popush-core`**, all business logic (SSH command construction, config,
   service adapters, git URL handling, the error taxonomy, the pipeline). It links
   no GUI libraries, so it builds and tests anywhere:
 
@@ -116,7 +116,7 @@ Popush is a Cargo workspace with two crates:
   cargo test -p popush-core
   ```
 
-- **`src-tauri`** — the Tauri v2 binary. It is the presentation and IPC shell and
+- **`src-tauri`**, the Tauri v2 binary. It is the presentation and IPC shell and
   contains no business logic. It links WebKitGTK and only builds on Linux. On
   Fedora you need the WebKitGTK 4.1 development libraries and the usual Tauri
   Linux dependencies:
@@ -146,7 +146,7 @@ must not be edited by hand:
 cargo run -p popush-core --example generate_types
 ```
 
-Target platform: Fedora 44 + KDE Plasma. Linux only — there are no Windows or
+Target platform: Fedora 44 + KDE Plasma. Linux only, there are no Windows or
 macOS builds by design.
 
 ## Licence
@@ -154,7 +154,7 @@ macOS builds by design.
 Popush is released under the **GNU General Public License v3.0**. See
 [LICENSE](LICENSE).
 
-The principles behind Popush — accountless, no telemetry, free forever — are
+The principles behind Popush, accountless, no telemetry, free forever, are
 exactly what a closed fork would strip first. GPLv3 is what keeps them attached
 to the name. If you fork Popush, those principles come with it.
 

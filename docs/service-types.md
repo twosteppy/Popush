@@ -1,6 +1,6 @@
 # Service types
 
-A site's `service_type` selects the adapter — the module that knows how to check,
+A site's `service_type` selects the adapter, the module that knows how to check,
 start, stop, restart, and tail logs for that kind of service. The adapter also
 declares its **capabilities**, which decide which buttons appear. A button that an
 adapter does not support is not rendered, rather than rendered and failing.

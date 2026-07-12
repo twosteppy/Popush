@@ -251,7 +251,7 @@ got: string, };
 
 export type UserMessage = { 
 /**
- * What happened. Specific — the failing step, never "Deploy failed".
+ * What happened. Specific, the failing step, never "Deploy failed".
  */
 headline: string, 
 /**

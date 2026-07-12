@@ -2,7 +2,7 @@
 //!
 //! These are `#[ignore]` by default: they require the test VPS from `test-vps/`
 //! to be running and an `ssh-agent` holding the throwaway key. They never touch
-//! the developer's real environment (Agent Rule 6) — all state lives in the
+//! the developer's real environment (Agent Rule 6), all state lives in the
 //! container, reached only through env-configured coordinates.
 //!
 //! Run them with the harness up:

@@ -1,5 +1,5 @@
-//! Local git I/O via `git2` (§10). Reads status, classifies the remote, and — in
-//! the pipeline — stages, commits, and pushes with agent-based credentials. The
+//! Local git I/O via `git2` (§10). Reads status, classifies the remote, and, in
+//! the pipeline, stages, commits, and pushes with agent-based credentials. The
 //! URL classification logic is `popush_core::git::remote`; this layer performs the
 //! libgit2 calls (D14).
 
@@ -15,7 +15,7 @@ use popush_core::git::remote::classify_remote;
 use popush_core::git::RemoteKind;
 
 /// Read the git status of the repository at `path` (§10.1). Detects conflicts,
-/// detached HEAD, ahead/behind, and whether the remote is SSH — the facts the
+/// detached HEAD, ahead/behind, and whether the remote is SSH, the facts the
 /// git panel and the wizard need.
 pub fn status(path: &Path, remote_name: &str) -> Result<GitStatus, GitError> {
     let repo = git2::Repository::open(path).map_err(|e| GitError::Operation {

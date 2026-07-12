@@ -143,10 +143,7 @@ pub async fn apply_wizard_fix(
 /// Add or replace a server from the in-app form, persisting to `config.toml`
 /// (§7). The user never has to hand-edit TOML; the file stays human-editable.
 #[tauri::command]
-pub async fn add_server(
-    state: State<'_, AppState>,
-    server: ServerConfig,
-) -> Result<(), AppError> {
+pub async fn add_server(state: State<'_, AppState>, server: ServerConfig) -> Result<(), AppError> {
     state.add_or_update_server(server).map_err(AppError::Config)
 }
 
@@ -169,7 +166,7 @@ pub async fn get_config(
 }
 
 /// The absolute path to `config.toml`, so the UI can offer "open in your editor"
-/// (§7.1) — the app is not the sole source of truth (D6).
+/// (§7.1), the app is not the sole source of truth (D6).
 #[tauri::command]
 pub async fn config_file_path() -> Result<String, AppError> {
     Ok(crate::state::config_path()

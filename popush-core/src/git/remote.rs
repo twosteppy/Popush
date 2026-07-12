@@ -58,7 +58,7 @@ pub fn https_to_ssh(url: &str) -> Option<String> {
         .strip_prefix("https://")
         .or_else(|| u.strip_prefix("http://"))?;
 
-    // Strip any embedded credentials (`user:token@host`) — they must never carry
+    // Strip any embedded credentials (`user:token@host`), they must never carry
     // into the SSH URL, and their presence is exactly why we convert.
     let rest = match rest.split_once('@') {
         Some((_creds, after)) => after,

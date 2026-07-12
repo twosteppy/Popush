@@ -19,7 +19,7 @@ use ts_rs::TS;
 /// the frontend; never assembled there (D14).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 pub struct UserMessage {
-    /// What happened. Specific — the failing step, never "Deploy failed".
+    /// What happened. Specific, the failing step, never "Deploy failed".
     pub headline: String,
     /// What it means for the user. E.g. "Your site is still running the previous
     /// version."
@@ -108,7 +108,7 @@ pub enum SshError {
         /// The specific reason auth failed.
         reason: AuthFailureReason,
     },
-    /// The stored host key does not match — a possible man-in-the-middle (§8.3).
+    /// The stored host key does not match, a possible man-in-the-middle (§8.3).
     #[error("host key mismatch for {host}")]
     HostKeyMismatch {
         /// The host whose key changed.

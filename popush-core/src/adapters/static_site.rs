@@ -1,4 +1,4 @@
-//! Static-site adapter (§9.5) — the honest one.
+//! Static-site adapter (§9.5), the honest one.
 //!
 //! A static site served by nginx has no process of its own. Its "status" is
 //! whether files exist and, if a `health_check_url` is configured, whether an

@@ -1,5 +1,5 @@
-//! Setup-wizard I/O (§11). The decisions — which fix, whether a key may be
-//! generated, how to convert a remote — come from `popush_core::wizard`; this
+//! Setup-wizard I/O (§11). The decisions, which fix, whether a key may be
+//! generated, how to convert a remote, come from `popush_core::wizard`; this
 //! layer performs the local filesystem and `git2` operations for the checks that
 //! are local (C1 and C4) and applies previewed fixes. The remote checks (C3, C5,
 //! C6, C7) run over SSH against a live server and are exercised by the integration
@@ -90,7 +90,7 @@ fn classify_local_remote(repo_path: &Path) -> CheckStatus {
 }
 
 /// Apply a previewed fix that Popush can perform directly (D13: preview shown
-/// first by the UI). Remote conversion runs through `git2` — never a shell — so
+/// first by the UI). Remote conversion runs through `git2`, never a shell, so
 /// the URL is set structurally, not string-spliced.
 pub fn apply_fix(fix: &Fix, repo_path: Option<&Path>) -> Result<(), String> {
     match fix {

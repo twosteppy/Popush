@@ -22,7 +22,7 @@ The most security-critical code in Popush is
 `popush-core/src/ssh/command.rs`. A `RemoteCommand` is not a string: it is a
 compile-time template with `{}` placeholders plus a vector of arguments, each
 shell-escaped at construction. A value like `; rm -rf /` arriving through a
-`remote_path` cannot break out of its argument position — it is one inert word.
+`remote_path` cannot break out of its argument position, it is one inert word.
 An adversarial test corpus injects known attack strings into every argument
 position and asserts each is neutralised, and that the command log shows exactly
 what was sent.
@@ -30,7 +30,7 @@ what was sent.
 ## Host keys
 
 On first connection Popush reads `~/.ssh/known_hosts`. A known, matching key
-connects. An unknown host is presented with its fingerprint for you to verify —
+connects. An unknown host is presented with its fingerprint for you to verify -
 never auto-accepted. A known host whose key has **changed** is refused: that is
 the signature of a man-in-the-middle, and the warning is not dismissible with a
 single click.
@@ -40,7 +40,7 @@ single click.
 When a VPS needs to `git pull` from a private repository, the right answer is a
 **deploy key**: an SSH key that lives on the server and is registered with that
 one repository, read-only. A compromised VPS then has read access to a single
-repo, not write access to your whole GitHub account — strictly better than a
+repo, not write access to your whole GitHub account, strictly better than a
 personal access token on the server. The setup wizard walks this flow, and
 actively warns if it finds a **personal** private key on a server, which it must
 never place there.

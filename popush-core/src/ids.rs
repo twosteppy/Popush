@@ -1,5 +1,5 @@
 //! Newtype identifiers. Distinct types stop a `SiteId` being passed where a
-//! `ServerId` is expected — a class of bug a bare `String` would allow.
+//! `ServerId` is expected, a class of bug a bare `String` would allow.
 
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;

@@ -1,6 +1,6 @@
 //! Log redaction wiring (§17.3). The `tracing` output is passed through
 //! [`popush_core::redact::redact_line`] before it is written, so key material,
-//! tokens, and `Authorization` headers never reach the log file — which is itself
+//! tokens, and `Authorization` headers never reach the log file, which is itself
 //! local-only and never transmitted (D3).
 //!
 //! This is glue over the pure redactor: a [`std::io::Write`] wrapper that redacts

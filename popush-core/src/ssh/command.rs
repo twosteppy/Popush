@@ -1,4 +1,4 @@
-//! Remote command construction — **the most security-critical code in Popush** (D10).
+//! Remote command construction, **the most security-critical code in Popush** (D10).
 //!
 //! A site's `remote_path`, `service_name`, `build_command` arguments, and git
 //! branch names all originate in `config.toml`, which is user-supplied and, per
@@ -83,7 +83,7 @@ impl RemoteCommand {
     /// Panics if the number of placeholders does not match the number of
     /// arguments. This can only happen through a Popush programming error (a
     /// template and its call site disagreeing), never through user input, so a
-    /// panic — caught at the earliest test — is the correct, loud failure. It is
+    /// panic, caught at the earliest test, is the correct, loud failure. It is
     /// never reachable from a rendered-and-shipped path because every template is
     /// exercised by a test.
     pub fn render(&self) -> String {
@@ -110,7 +110,7 @@ impl RemoteCommand {
     }
 
     /// The human-readable form shown in the command log (D8). It is exactly what
-    /// was sent to the server — there is no "safe" transformation that hides the
+    /// was sent to the server, there is no "safe" transformation that hides the
     /// truth, because the whole point of the command log is honesty.
     pub fn display(&self) -> String {
         self.render()
@@ -270,7 +270,7 @@ mod tests {
     /// * a bare `'` outside quotes opens a single-quoted region.
     ///
     /// Only when the payload itself contains a metacharacter do we require it to
-    /// land inside quotes or behind a backslash — the template's own ` && ` is
+    /// land inside quotes or behind a backslash, the template's own ` && ` is
     /// legitimately active and must not trip the check.
     fn assert_inert(rendered: &str, payload: &str) {
         let payload_has = |m: char| payload.contains(m);

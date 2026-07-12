@@ -13,11 +13,15 @@
     "windows": [
       {
         "title": "Popush",
-        "width": 1100,
+        "width": 1080,
         "height": 720,
-        "minWidth": 860,
-        "minHeight": 560,
-        "resizable": true,
+        "minWidth": 1080,
+        "minHeight": 720,
+        "maxWidth": 1080,
+        "maxHeight": 720,
+        "resizable": false,
+        "maximizable": false,
+        "center": true,
         "theme": null
       }
     ],

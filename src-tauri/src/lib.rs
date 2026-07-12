@@ -40,7 +40,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(state::AppState::new())
         .setup(|app| {
-            // Load config on startup; a missing config is not an error — first
+            // Load config on startup; a missing config is not an error, first
             // launch goes straight to the app (D2), showing the empty state.
             let handle = app.handle().clone();
             let state = handle.state::<state::AppState>();

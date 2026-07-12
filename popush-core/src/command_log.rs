@@ -1,6 +1,6 @@
 //! The command log (D8, §8.5): a permanent, inspectable record of every remote
 //! command Popush ran, so the user can always answer "what did this app actually
-//! do to my server?" The log holds only what is safe to show — the command as
+//! do to my server?" The log holds only what is safe to show, the command as
 //! sent (already escaped), never key material.
 
 use chrono::{DateTime, Utc};

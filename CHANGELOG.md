@@ -8,7 +8,7 @@ semantic versioning.
 
 Nothing yet.
 
-## [1.0.0] — 2026-07-12
+## [1.0.0], 2026-07-12
 
 The first release.
 
@@ -22,8 +22,8 @@ The first release.
   from compile-time templates plus shell-escaped arguments, never string
   formatting. Covered by an adversarial escaping corpus.
 - **The command log**: a permanent, inspectable record of every remote command
-  Popush ran — timestamp, server, exact command, exit code, duration.
-- **Four service adapters** — Docker, systemd, pm2, and static — each reporting an
+  Popush ran, timestamp, server, exact command, exit code, duration.
+- **Four service adapters**, Docker, systemd, pm2, and static, each reporting an
   honest status. Static sites show amber "Unknown" unless a health check is
   configured; the app never renders a green light it has not verified.
 - **Local git panel**: status, staging, commit, and push via `git2` with
