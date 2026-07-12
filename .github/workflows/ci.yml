@@ -82,6 +82,48 @@ jobs:
         with:
           command: check
 
+  integration:
+    name: Integration (test VPS, §23.3)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install WebKitGTK and Tauri Linux deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libssl-dev
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Bring up the test VPS
+        working-directory: test-vps
+        run: |
+          ./generate-key.sh
+          docker compose up -d --build
+          # Wait for sshd to accept connections.
+          for i in $(seq 1 30); do
+            if docker compose exec -T test-vps bash -c 'echo > /dev/tcp/127.0.0.1/22' 2>/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+      - name: Load the throwaway key into an agent and record the host key
+        run: |
+          eval "$(ssh-agent -s)"
+          ssh-add test-vps/test_key
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
+          echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> "$GITHUB_ENV"
+          echo "POPUSH_TEST_KNOWN_HOSTS<<EOF" >> "$GITHUB_ENV"
+          ssh-keyscan -p 2222 localhost 2>/dev/null | sed 's/^\[localhost\]:2222/localhost/' >> "$GITHUB_ENV"
+          echo "EOF" >> "$GITHUB_ENV"
+      - name: Run integration tests against the VPS
+        env:
+          POPUSH_TEST_VPS: localhost:2222
+        run: cargo test -p popush --test integration -- --ignored --nocapture
+
   frontend:
     name: Frontend (lint, test, build)
     runs-on: ubuntu-latest
