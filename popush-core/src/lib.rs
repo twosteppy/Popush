@@ -32,8 +32,10 @@ pub mod command_log;
 pub mod config;
 pub mod error;
 pub mod git;
+pub mod github;
 pub mod ids;
 pub mod pipeline;
+pub mod redact;
 pub mod ssh;
 pub mod wizard;
 

@@ -72,6 +72,19 @@ pub fn resolve_status(presence: PresenceOutcome, health: Option<HealthVerdict>) 
     }
 }
 
+impl HealthVerdict {
+    /// Classify an HTTP status code from a `HEAD` to the health check URL. A 2xx
+    /// earns `Ok`; anything else is reported honestly with its code (§9.5). The
+    /// binary calls this after performing the request.
+    pub fn from_http_status(code: u16) -> Self {
+        if (200..300).contains(&code) {
+            HealthVerdict::Ok
+        } else {
+            HealthVerdict::Http { code }
+        }
+    }
+}
+
 /// The verdict of an HTTP `HEAD` to the configured `health_check_url`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HealthVerdict {
@@ -126,6 +139,20 @@ mod tests {
         assert!(!capabilities(false).status_is_reliable);
         assert!(capabilities(true).status_is_reliable);
         assert!(!capabilities(true).can_restart);
+    }
+
+    #[test]
+    fn http_status_classification() {
+        assert_eq!(HealthVerdict::from_http_status(200), HealthVerdict::Ok);
+        assert_eq!(HealthVerdict::from_http_status(204), HealthVerdict::Ok);
+        assert_eq!(
+            HealthVerdict::from_http_status(500),
+            HealthVerdict::Http { code: 500 }
+        );
+        assert_eq!(
+            HealthVerdict::from_http_status(404),
+            HealthVerdict::Http { code: 404 }
+        );
     }
 
     #[test]

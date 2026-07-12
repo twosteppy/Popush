@@ -114,11 +114,13 @@ fn no_secrets_committed_d7() {
             for m in key_markers {
                 if text.contains(m) {
                     // Allowed only where we deliberately *name* the marker to
-                    // reject it (the loader guardrail) or explain it (docs).
+                    // reject or redact it (the loader guardrail and the log
+                    // redaction filter) or explain it (docs).
                     let is_guardrail = path.ends_with("config/loader.rs");
+                    let is_redactor = path.ends_with("redact.rs");
                     let is_doc = path.extension().map(|e| e == "md").unwrap_or(false);
                     assert!(
-                        is_guardrail || is_doc,
+                        is_guardrail || is_redactor || is_doc,
                         "possible committed private key ({m:?}) in {}",
                         path.display()
                     );

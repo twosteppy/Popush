@@ -3,6 +3,10 @@
 //! URL classification logic is `popush_core::git::remote`; this layer performs the
 //! libgit2 calls (D14).
 
+pub mod commit;
+
+pub use commit::{push, stage_and_commit};
+
 use std::path::Path;
 
 use popush_core::config::{ChangeKind, ChangedFile, GitStatus};
