@@ -18,6 +18,7 @@ use popush_core::error::{
     AdapterError, AppError, AuthFailureReason, ConfigError, GitError, NextAction, PipelineError,
     SshError, UserMessage,
 };
+use popush_core::github::{CiStatus, LatestCommit};
 use popush_core::ids::{PipelineId, ServerId, SiteId, StreamId};
 use popush_core::ssh::HostKeyDecision;
 use popush_core::wizard::{Check, CheckStatus, Fix, FixPreview};
@@ -88,6 +89,8 @@ fn main() {
     decl!(out, Check, CheckStatus, FixPreview, Fix);
     // Command log.
     decl!(out, CommandOutcome, CommandLogEntry);
+    // Optional GitHub features (Phase 10).
+    decl!(out, LatestCommit, CiStatus);
 
     // Write relative to the repo root (the workspace dir), which is the cwd when
     // invoked with `-p popush-core` from the root.

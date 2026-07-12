@@ -130,6 +130,89 @@ pub async fn command_log(state: State<'_, AppState>) -> Result<Vec<CommandLogEnt
     Ok(state.command_log())
 }
 
+/// Commit the selected files and push, using the verified local-git module. Push
+/// credentials come from `ssh-agent` (§10.3); an HTTPS remote is refused and routes
+/// to the wizard. Returns the new commit's short SHA.
+#[tauri::command]
+pub async fn git_commit_and_push(
+    state: State<'_, AppState>,
+    site_id: SiteId,
+    message: String,
+    files: Vec<std::path::PathBuf>,
+) -> Result<String, AppError> {
+    let site = find_site(&state, &site_id).ok_or_else(|| {
+        AppError::Config(popush_core::error::ConfigError::InvalidField {
+            field: "site_id".into(),
+            problem: format!("no site with id `{}`", site_id.0),
+        })
+    })?;
+    let local = site.local_path.clone().ok_or_else(|| {
+        AppError::Git(popush_core::error::GitError::Operation {
+            detail: "this site has no local_path configured".into(),
+        })
+    })?;
+    let sha = crate::git::stage_and_commit(&local, &message, &files).map_err(AppError::Git)?;
+    crate::git::push(&local, &site.git_remote, &site.git_branch).map_err(AppError::Git)?;
+    Ok(sha)
+}
+
+/// Store the optional GitHub PAT in the system keyring (§11.5). Never written to
+/// `config.toml` or any log.
+#[tauri::command]
+pub async fn set_github_token(token: String) -> Result<(), AppError> {
+    crate::github::store_token(&token).map_err(|e| {
+        AppError::Config(popush_core::error::ConfigError::Unreadable {
+            path: "system keyring".into(),
+            detail: e.to_string(),
+        })
+    })
+}
+
+/// Remove the stored GitHub PAT from the keyring.
+#[tauri::command]
+pub async fn clear_github_token() -> Result<(), AppError> {
+    crate::github::clear_token().map_err(|e| {
+        AppError::Config(popush_core::error::ConfigError::Unreadable {
+            path: "system keyring".into(),
+            detail: e.to_string(),
+        })
+    })
+}
+
+/// The optional GitHub info panel (§11.5): latest commit, CI status, open PRs. All
+/// three are `None`/default when no token is present, so the UI shows the feature
+/// as off. The token is sent only to `api.github.com`.
+#[tauri::command]
+pub async fn github_repo_info(
+    owner: String,
+    repo: String,
+    branch: String,
+) -> Result<GithubInfo, AppError> {
+    let Some(client) = crate::github::GitHubClient::from_keyring() else {
+        return Ok(GithubInfo::default());
+    };
+    Ok(GithubInfo {
+        latest_commit: client.latest_commit(&owner, &repo, &branch).await,
+        ci_status: client.ci_status(&owner, &repo, &branch).await,
+        open_pr_count: client.open_pr_count(&owner, &repo).await,
+        token_present: true,
+    })
+}
+
+/// The optional GitHub info surfaced to the UI (§11.5).
+#[derive(serde::Serialize, Default)]
+pub struct GithubInfo {
+    /// The latest commit, if a token is present and the fetch succeeded.
+    pub latest_commit: Option<popush_core::github::LatestCommit>,
+    /// The CI status; `None` when no checks or no token.
+    #[serde(default)]
+    pub ci_status: popush_core::github::CiStatus,
+    /// The number of open PRs; 0 when no token.
+    pub open_pr_count: usize,
+    /// Whether a token is configured at all.
+    pub token_present: bool,
+}
+
 /// The author credit and version for the About dialog (D9).
 #[tauri::command]
 pub async fn app_credit() -> Result<Credit, AppError> {

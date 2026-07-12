@@ -563,3 +563,19 @@ exit_code: number | null,
  */
 duration_ms: bigint, };
 
+export type LatestCommit = { 
+/**
+ * The abbreviated SHA (first 7 characters).
+ */
+short_sha: string, 
+/**
+ * The commit author's display name.
+ */
+author: string, 
+/**
+ * The first line of the commit message.
+ */
+summary: string, };
+
+export type CiStatus = "passing" | "failing" | "pending" | "none";
+

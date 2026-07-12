@@ -12,6 +12,9 @@
 pub mod adapters;
 pub mod commands;
 pub mod git;
+pub mod github;
+pub mod logging;
+pub mod pipeline;
 pub mod ssh;
 pub mod state;
 
@@ -19,11 +22,15 @@ use tauri::Manager;
 
 /// Build and run the Tauri application. Called by `main.rs`.
 pub fn run() {
+    // Logs are local-only and never transmitted (D3), and every line is passed
+    // through the credential redactor first (§17.3) so key material and tokens
+    // never reach disk.
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
                 .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("popush=info")),
         )
+        .with_writer(logging::RedactingMakeWriter)
         .init();
 
     tauri::Builder::default()
@@ -49,6 +56,10 @@ pub fn run() {
             commands::cancel_pipeline,
             commands::run_wizard_check,
             commands::apply_wizard_fix,
+            commands::git_commit_and_push,
+            commands::set_github_token,
+            commands::clear_github_token,
+            commands::github_repo_info,
             commands::command_log,
             commands::app_credit,
         ])

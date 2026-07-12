@@ -62,6 +62,20 @@ Format: decision — reason — date.
 - **No `.deb`, no Snap, no auto-updater.** — Updates come from the package
   manager; an update channel would need a server and violate D3. — 2026-07-12
 
+## Dependencies added beyond §5.3 (Agent Rule 7 requires justification)
+
+- **`reqwest` (rustls-tls, no default features) in `src-tauri` only.** — Two
+  features need an HTTP client that §5.3 did not name: the static adapter's health
+  check (§9.5, an HTTP `HEAD` to `health_check_url`) and the optional GitHub API
+  (§11.5). `reqwest` with `rustls-tls` avoids an OpenSSL system dependency and
+  composes with the existing Tokio runtime. It stays out of `popush-core`; the
+  core only classifies an already-obtained HTTP status code
+  (`HealthVerdict::from_http_status`) and parses already-fetched GitHub JSON. —
+  2026-07-12
+- **`async-trait` in `src-tauri` only.** — `russh` 0.45's `client::Handler` trait
+  is declared with `#[async_trait]`, so the host-key handler impl must use it too.
+  Verified against the resolved crate source. — 2026-07-12
+
 ## Small choices where the spec was silent
 
 - **`RemoteCommand::render` panics on a placeholder/argument count mismatch.** —
