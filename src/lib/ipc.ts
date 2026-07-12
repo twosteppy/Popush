@@ -10,6 +10,7 @@
 import type {
   Capabilities,
   CommandLogEntry,
+  Config,
   Fix,
   FixPreview,
   GitStatus,
@@ -102,6 +103,40 @@ export async function commandLog(): Promise<CommandLogEntry[]> {
 export async function appCredit(): Promise<string> {
   if (!inTauri()) return 'twostep';
   return invoke<string>('app_credit');
+}
+
+/**
+ * Persist a new server to config.toml (§6.3: backend owns the config file).
+ * The frontend only marshals the intent; it never writes the file itself.
+ */
+export async function addServer(server: ServerConfig): Promise<void> {
+  return invoke<void>('add_server', { server });
+}
+
+/** Remove a server from config.toml by id. */
+export async function removeServer(serverId: string): Promise<void> {
+  return invoke<void>('remove_server', { serverId });
+}
+
+/** Read the whole authoritative config snapshot. */
+export async function getConfig(): Promise<Config | null> {
+  if (!inTauri()) return null;
+  return invoke<Config>('get_config');
+}
+
+/** Absolute path to config.toml, e.g. for the "open your config" affordance. */
+export async function configFilePath(): Promise<string | null> {
+  if (!inTauri()) return null;
+  return invoke<string>('config_file_path');
+}
+
+/**
+ * Reveal a path in the user's default handler via the tauri-opener plugin.
+ * No-ops outside Tauri. Used to open config.toml from the onboarding screen.
+ */
+export async function openPath(path: string): Promise<void> {
+  if (!inTauri()) return;
+  return invoke<void>('plugin:opener|open_path', { path });
 }
 
 export async function runWizardCheck(

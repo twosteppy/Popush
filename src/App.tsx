@@ -1,34 +1,42 @@
-// App — the three-region layout (§14.2): left sidebar (~240px), main panel,
-// and the bottom log drawer. Wires the Ctrl+K command palette and Ctrl+`
-// drawer toggle, and hydrates the stores from the backend on mount.
+// App — the app shell: a top header with the Popush wordmark + window-drag
+// region, then the three-region body (left sidebar, main panel, bottom log
+// drawer). Wires Ctrl+K (command palette), Ctrl+` (drawer toggle), the Add
+// Server dialog, and hydrates the stores from the backend on mount.
 //
 // D14: the shell holds no deployment logic. It renders state from the stores
 // and dispatches selection/navigation intents.
 
 import { useEffect, useMemo, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AppHeader } from './components/AppHeader';
 import { Sidebar } from './components/Sidebar';
 import { LogDrawer } from './components/LogDrawer';
+import { EmptyState } from './components/EmptyState';
+import { AddServerDialog } from './components/AddServerDialog';
 import { CommandPalette, type PaletteItem } from './components/CommandPalette';
 import { SiteView } from './views/SiteView';
 import { SettingsView } from './views/SettingsView';
 import { AboutView } from './views/AboutView';
 import { CommandLogView } from './views/CommandLogView';
+import { WizardContainer } from './views/WizardContainer';
 import { useServersStore } from './store/servers';
 import { useSitesStore } from './store/sites';
 import { usePipelineStore } from './store/pipeline';
 import { usePipelineEvents } from './hooks/usePipelineEvents';
 import type { Theme } from './types/generated';
 
-type Panel = 'site' | 'settings' | 'about' | 'log';
+export type Panel = 'site' | 'settings' | 'about' | 'log' | 'wizard';
 
 const APP_VERSION = '0.1.0';
 
 export function App() {
   const [panel, setPanel] = useState<Panel>('site');
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [addServerOpen, setAddServerOpen] = useState(false);
   const [theme, setTheme] = useState<Theme>('system');
   const [pollInterval, setPollInterval] = useState(30);
   const [patDismissed, setPatDismissed] = useState(false);
+  const reduce = useReducedMotion();
 
   const { servers, selectedServerId, refresh } = useServersStore();
   const {
@@ -93,6 +101,18 @@ export function App() {
       }
     }
     items.push({
+      id: 'action:add-server',
+      label: 'Add a server',
+      kind: 'Action',
+      onSelect: () => setAddServerOpen(true),
+    });
+    items.push({
+      id: 'action:wizard',
+      label: 'Run the setup wizard',
+      kind: 'Action',
+      onSelect: () => setPanel('wizard'),
+    });
+    items.push({
       id: 'action:settings',
       label: 'Open Settings',
       kind: 'Action',
@@ -113,62 +133,70 @@ export function App() {
     return items;
   }, [sitesByServer, selectSite]);
 
+  const content =
+    panel === 'settings' ? (
+      <SettingsView
+        theme={theme}
+        onThemeChange={setTheme}
+        pollIntervalSeconds={pollInterval}
+        onPollIntervalChange={setPollInterval}
+        patSuggestionDismissed={patDismissed}
+        onDismissPatSuggestion={() => setPatDismissed(true)}
+      />
+    ) : panel === 'about' ? (
+      <AboutView version={APP_VERSION} />
+    ) : panel === 'log' ? (
+      <CommandLogView />
+    ) : panel === 'wizard' ? (
+      <WizardContainer serverId={selectedServerId} siteId={selectedSiteId} />
+    ) : selectedSite && selectedServerId ? (
+      <SiteView serverId={selectedServerId} site={selectedSite} />
+    ) : (
+      <EmptyState
+        hasServers={servers.length > 0}
+        onAddServer={() => setAddServerOpen(true)}
+        onRunWizard={() => setPanel('wizard')}
+      />
+    );
+
+  const contentKey = `${panel}:${selectedSite?.id ?? 'none'}`;
+
   return (
     <div className="flex h-screen w-screen flex-col bg-surface-base text-text-primary">
+      <AppHeader onOpenPalette={() => setPaletteOpen(true)} />
       <div className="flex min-h-0 flex-1">
         <Sidebar
+          activePanel={panel}
           onOpenSettings={() => setPanel('settings')}
-          onAdd={() => setPanel('settings')}
+          onOpenWizard={() => setPanel('wizard')}
+          onAddServer={() => setAddServerOpen(true)}
+          onSelectSite={() => setPanel('site')}
         />
         <main className="min-w-0 flex-1 overflow-y-auto">
-          {panel === 'settings' ? (
-            <SettingsView
-              theme={theme}
-              onThemeChange={setTheme}
-              pollIntervalSeconds={pollInterval}
-              onPollIntervalChange={setPollInterval}
-              patSuggestionDismissed={patDismissed}
-              onDismissPatSuggestion={() => setPatDismissed(true)}
-            />
-          ) : panel === 'about' ? (
-            <AboutView version={APP_VERSION} />
-          ) : panel === 'log' ? (
-            <CommandLogView />
-          ) : selectedSite && selectedServerId ? (
-            <SiteView serverId={selectedServerId} site={selectedSite} />
-          ) : (
-            <EmptyState hasServers={servers.length > 0} />
-          )}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={contentKey}
+              initial={reduce ? false : { opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduce ? undefined : { opacity: 0, y: -4 }}
+              transition={{ duration: 0.16, ease: 'easeOut' }}
+              className="h-full"
+            >
+              {content}
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
-      <footer className="flex shrink-0 items-center justify-end border-t border-border-subtle px-3 py-1">
-        <button
-          type="button"
-          onClick={() => setPanel('log')}
-          className="text-xs text-text-tertiary hover:text-text-secondary"
-        >
-          Command log
-        </button>
-      </footer>
+
       <LogDrawer />
+
+      <AddServerDialog open={addServerOpen} onOpenChange={setAddServerOpen} />
 
       <CommandPalette
         open={paletteOpen}
         onOpenChange={setPaletteOpen}
         items={paletteItems}
       />
-    </div>
-  );
-}
-
-function EmptyState({ hasServers }: { hasServers: boolean }) {
-  return (
-    <div className="flex h-full items-center justify-center p-6 text-center">
-      <p className="max-w-sm text-sm text-text-secondary">
-        {hasServers
-          ? 'Select a site from the sidebar to get started.'
-          : 'Add a server to begin. Popush connects over SSH — no account needed.'}
-      </p>
     </div>
   );
 }

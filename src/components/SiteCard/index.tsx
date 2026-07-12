@@ -1,11 +1,13 @@
-// SiteCard — the header card for a site. Title (20px/600), url, and a
-// "Deployed … · branch · sha" line. surface-raised, border-subtle, radius-lg.
-// Selected state adds a 2px accent left border.
+// SiteCard — the header card for a site. Title (20px/600), live URL, a status
+// pill (colour + word, §20), and a "Deployed … · branch · sha" metadata line.
+// surface-raised, border-subtle, radius-lg; a selected site gets a 2px accent
+// left edge.
 //
 // D14: purely presentational; it renders the SiteConfig/SiteStatus it is given.
 
+import { ExternalLink, GitBranch } from 'lucide-react';
 import type { SiteConfig, SiteStatus } from '../../types/generated';
-import { StatusDot } from '../StatusDot';
+import { StatusPill } from '../ui/StatusPill';
 
 interface SiteCardProps {
   site: SiteConfig;
@@ -25,42 +27,54 @@ export function SiteCard({
 }: SiteCardProps) {
   const metaParts = [
     deployedAt ? `Deployed ${deployedAt}` : null,
-    site.git_branch,
     sha ? sha.slice(0, 7) : null,
   ].filter((p): p is string => Boolean(p));
 
   return (
     <article
-      className={`rounded-lg border border-border-subtle bg-surface-raised p-4 ${
+      className={`rounded-lg border border-border-subtle bg-surface-raised p-5 ${
         selected ? 'border-l-2 border-l-accent' : ''
       }`}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="truncate text-[20px] font-semibold text-text-primary">
+          <h1 className="truncate text-xl font-semibold tracking-tight text-text-primary">
             {site.label}
           </h1>
           {site.live_url ? (
             <a
               href={site.live_url}
-              className="text-sm text-accent hover:text-accent-hover"
+              className="mt-1 inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent-hover"
               target="_blank"
               rel="noreferrer"
             >
               {site.live_url}
+              <ExternalLink size={13} aria-hidden="true" />
             </a>
           ) : (
-            <span className="text-sm text-text-tertiary">No public URL</span>
+            <span className="mt-1 block text-sm text-text-tertiary">
+              No public URL
+            </span>
           )}
         </div>
-        <StatusDot status={status} />
+        <StatusPill status={status} size="md" />
       </div>
 
-      {metaParts.length > 0 ? (
-        <p className="mt-3 font-mono text-xs text-text-secondary">
-          {metaParts.join(' · ')}
-        </p>
-      ) : null}
+      <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs text-text-secondary">
+        <span className="inline-flex items-center gap-1.5">
+          <GitBranch
+            size={12}
+            aria-hidden="true"
+            className="text-text-tertiary"
+          />
+          {site.git_branch}
+        </span>
+        {metaParts.map((part) => (
+          <span key={part} className="text-text-tertiary">
+            · {part}
+          </span>
+        ))}
+      </div>
     </article>
   );
 }
