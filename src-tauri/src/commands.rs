@@ -104,24 +104,40 @@ pub async fn cancel_pipeline(
     Ok(())
 }
 
-/// Run a wizard check (§11.2). The check I/O lives in the infra layer; the result
-/// shape is `popush_core`'s.
+/// Run a wizard check (§11.2). Local checks (C1, C4) are performed here against
+/// `~/.ssh` and the site's local clone; checks needing the agent, GitHub, or the
+/// server report `NotApplicable` honestly rather than faking a pass.
 #[tauri::command]
 pub async fn run_wizard_check(
-    _state: State<'_, AppState>,
+    state: State<'_, AppState>,
     check: Check,
+    site_id: Option<SiteId>,
 ) -> Result<CheckStatus, AppError> {
-    // Placeholder-free: an unimplemented target-only check reports NotApplicable
-    // honestly rather than faking a pass.
-    Ok(CheckStatus::NotApplicable {
-        why: format!("{} runs against a live environment", check.title()),
-    })
+    let ssh_dir = ssh_dir();
+    let repo = site_id
+        .and_then(|id| find_site(&state, &id))
+        .and_then(|s| s.local_path);
+    Ok(crate::wizard::run_local_check(
+        check,
+        &ssh_dir,
+        repo.as_deref(),
+    ))
 }
 
 /// Apply a previewed wizard fix (§11.1). The preview was shown before this call.
+/// Remote conversion is applied via `git2`; key generation is applied through its
+/// previewed command (guarded so it can never overwrite a key, D13).
 #[tauri::command]
-pub async fn apply_wizard_fix(_state: State<'_, AppState>, _fix: Fix) -> Result<(), AppError> {
-    Ok(())
+pub async fn apply_wizard_fix(
+    state: State<'_, AppState>,
+    fix: Fix,
+    site_id: Option<SiteId>,
+) -> Result<(), AppError> {
+    let repo = site_id
+        .and_then(|id| find_site(&state, &id))
+        .and_then(|s| s.local_path);
+    crate::wizard::apply_fix(&fix, repo.as_deref())
+        .map_err(|detail| AppError::Git(popush_core::error::GitError::Operation { detail }))
 }
 
 /// The full command log (D8).
@@ -229,6 +245,14 @@ pub struct Credit {
     pub author: String,
     /// The app version.
     pub version: String,
+}
+
+/// The user's `~/.ssh` directory. Popush only ever reads public keys and
+/// `known_hosts` from here (the Flatpak grants it read-only, §21.1).
+fn ssh_dir() -> std::path::PathBuf {
+    directories::UserDirs::new()
+        .map(|d| d.home_dir().join(".ssh"))
+        .unwrap_or_else(|| std::path::PathBuf::from("~/.ssh"))
 }
 
 fn find_site(state: &AppState, site_id: &SiteId) -> Option<SiteConfig> {

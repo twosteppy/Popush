@@ -17,6 +17,7 @@ pub mod logging;
 pub mod pipeline;
 pub mod ssh;
 pub mod state;
+pub mod wizard;
 
 use tauri::Manager;
 
