@@ -1,0 +1,24 @@
+# The Popush integration test VPS (§23.3). Brought up by CI (and locally) so the
+# backend can connect over SSH and exercise every adapter and the Ship It pipeline
+# against real services.
+#
+# Usage:
+#   ./generate-key.sh            # writes ./test_key + ./authorized_keys
+#   docker compose up -d --build
+#   ssh -i ./test_key -p 2222 deploy@localhost   # sanity check
+#   POPUSH_TEST_VPS=localhost:2222 POPUSH_TEST_KEY=$PWD/test_key \
+#     cargo test -p popush --test integration -- --ignored
+services:
+  test-vps:
+    build:
+      context: .
+    ports:
+      - "2222:22"
+    # Docker-in-docker for the docker adapter sample site. Privileged is required
+    # to run a nested dockerd; acceptable for a throwaway CI test container.
+    privileged: true
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/127.0.0.1/22"]
+      interval: 2s
+      timeout: 2s
+      retries: 15

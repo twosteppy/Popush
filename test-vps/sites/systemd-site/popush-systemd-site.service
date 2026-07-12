@@ -1,0 +1,8 @@
+# Install as a user unit: systemctl --user enable --now popush-systemd-site
+[Unit]
+Description=Popush systemd adapter test site
+[Service]
+ExecStart=%h/../srv/systemd-site/run.sh
+Restart=on-failure
+[Install]
+WantedBy=default.target

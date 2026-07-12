@@ -1,0 +1,2 @@
+# Populated by generate-key.sh with the throwaway test public key.
+# The Dockerfile COPYs this file; keep it present (empty is fine before keygen).
