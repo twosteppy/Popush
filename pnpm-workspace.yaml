@@ -1,11 +1,19 @@
-# pnpm 10+ reads settings from here rather than the "pnpm" field in package.json.
-#
-# The overrides pin postcss and nanoid to releases old enough to satisfy a
-# minimum-release-age supply-chain policy. They pulled brand-new transitive
-# versions otherwise; these older ones are functionally equivalent for Tailwind +
-# Vite and keep `pnpm install` passing under stricter policies.
+# pnpm 10+ reads project settings from here (not the "pnpm" field in package.json).
+
+# Do not re-run `pnpm install` automatically before `pnpm dev` / `pnpm build`.
+# Tauri's beforeDevCommand/beforeBuildCommand invoke those scripts, and the
+# implicit install fails on machines whose global pnpm config makes an "ignored
+# build script" fatal. The install is done explicitly instead; see the README.
+verifyDepsBeforeRun: false
+
+# esbuild's optional postinstall is not required: its platform binary ships in the
+# @esbuild/<platform> package with no build step. Listing it here pre-approves the
+# build where the allowlist is honoured; where it isn't, `pnpm install
+# --ignore-scripts` still yields a working node_modules.
 onlyBuiltDependencies:
   - esbuild
+
+# Pin postcss/nanoid to releases old enough for a minimum-release-age policy.
 overrides:
   postcss: 8.4.49
   nanoid: 3.3.7
