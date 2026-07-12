@@ -1,0 +1,101 @@
+:root {
+  --surface-base: #0e0e11;
+  --surface-raised: #16161a;
+  --surface-overlay: #1e1e24;
+  --surface-hover: #24242c;
+  --border-subtle: #26262e;
+  --border-strong: #35353f;
+  --text-primary: #e8e8ec;
+  --text-secondary: #9a9aa6;
+  --text-tertiary: #6a6a78;
+  --text-inverse: #0e0e11;
+  --accent: #7c6bf2;
+  --accent-hover: #8d7ef5;
+  --accent-muted: #7c6bf222;
+  --status-running: #3fb950;
+  --status-stopped: #6a6a78;
+  --status-failed: #f85149;
+  --status-unknown: #d29922;
+  --status-working: #7c6bf2;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/*
+ * Light theme equivalents. Applied automatically when the OS prefers light,
+ * and overridable by an explicit data-theme attribute below (§ theme selector).
+ */
+@media (prefers-color-scheme: light) {
+  :root {
+    --surface-base: #fbfbfc;
+    --surface-raised: #ffffff;
+    --surface-overlay: #f3f3f5;
+    --surface-hover: #ececef;
+    --border-subtle: #e4e4e9;
+    --border-strong: #d0d0d7;
+    --text-primary: #1a1a20;
+    --text-secondary: #55555f;
+    --text-tertiary: #8a8a96;
+    --text-inverse: #fbfbfc;
+    --accent: #6a57e6;
+    --accent-hover: #5b48d8;
+    --accent-muted: #6a57e618;
+    --status-running: #1a7f37;
+    --status-stopped: #8a8a96;
+    --status-failed: #cf222e;
+    --status-unknown: #9a6700;
+    --status-working: #6a57e6;
+  }
+}
+
+/* Explicit theme choices always win over the media query. */
+:root[data-theme='dark'] {
+  --surface-base: #0e0e11;
+  --surface-raised: #16161a;
+  --surface-overlay: #1e1e24;
+  --surface-hover: #24242c;
+  --border-subtle: #26262e;
+  --border-strong: #35353f;
+  --text-primary: #e8e8ec;
+  --text-secondary: #9a9aa6;
+  --text-tertiary: #6a6a78;
+  --text-inverse: #0e0e11;
+  --accent: #7c6bf2;
+  --accent-hover: #8d7ef5;
+  --accent-muted: #7c6bf222;
+  --status-running: #3fb950;
+  --status-stopped: #6a6a78;
+  --status-failed: #f85149;
+  --status-unknown: #d29922;
+  --status-working: #7c6bf2;
+}
+
+:root[data-theme='light'] {
+  --surface-base: #fbfbfc;
+  --surface-raised: #ffffff;
+  --surface-overlay: #f3f3f5;
+  --surface-hover: #ececef;
+  --border-subtle: #e4e4e9;
+  --border-strong: #d0d0d7;
+  --text-primary: #1a1a20;
+  --text-secondary: #55555f;
+  --text-tertiary: #8a8a96;
+  --text-inverse: #fbfbfc;
+  --accent: #6a57e6;
+  --accent-hover: #5b48d8;
+  --accent-muted: #6a57e618;
+  --status-running: #1a7f37;
+  --status-stopped: #8a8a96;
+  --status-failed: #cf222e;
+  --status-unknown: #9a6700;
+  --status-working: #6a57e6;
+}

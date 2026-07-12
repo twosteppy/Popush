@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Popush
+Comment=Your VPS, one click away
+Exec=popush
+Icon=dev.popush.Popush
+Terminal=false
+Categories=Development;Utility;
+Keywords=deploy;ssh;vps;git;

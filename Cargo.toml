@@ -1,0 +1,34 @@
+# Popush workspace.
+# Built by twostep. See README.md.
+#
+# The workspace is split so that ALL business logic lives in `popush-core`,
+# a pure-Rust library with no GUI dependencies. This keeps the security- and
+# correctness-critical code (SSH command escaping, config parsing, service
+# status parsing, git URL handling, the error taxonomy, pipeline messages)
+# testable in headless CI without WebKitGTK, and enforces D14: the frontend,
+# and even the Tauri IPC layer, contain no business logic.
+[workspace]
+resolver = "2"
+members = ["popush-core", "src-tauri"]
+
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.80"
+authors = ["twostep"]
+license = "GPL-3.0-only"
+repository = "https://github.com/twosteppy/popush"
+homepage = "https://popush.dev"
+
+[workspace.dependencies]
+serde = { version = "1.0.217", features = ["derive"] }
+serde_json = "1.0.135"
+toml = "0.8.19"
+thiserror = "2.0.11"
+anyhow = "1.0.95"
+chrono = { version = "0.4.39", features = ["serde"] }
+url = { version = "2.5.4", features = ["serde"] }
+uuid = { version = "1.11.1", features = ["v4", "serde"] }
+shell-escape = "0.1.5"
+ts-rs = { version = "10.1.0", features = ["chrono-impl", "serde-compat"] }
+tracing = "0.1.41"

@@ -1,0 +1,43 @@
+# Example ~/.config/popush/config.toml
+# Popush configuration. Safe to edit by hand.
+# Contains no secrets. Keys are referenced by path, never copied.
+
+[preferences]
+theme = "system"              # "system" | "dark" | "light"
+accent = "violet"             # accent colour key
+poll_interval_seconds = 60    # 0 to disable background polling
+confirm_destructive = true
+default_branch = "main"
+
+[[server]]
+id = "vps-main"
+label = "Main VPS"
+host = "203.0.113.10"
+port = 22
+username = "deploy"
+identity_file = "~/.ssh/id_ed25519"   # PATH ONLY. Never the key itself.
+# proxy_jump = "bastion.example.com"   # optional jump host
+
+  [[server.site]]
+  id = "sterling-defence"
+  label = "Sterling Defence"
+  remote_path = "/srv/sterling-defence"
+  service_type = "docker"
+  service_name = "sterling-defence"
+  build_command = "pnpm install --frozen-lockfile && pnpm build"
+  git_remote = "origin"
+  git_branch = "main"
+  local_path = "~/dev/sterling-defence"
+  live_url = "https://sterlingdefence.co.uk"
+  health_check_url = "https://sterlingdefence.co.uk/api/health"
+
+  [[server.site]]
+  id = "personal-blog"
+  label = "Blog"
+  remote_path = "/var/www/blog"
+  service_type = "static"
+  build_command = "hugo --minify"
+  git_remote = "origin"
+  git_branch = "main"
+  local_path = "~/dev/blog"
+  live_url = "https://example.dev"

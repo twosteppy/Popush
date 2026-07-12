@@ -1,0 +1,62 @@
+@import './tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * D16: fonts are bundled, never from a CDN. These @font-face rules point at
+ * local .woff2 files that ship in src/styles/fonts/ (see fonts/README.md).
+ * The font binaries must be vendored there; never load them from a CDN.
+ */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  /* bundled per D16, never CDN */
+  src: url('./fonts/Inter-Variable.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  /* bundled per D16, never CDN */
+  src: url('./fonts/JetBrainsMono-Variable.woff2') format('woff2');
+}
+
+/* §20: respect the system font size — size the root in a relative-friendly way. */
+html {
+  font-size: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--surface-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* §20: visible focus rings everywhere; never outline:none without a replacement. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/*
+ * §20 / accessibility: prefers-reduced-motion disables ALL animation and
+ * transition, including the in-progress status dot pulse.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,0 +1,8 @@
+# Auto-generated from Rust by `cargo run -p popush-core --example generate_types`.
+# Its format is owned by the generator, and CI checks it for staleness against the
+# raw generator output, so Prettier must not reformat it.
+src/types/generated.ts
+
+# Build output and deps.
+dist
+node_modules
