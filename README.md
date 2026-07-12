@@ -102,9 +102,14 @@ Popush is a Cargo workspace with two crates:
 
   ```
   sudo dnf install webkit2gtk4.1-devel gtk3-devel libappindicator-gtk3-devel librsvg2-devel
-  pnpm install
-  pnpm tauri build
+  pnpm install --ignore-scripts
+  pnpm tauri dev     # or: pnpm tauri build
   ```
+
+  `--ignore-scripts` is used because esbuild's optional postinstall is not needed
+  (its platform binary ships prebuilt) and some strict pnpm configurations treat a
+  skipped build script as a fatal error. The repo sets `verifyDepsBeforeRun: false`
+  so `pnpm tauri dev/build` does not re-trigger that install.
 
 The frontend is built with Vite and pnpm:
 
