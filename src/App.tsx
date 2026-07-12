@@ -12,13 +12,14 @@ import { CommandPalette, type PaletteItem } from './components/CommandPalette';
 import { SiteView } from './views/SiteView';
 import { SettingsView } from './views/SettingsView';
 import { AboutView } from './views/AboutView';
+import { CommandLogView } from './views/CommandLogView';
 import { useServersStore } from './store/servers';
 import { useSitesStore } from './store/sites';
 import { usePipelineStore } from './store/pipeline';
-import type { PipelineState, Theme } from './types/generated';
-import { listen } from './lib/ipc';
+import { usePipelineEvents } from './hooks/usePipelineEvents';
+import type { Theme } from './types/generated';
 
-type Panel = 'site' | 'settings' | 'about';
+type Panel = 'site' | 'settings' | 'about' | 'log';
 
 const APP_VERSION = '0.1.0';
 
@@ -36,7 +37,10 @@ export function App() {
     refreshSites,
     select: selectSite,
   } = useSitesStore();
-  const { toggleDrawer, update: updatePipeline } = usePipelineStore();
+  const { toggleDrawer } = usePipelineStore();
+
+  // Mirror the backend pipeline event stream into the pipeline store.
+  usePipelineEvents();
 
   // Hydrate the server mirror on mount (§6.3: backend is authoritative).
   useEffect(() => {
@@ -47,17 +51,6 @@ export function App() {
   useEffect(() => {
     if (selectedServerId) void refreshSites(selectedServerId);
   }, [selectedServerId, refreshSites]);
-
-  // Mirror pipeline state pushed by the backend.
-  useEffect(() => {
-    let unlisten: (() => void) | undefined;
-    void listen<PipelineState>('pipeline://state', (state) => {
-      updatePipeline(state);
-    }).then((fn) => {
-      unlisten = fn;
-    });
-    return () => unlisten?.();
-  }, [updatePipeline]);
 
   // Apply an explicit theme choice to the document root.
   useEffect(() => {
@@ -106,6 +99,12 @@ export function App() {
       onSelect: () => setPanel('settings'),
     });
     items.push({
+      id: 'action:log',
+      label: 'View Command Log',
+      kind: 'Action',
+      onSelect: () => setPanel('log'),
+    });
+    items.push({
       id: 'action:about',
       label: 'About Popush',
       kind: 'Action',
@@ -133,6 +132,8 @@ export function App() {
             />
           ) : panel === 'about' ? (
             <AboutView version={APP_VERSION} />
+          ) : panel === 'log' ? (
+            <CommandLogView />
           ) : selectedSite && selectedServerId ? (
             <SiteView serverId={selectedServerId} site={selectedSite} />
           ) : (
@@ -140,6 +141,15 @@ export function App() {
           )}
         </main>
       </div>
+      <footer className="flex shrink-0 items-center justify-end border-t border-border-subtle px-3 py-1">
+        <button
+          type="button"
+          onClick={() => setPanel('log')}
+          className="text-xs text-text-tertiary hover:text-text-secondary"
+        >
+          Command log
+        </button>
+      </footer>
       <LogDrawer />
 
       <CommandPalette

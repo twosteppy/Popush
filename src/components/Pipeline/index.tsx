@@ -1,20 +1,27 @@
-// Pipeline — the seven-step vertical list, rendered entirely from PipelineState
-// (D14: the frontend does not know the steps' meaning; it renders the enum).
+// Pipeline — the seven-step vertical list, rendered entirely from the pipeline
+// store (D14: the frontend does not know the steps' meaning; it renders state).
 //
 //   pending  ○
 //   running  spinner
-//   ok       ✓ with duration
-//   failed   ✗ (auto-expanded)
-//   skipped  – with reason
+//   ok       ✓ with summary
+//   failed   ✗ (auto-expanded, shows output)
+//   skipped  – muted, with reason
+//
+// When the pipeline finishes with a failure, the backend's UserMessage
+// (headline / consequence / next_action) is rendered, plus any rollback offer
+// with its command and a copy affordance.
 //
 // §20 / Phase 8 gate: step changes are announced via an aria-live region.
 
+import { useState } from 'react';
 import { Check as CheckIcon, X, Loader2, Circle, Minus } from 'lucide-react';
-import type { PipelineState, Step, StepEntry } from '../../types/generated';
-
-interface PipelineProps {
-  state: PipelineState | null;
-}
+import type {
+  NextAction,
+  Step,
+  StepState,
+  UserMessage,
+} from '../../types/generated';
+import { usePipelineStore, type PipelineStepView } from '../../store/pipeline';
 
 const STEP_LABEL: Record<Step, string> = {
   check: 'Check',
@@ -26,50 +33,55 @@ const STEP_LABEL: Record<Step, string> = {
   verify: 'Verify',
 };
 
-function formatDuration(ms: bigint): string {
-  const seconds = Number(ms) / 1000;
-  if (seconds < 1) return `${Number(ms)}ms`;
-  return `${seconds.toFixed(1)}s`;
-}
-
 /** A short, screen-reader-friendly description of the whole pipeline state. */
-function announce(state: PipelineState | null): string {
-  if (!state) return '';
-  const running = state.steps.find((s) => s.state.state === 'running');
+function announce(steps: PipelineStepView[], finished: boolean): string {
+  const running = steps.find((s) => s.state.state === 'running');
   if (running) return `${STEP_LABEL[running.step]} in progress`;
-  const failed = state.steps.find((s) => s.state.state === 'failed');
+  const failed = steps.find((s) => s.state.state === 'failed');
   if (failed) return `${STEP_LABEL[failed.step]} did not complete`;
-  if (state.finished) return 'Pipeline finished';
+  if (finished) return 'Pipeline finished';
   return '';
 }
 
-export function Pipeline({ state }: PipelineProps) {
-  const steps = state?.steps ?? [];
+export function Pipeline() {
+  const steps = usePipelineStore((s) => s.steps);
+  const finished = usePipelineStore((s) => s.finished);
+  const failure = usePipelineStore((s) => s.failure);
+  const rollback = usePipelineStore((s) => s.rollback);
 
   return (
     <div>
       {/* §20: announce step changes to assistive tech. */}
       <div aria-live="polite" className="sr-only">
-        {announce(state)}
+        {announce(steps, finished)}
       </div>
       <ol className="flex flex-col gap-1">
-        {steps.map((entry) => (
-          <PipelineStep key={entry.step} entry={entry} />
+        {steps.map((entry, index) => (
+          <PipelineStep key={entry.step} entry={entry} index={index} />
         ))}
       </ol>
+
+      {finished && failure ? <FailureMessage message={failure} /> : null}
+      {finished && rollback ? <RollbackOffer message={rollback} /> : null}
     </div>
   );
 }
 
-function PipelineStep({ entry }: { entry: StepEntry }) {
-  const { step, state } = entry;
+function PipelineStep({
+  entry,
+  index,
+}: {
+  entry: PipelineStepView;
+  index: number;
+}) {
+  const { step, state, output } = entry;
   const label = STEP_LABEL[step];
   const failed = state.state === 'failed';
 
   return (
     <li className="rounded-md px-2 py-1.5">
       <div className="flex items-center gap-2">
-        <StepIcon entry={entry} />
+        <StepIcon state={state} />
         <span
           className={`text-sm ${
             state.state === 'pending'
@@ -81,7 +93,7 @@ function PipelineStep({ entry }: { entry: StepEntry }) {
         </span>
         {state.state === 'ok' ? (
           <span className="ml-auto font-mono text-xs text-text-tertiary">
-            {formatDuration(state.duration_ms)}
+            {state.summary}
           </span>
         ) : null}
         {state.state === 'skipped' ? (
@@ -89,11 +101,21 @@ function PipelineStep({ entry }: { entry: StepEntry }) {
         ) : null}
       </div>
 
-      {/* Failed steps auto-expand with the failure summary. */}
+      {/* Failed steps auto-expand with the failure summary and captured output. */}
       {failed ? (
-        <p className="mt-1 pl-6 font-mono text-xs text-status-failed">
-          {state.summary}
-        </p>
+        <div className="mt-1 pl-6">
+          <p className="font-mono text-xs text-status-failed">
+            {state.summary}
+          </p>
+          {output.length > 0 ? (
+            <pre
+              data-testid={`step-output-${index}`}
+              className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap font-mono text-xs text-text-secondary"
+            >
+              {output.join('\n')}
+            </pre>
+          ) : null}
+        </div>
       ) : null}
       {state.state === 'skipped' ? (
         <p className="mt-1 pl-6 text-xs text-text-tertiary">{state.reason}</p>
@@ -102,10 +124,9 @@ function PipelineStep({ entry }: { entry: StepEntry }) {
   );
 }
 
-function StepIcon({ entry }: { entry: StepEntry }) {
-  const s = entry.state.state;
+function StepIcon({ state }: { state: StepState }) {
   const common = 'shrink-0';
-  switch (s) {
+  switch (state.state) {
     case 'pending':
       return (
         <Circle
@@ -147,4 +168,73 @@ function StepIcon({ entry }: { entry: StepEntry }) {
         />
       );
   }
+}
+
+/** The backend's specific failure explanation (never a generic message). */
+function FailureMessage({ message }: { message: UserMessage }) {
+  return (
+    <div className="mt-3 rounded-md border border-border-subtle bg-surface-base p-3">
+      <p className="text-sm font-semibold text-status-failed">
+        {message.headline}
+      </p>
+      <p className="mt-1 text-sm text-text-secondary">{message.consequence}</p>
+      <NextActionView action={message.next_action} />
+    </div>
+  );
+}
+
+function NextActionView({ action }: { action: NextAction }) {
+  switch (action.kind) {
+    case 'run_command':
+      return <CopyableCommand command={action.command} />;
+    case 'advice':
+      return <p className="mt-2 text-sm text-text-secondary">{action.text}</p>;
+    case 'open_flow':
+      return <p className="mt-2 text-sm text-text-secondary">{action.label}</p>;
+    case 'retry':
+      return null;
+  }
+}
+
+/** The rollback offer surfaced when a deploy failed mid-flight (§12.5). */
+function RollbackOffer({ message }: { message: UserMessage }) {
+  return (
+    <div className="mt-2 rounded-md border border-border-subtle bg-surface-raised p-3">
+      <p className="text-sm font-medium text-text-primary">
+        {message.headline}
+      </p>
+      <p className="mt-1 text-sm text-text-secondary">{message.consequence}</p>
+      <NextActionView action={message.next_action} />
+    </div>
+  );
+}
+
+/** A monospaced command with a copy-to-clipboard affordance. */
+function CopyableCommand({ command }: { command: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    try {
+      await navigator.clipboard?.writeText(command);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard unavailable; the command stays visible for manual copy.
+    }
+  }
+
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <code className="min-w-0 flex-1 truncate rounded bg-surface-base px-2 py-1 font-mono text-xs text-text-primary">
+        {command}
+      </code>
+      <button
+        type="button"
+        onClick={() => void copy()}
+        className="shrink-0 rounded border border-border-strong px-2 py-1 text-xs text-text-secondary hover:bg-surface-hover"
+      >
+        {copied ? 'Copied' : 'Copy'}
+      </button>
+    </div>
+  );
 }
