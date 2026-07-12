@@ -5,7 +5,9 @@ import '@testing-library/jest-dom';
 // components that mount them render in the test environment.
 if (typeof window !== 'undefined' && !window.matchMedia) {
   window.matchMedia = (query: string) => ({
-    matches: false,
+    // Treat tests as prefers-reduced-motion so framer-motion swaps content
+    // synchronously (jsdom never completes exit animations).
+    matches: /prefers-reduced-motion/.test(query),
     media: query,
     onchange: null,
     addListener: () => {},
