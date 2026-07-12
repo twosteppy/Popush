@@ -84,7 +84,7 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-6">
+    <div className="mx-auto flex max-w-4xl flex-col gap-5 p-6">
       <SiteCard site={site} status={status} selected />
 
       <ActionBar
@@ -98,30 +98,45 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
         onLogs={() => setDrawerOpen(true)}
       />
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <GitPanel
-          status={gitStatus ?? null}
-          selected={selectedFiles}
-          onToggle={toggleFile}
-          message={message}
-          onMessageChange={setMessage}
-        />
-        <div className="rounded-lg border border-border-subtle bg-surface-raised p-4">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-text-secondary">
-              Pipeline
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <section className="flex flex-col gap-2">
+          <h2 className="px-1 text-xs font-semibold uppercase tracking-wider text-text-tertiary">
+            Changes
+          </h2>
+          <GitPanel
+            status={gitStatus ?? null}
+            selected={selectedFiles}
+            onToggle={toggleFile}
+            message={message}
+            onMessageChange={setMessage}
+          />
+        </section>
+        <section className="flex flex-col gap-2">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">
+              Ship It pipeline
             </h2>
             {busy && pipelineId ? (
               <Button
                 variant="secondary"
                 onClick={() => void cancelPipeline(pipelineId)}
+                className="h-7 px-2.5 text-xs"
               >
                 Cancel
               </Button>
             ) : null}
           </div>
-          <Pipeline />
-        </div>
+          <div className="rounded-lg border border-border-subtle bg-surface-raised p-4">
+            {steps.length === 0 ? (
+              <p className="text-sm text-text-tertiary">
+                Press <span className="text-text-secondary">Ship It</span> to
+                commit, push, build, and restart — each step streamed live.
+              </p>
+            ) : (
+              <Pipeline />
+            )}
+          </div>
+        </section>
       </div>
     </div>
   );

@@ -1,11 +1,13 @@
-// SettingsView — theme selector, poll interval, and ONE dismissible,
-// never-repeated suggestion about the optional GitHub PAT (Phase 10). A single
-// line, not a nag.
+// SettingsView — calm, titled sections/cards: Appearance (theme), Polling
+// (interval), and GitHub (ONE dismissible, never-repeated suggestion about the
+// optional PAT). Generous spacing, labels above controls (§20).
 //
 // D14: emits preference-change intents; the backend persists and owns config.
 
 import { useState } from 'react';
+import { Palette, Timer, Github, X } from 'lucide-react';
 import type { Theme } from '../types/generated';
+import { Field, SelectInput, TextInput } from '../components/ui/Field';
 
 interface SettingsViewProps {
   theme: Theme;
@@ -19,6 +21,10 @@ interface SettingsViewProps {
 
 const THEMES: Theme[] = ['system', 'dark', 'light'];
 
+function titleCase(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 export function SettingsView({
   theme,
   onThemeChange,
@@ -30,66 +36,99 @@ export function SettingsView({
   const [showPat, setShowPat] = useState(!patSuggestionDismissed);
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <h1 className="text-lg font-semibold text-text-primary">Settings</h1>
-
-      <section className="flex flex-col gap-2">
-        <label
-          htmlFor="theme-select"
-          className="text-sm font-medium text-text-secondary"
-        >
-          Theme
-        </label>
-        <select
-          id="theme-select"
-          value={theme}
-          onChange={(e) => onThemeChange(e.target.value as Theme)}
-          className="w-48 rounded-md border border-border-strong bg-surface-raised px-2 py-1.5 text-sm text-text-primary"
-        >
-          {THEMES.map((t) => (
-            <option key={t} value={t}>
-              {t[0]?.toUpperCase()}
-              {t.slice(1)}
-            </option>
-          ))}
-        </select>
-      </section>
-
-      <section className="flex flex-col gap-2">
-        <label
-          htmlFor="poll-interval"
-          className="text-sm font-medium text-text-secondary"
-        >
-          Poll interval (seconds, 0 disables)
-        </label>
-        <input
-          id="poll-interval"
-          type="number"
-          min={0}
-          value={pollIntervalSeconds}
-          onChange={(e) => onPollIntervalChange(Number(e.target.value))}
-          className="w-48 rounded-md border border-border-strong bg-surface-raised px-2 py-1.5 text-sm text-text-primary"
-        />
-      </section>
-
-      {showPat ? (
-        <p className="flex items-center gap-3 rounded-md border border-border-subtle bg-surface-raised px-3 py-2 text-sm text-text-secondary">
-          <span>
-            Optional: add a GitHub personal access token to check keys against
-            GitHub during the setup wizard.
-          </span>
-          <button
-            type="button"
-            onClick={() => {
-              setShowPat(false);
-              onDismissPatSuggestion();
-            }}
-            className="ml-auto shrink-0 text-xs text-text-tertiary hover:text-text-secondary"
-          >
-            Dismiss
-          </button>
+    <div className="mx-auto flex max-w-2xl flex-col gap-6 p-6">
+      <header>
+        <h1 className="text-xl font-semibold tracking-tight text-text-primary">
+          Settings
+        </h1>
+        <p className="mt-1 text-sm text-text-secondary">
+          Preferences are stored locally in your config file.
         </p>
-      ) : null}
+      </header>
+
+      <Card icon={<Palette size={15} />} title="Appearance">
+        <Field
+          label="Theme"
+          htmlFor="theme-select"
+          hint="Follow the system, or pin a look."
+        >
+          <SelectInput
+            id="theme-select"
+            value={theme}
+            onChange={(e) => onThemeChange(e.target.value as Theme)}
+            className="max-w-xs"
+          >
+            {THEMES.map((t) => (
+              <option key={t} value={t}>
+                {titleCase(t)}
+              </option>
+            ))}
+          </SelectInput>
+        </Field>
+      </Card>
+
+      <Card icon={<Timer size={15} />} title="Polling">
+        <Field
+          label="Status poll interval"
+          htmlFor="poll-interval"
+          hint="Seconds between background status checks. 0 disables polling."
+        >
+          <TextInput
+            id="poll-interval"
+            type="number"
+            min={0}
+            value={pollIntervalSeconds}
+            onChange={(e) => onPollIntervalChange(Number(e.target.value))}
+            className="max-w-xs"
+          />
+        </Field>
+      </Card>
+
+      <Card icon={<Github size={15} />} title="GitHub">
+        {showPat ? (
+          <div className="flex items-start gap-3 rounded-md border border-border-subtle bg-surface-base px-3 py-2.5">
+            <p className="text-sm text-text-secondary">
+              Optional: add a GitHub personal access token so the setup wizard
+              can verify your keys against GitHub. Popush works fine without it.
+            </p>
+            <button
+              type="button"
+              aria-label="Dismiss suggestion"
+              onClick={() => {
+                setShowPat(false);
+                onDismissPatSuggestion();
+              }}
+              className="ml-auto shrink-0 rounded p-1 text-text-tertiary transition-colors hover:bg-surface-hover hover:text-text-secondary"
+            >
+              <X size={14} aria-hidden="true" />
+            </button>
+          </div>
+        ) : (
+          <p className="text-sm text-text-tertiary">
+            No token configured. Popush uses your local SSH keys to deploy.
+          </p>
+        )}
+      </Card>
     </div>
+  );
+}
+
+function Card({
+  icon,
+  title,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-lg border border-border-subtle bg-surface-raised p-5">
+      <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-text-primary">
+        <span className="text-text-tertiary">{icon}</span>
+        {title}
+      </h2>
+      {children}
+    </section>
   );
 }
