@@ -49,6 +49,16 @@ export function GitPanel({
 
   return (
     <div className="rounded-lg border border-border-subtle bg-surface-raised p-4">
+      <div className="mb-3 flex items-center gap-2 font-mono text-xs text-text-secondary">
+        <span className="text-text-primary">{status.branch}</span>
+        {status.ahead > 0 ? (
+          <span aria-label={`${status.ahead} ahead`}>↑{status.ahead}</span>
+        ) : null}
+        {status.behind > 0 ? (
+          <span aria-label={`${status.behind} behind`}>↓{status.behind}</span>
+        ) : null}
+      </div>
+
       <ul className="mb-3 flex flex-col gap-1">
         {status.changed_files.map((file: ChangedFile) => (
           <li key={file.path}>
@@ -67,6 +77,9 @@ export function GitPanel({
               </span>
               <span className="truncate font-mono text-xs text-text-primary">
                 {file.path}
+              </span>
+              <span className="ml-auto shrink-0 text-xs text-text-tertiary">
+                {file.staged ? 'staged' : 'unstaged'}
               </span>
             </label>
           </li>
