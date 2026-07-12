@@ -1,0 +1,27 @@
+# popush-core: all Popush business logic, GUI-free and headless-testable.
+# Built by twostep.
+[package]
+name = "popush-core"
+description = "Core logic for Popush: SSH command construction, config, service adapters, git URL handling, error taxonomy, and the Ship It pipeline."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+thiserror.workspace = true
+chrono.workspace = true
+url.workspace = true
+uuid.workspace = true
+shell-escape.workspace = true
+ts-rs.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+# Keep the test tree as small as the source tree (Agent Rule 7).

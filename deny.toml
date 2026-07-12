@@ -1,0 +1,47 @@
+# cargo-deny configuration (D3 enforcement + supply-chain hygiene, §17.1).
+# Any advisory fails the build. The banned list encodes D3: no analytics,
+# telemetry, or crash-reporting SDK may enter the dependency tree.
+
+[advisories]
+version = 2
+yanked = "deny"
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+# D3: none of these may ever appear in the tree. This is a policy, enforced.
+deny = [
+    { name = "sentry" },
+    { name = "sentry-core" },
+    { name = "sentry-types" },
+    { name = "segment" },
+    { name = "amplitude" },
+    { name = "posthog" },
+    { name = "google-analytics" },
+    { name = "opentelemetry-otlp" },
+]
+
+[licenses]
+version = 2
+# Allow the licences the pinned dependency tree actually uses. Popush itself is
+# GPL-3.0-only; its dependencies are permissive.
+allow = [
+    "GPL-3.0",
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "Zlib",
+    "MPL-2.0",
+    "CC0-1.0",
+    "OpenSSL",
+]
+confidence-threshold = 0.9
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

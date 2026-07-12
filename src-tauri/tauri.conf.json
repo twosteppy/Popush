@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Popush",
+  "version": "1.0.0",
+  "identifier": "dev.popush.Popush",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Popush",
+        "width": 1100,
+        "height": 720,
+        "minWidth": 860,
+        "minHeight": 560,
+        "resizable": true,
+        "theme": null
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' asset: data:; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["appimage", "rpm"],
+    "category": "DeveloperTool",
+    "shortDescription": "Your VPS, one click away.",
+    "longDescription": "A native Linux desktop deployment client. Connect to your VPS over SSH, see honest live status for every site, and ship changes with one button. Built by twostep.",
+    "publisher": "twostep",
+    "copyright": "Copyright (c) 2026 twostep",
+    "license": "GPL-3.0-only",
+    "icon": [
+      "../packaging/desktop/icons/dev.popush.Popush-32.png",
+      "../packaging/desktop/icons/dev.popush.Popush-128.png",
+      "../packaging/desktop/icons/dev.popush.Popush-256.png",
+      "../packaging/desktop/icons/dev.popush.Popush.svg"
+    ],
+    "linux": {
+      "rpm": {
+        "depends": ["webkit2gtk4.1", "gtk3"]
+      }
+    }
+  }
+}

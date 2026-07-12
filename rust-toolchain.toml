@@ -1,0 +1,4 @@
+# Pin the toolchain so CI and local builds agree (Agent Rule 3: reproducibility).
+[toolchain]
+channel = "stable"
+components = ["rustfmt", "clippy"]

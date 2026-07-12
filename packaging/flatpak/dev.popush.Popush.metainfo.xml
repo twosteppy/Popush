@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>dev.popush.Popush</id>
+
+  <name>Popush</name>
+  <summary>Your VPS, one click away.</summary>
+
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+
+  <developer_name>twostep</developer_name>
+
+  <launchable type="desktop-id">dev.popush.Popush.desktop</launchable>
+
+  <description>
+    <p>
+      Popush is a desktop tool for deploying local git repositories to your own
+      servers over SSH. Pick a repository, choose a host, and push your changes
+      without hand-writing deploy scripts or juggling terminal sessions.
+    </p>
+    <p>
+      Local repository access is requested per-repository through XDG portals
+      rather than broad home-directory access, because a security-focused tool
+      should not ask for more than it needs. Popush reads your SSH keys
+      read-only and stores credentials in your system secret service.
+    </p>
+  </description>
+
+  <categories>
+    <category>Development</category>
+    <category>Utility</category>
+  </categories>
+
+  <url type="homepage">https://popush.dev</url>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>The Popush deployment overview</caption>
+      <image>https://popush.dev/screenshots/overview.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Configuring a host connection</caption>
+      <image>https://popush.dev/screenshots/host-config.png</image>
+    </screenshot>
+  </screenshots>
+
+  <releases>
+    <release version="1.0.0" date="2026-07-12">
+      <description>
+        <p>First stable release.</p>
+      </description>
+    </release>
+  </releases>
+
+  <content_rating type="oars-1.1"/>
+</component>

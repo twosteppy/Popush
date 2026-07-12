@@ -1,0 +1,25 @@
+# Rust
+/target
+**/target
+
+# Node / frontend
+node_modules
+/dist
+*.tsbuildinfo
+
+# ts-rs default per-type export dir (we use the single-file generator instead)
+/bindings
+**/bindings
+
+# Tauri
+/src-tauri/gen
+
+# Editor / OS
+.DS_Store
+*.swp
+.idea
+.vscode
+
+# Local env
+.env
+.env.local

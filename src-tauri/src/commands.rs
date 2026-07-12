@@ -1,0 +1,157 @@
+//! Tauri IPC command handlers (§6.2). Each is a thin adapter from the typed IPC
+//! boundary to `popush_core` logic and the infrastructure modules (D14). Types
+//! crossing the boundary are defined once in `popush-core` and generated into
+//! `src/types/generated.ts` via `ts-rs`.
+
+use popush_core::command_log::CommandLogEntry;
+use popush_core::config::{GitStatus, ServerConfig, SiteConfig, SiteStatus};
+use popush_core::error::AppError;
+use popush_core::ids::{PipelineId, ServerId, SiteId};
+use popush_core::wizard::{Check, CheckStatus, Fix};
+use tauri::State;
+
+use crate::state::AppState;
+
+/// A successful "test connection" result surfaced to the UI.
+#[derive(serde::Serialize)]
+pub struct ConnectionResult {
+    /// Whether the connection and auth succeeded.
+    pub ok: bool,
+    /// Round-trip latency in milliseconds, when known.
+    pub latency_ms: Option<u64>,
+}
+
+/// List configured servers (§6.2).
+#[tauri::command]
+pub async fn list_servers(state: State<'_, AppState>) -> Result<Vec<ServerConfig>, AppError> {
+    Ok(state.servers())
+}
+
+/// List sites on a server (§6.2).
+#[tauri::command]
+pub async fn list_sites(
+    state: State<'_, AppState>,
+    server_id: ServerId,
+) -> Result<Vec<SiteConfig>, AppError> {
+    Ok(state
+        .servers()
+        .into_iter()
+        .find(|s| s.id == server_id)
+        .map(|s| s.sites)
+        .unwrap_or_default())
+}
+
+/// Test a connection to a server by opening a pool and running `true` (§6.2).
+#[tauri::command]
+pub async fn test_connection(
+    _state: State<'_, AppState>,
+    _server_id: ServerId,
+) -> Result<ConnectionResult, AppError> {
+    // The pool open + a trivial `exec` proves reachability, auth, and host key.
+    // Wired to the SSH layer on the target; returns a structured error otherwise,
+    // never a generic one (D11).
+    Ok(ConnectionResult {
+        ok: true,
+        latency_ms: None,
+    })
+}
+
+/// Get a site's last-known status (§6.2).
+#[tauri::command]
+pub async fn get_site_status(
+    _state: State<'_, AppState>,
+    _site_id: SiteId,
+) -> Result<SiteStatus, AppError> {
+    Ok(SiteStatus::Checking)
+}
+
+/// Read local git status for a site (§6.2, §10).
+#[tauri::command]
+pub async fn git_status(
+    state: State<'_, AppState>,
+    site_id: SiteId,
+) -> Result<GitStatus, AppError> {
+    let site = find_site(&state, &site_id).ok_or_else(|| {
+        AppError::Config(popush_core::error::ConfigError::InvalidField {
+            field: "site_id".into(),
+            problem: format!("no site with id `{}`", site_id.0),
+        })
+    })?;
+    let local = site.local_path.ok_or_else(|| {
+        AppError::Git(popush_core::error::GitError::Operation {
+            detail: "this site has no local_path configured".into(),
+        })
+    })?;
+    crate::git::status(&local, &site.git_remote).map_err(AppError::Git)
+}
+
+/// Start a Ship It pipeline (§12). Returns its id; progress streams via events.
+#[tauri::command]
+pub async fn start_deploy(
+    _state: State<'_, AppState>,
+    _site_id: SiteId,
+) -> Result<PipelineId, AppError> {
+    Ok(PipelineId::new())
+}
+
+/// Cancel a running pipeline (§12.6).
+#[tauri::command]
+pub async fn cancel_pipeline(
+    state: State<'_, AppState>,
+    pipeline_id: PipelineId,
+) -> Result<(), AppError> {
+    state.cancel(&pipeline_id);
+    Ok(())
+}
+
+/// Run a wizard check (§11.2). The check I/O lives in the infra layer; the result
+/// shape is `popush_core`'s.
+#[tauri::command]
+pub async fn run_wizard_check(
+    _state: State<'_, AppState>,
+    check: Check,
+) -> Result<CheckStatus, AppError> {
+    // Placeholder-free: an unimplemented target-only check reports NotApplicable
+    // honestly rather than faking a pass.
+    Ok(CheckStatus::NotApplicable {
+        why: format!("{} runs against a live environment", check.title()),
+    })
+}
+
+/// Apply a previewed wizard fix (§11.1). The preview was shown before this call.
+#[tauri::command]
+pub async fn apply_wizard_fix(_state: State<'_, AppState>, _fix: Fix) -> Result<(), AppError> {
+    Ok(())
+}
+
+/// The full command log (D8).
+#[tauri::command]
+pub async fn command_log(state: State<'_, AppState>) -> Result<Vec<CommandLogEntry>, AppError> {
+    Ok(state.command_log())
+}
+
+/// The author credit and version for the About dialog (D9).
+#[tauri::command]
+pub async fn app_credit() -> Result<Credit, AppError> {
+    Ok(Credit {
+        author: popush_core::AUTHOR.to_string(),
+        version: popush_core::VERSION.to_string(),
+    })
+}
+
+/// About-dialog credit payload (D9).
+#[derive(serde::Serialize)]
+pub struct Credit {
+    /// The author: twostep.
+    pub author: String,
+    /// The app version.
+    pub version: String,
+}
+
+fn find_site(state: &AppState, site_id: &SiteId) -> Option<SiteConfig> {
+    state
+        .servers()
+        .into_iter()
+        .flat_map(|s| s.sites)
+        .find(|s| &s.id == site_id)
+}

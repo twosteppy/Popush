@@ -1,0 +1,75 @@
+app-id: dev.popush.Popush
+runtime: org.gnome.Platform
+runtime-version: '47'
+sdk: org.gnome.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+  - org.freedesktop.Sdk.Extension.node20
+command: popush
+
+finish-args:
+  # GUI: standard sockets/devices the webview needs to display.
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --socket=ipc
+  - --device=dri
+  # App function: talk to remote hosts.
+  - --share=network
+  # SSH: read-only access to the user's keys, plus the auth agent socket.
+  - --filesystem=~/.ssh:ro
+  - --socket=ssh-auth
+  # Popush's own config directory (created on first run).
+  - --filesystem=~/.config/popush:create
+  # Secret storage (e.g. GNOME Keyring / KWallet) for tokens and passphrases.
+  - --talk-name=org.freedesktop.secrets
+  #
+  # NOTE: There is deliberately NO --filesystem=home here.
+  # Popush works with local git repositories that live anywhere on disk, but
+  # instead of asking for broad home-directory access it opens each repository
+  # through the XDG Document portal (org.freedesktop.portal.FileChooser). The
+  # portal grants access to exactly the folder the user picks, per repository,
+  # and nothing else. A tool that manages deployments and SSH keys should not
+  # request more of the filesystem than it needs.
+
+build-options:
+  append-path: /usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/node20/bin
+  env:
+    CARGO_HOME: /run/build/popush/cargo
+
+modules:
+  - name: popush
+    buildsystem: simple
+    build-options:
+      env:
+        # Keep the offline/vendored network model; adjust for your source setup.
+        npm_config_offline: 'true'
+    build-commands:
+      # Install JS dependencies and build the Tauri bundle.
+      - pnpm install --frozen-lockfile
+      - pnpm tauri build
+
+      # Install the compiled binary.
+      - install -Dm755 src-tauri/target/release/popush -t ${FLATPAK_DEST}/bin/
+
+      # Install the desktop entry, metainfo and icons.
+      - install -Dm644 packaging/desktop/dev.popush.Popush.desktop
+        ${FLATPAK_DEST}/share/applications/dev.popush.Popush.desktop
+      - install -Dm644 packaging/flatpak/dev.popush.Popush.metainfo.xml
+        ${FLATPAK_DEST}/share/metainfo/dev.popush.Popush.metainfo.xml
+      - install -Dm644 packaging/desktop/icons/dev.popush.Popush.svg
+        ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/dev.popush.Popush.svg
+      - |
+        for size in 16 24 32 48 64 128 256 512; do
+          install -Dm644 "packaging/desktop/icons/dev.popush.Popush-${size}.png" \
+            "${FLATPAK_DEST}/share/icons/hicolor/${size}x${size}/apps/dev.popush.Popush.png"
+        done
+    sources:
+      # Placeholder source. For a Flathub submission, replace with a pinned
+      # git commit (and add generated cargo/node sources for offline builds).
+      - type: git
+        url: https://github.com/twostep/popush.git
+        tag: v1.0.0
+        commit: 0000000000000000000000000000000000000000
+      # Alternatively, for local testing:
+      # - type: dir
+      #   path: ../..
