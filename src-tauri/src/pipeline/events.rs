@@ -1,5 +1,5 @@
-//! Typed pipeline event payloads emitted to the frontend (§6.2). Names match the
-//! IPC contract exactly; the frontend mirrors pipeline state from these (§6.3).
+//! Typed pipeline event payloads emitted to the frontend. Names match the
+//! IPC contract exactly; the frontend mirrors pipeline state from these.
 
 use popush_core::error::UserMessage;
 use popush_core::ids::PipelineId;
@@ -38,7 +38,7 @@ pub struct StepFinished {
     pub step_index: usize,
     pub outcome: StepEventOutcome,
     pub exit_code: Option<i32>,
-    /// A one-line summary for the collapsed row (§12.2), or the failure message.
+    /// A one-line summary for the collapsed row, or the failure message.
     pub summary: String,
 }
 
@@ -57,9 +57,9 @@ pub struct PipelineFinished {
     pub pipeline_id: PipelineId,
     pub outcome: PipelineEventOutcome,
     pub duration_ms: u64,
-    /// On failure, the full user-facing message (§12.4), never a generic string.
+    /// On failure, the full user-facing message, never a generic string.
     pub failure: Option<UserMessage>,
-    /// On failure, the rollback offer (§12.5): previous SHA + previewed command.
+    /// On failure, the rollback offer: previous SHA + previewed command.
     pub rollback: Option<UserMessage>,
 }
 

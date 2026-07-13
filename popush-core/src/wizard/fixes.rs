@@ -1,6 +1,5 @@
-//! Wizard fixes: preview-then-apply, never destructive, always reversible (§11.1,
-//! D13). The key invariant, **key generation can never overwrite an existing
-//! key**, is enforced *by construction* here (§Phase 6 gate): the fix builder
+//! Wizard fixes: preview-then-apply, never destructive, always reversible (//!). The key invariant, **key generation can never overwrite an existing
+//! key**, is enforced *by construction* here: the fix builder
 //! returns `None` when a key already exists, so no code path can reach
 //! `ssh-keygen` for a key that is present.
 
@@ -9,14 +8,14 @@ use ts_rs::TS;
 
 use crate::git::remote::{https_to_ssh, set_url_preview};
 
-/// A previewed fix: exactly what will run and exactly how to undo it (D13).
+/// A previewed fix: exactly what will run and exactly how to undo it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 pub struct FixPreview {
-    /// The exact command or change, shown before applying (§11.1 rule 1).
+    /// The exact command or change, shown before applying.
     pub command: String,
     /// Plain-English description of what it does.
     pub description: String,
-    /// How to undo it (§11.1 rule 3). `None` only for inherently safe, additive
+    /// How to undo it. `None` only for inherently safe, additive
     /// actions that leave nothing to undo (documented per fix).
     pub undo: Option<String>,
 }
@@ -40,7 +39,7 @@ pub enum Fix {
 /// Build the key-generation fix (C1).
 ///
 /// **Returns `None` when a key already exists**, this is the by-construction
-/// guarantee (D13 rule 2, Phase 6 gate) that Popush can never overwrite a key.
+/// guarantee that Popush can never overwrite a key.
 /// The caller cannot obtain a `GenerateLocalKey` fix, and therefore cannot reach
 /// `ssh-keygen`, when `existing_key` is `Some`.
 pub fn key_generation_fix(existing_key: Option<&str>, key_path: &str) -> Option<Fix> {
@@ -51,7 +50,7 @@ pub fn key_generation_fix(existing_key: Option<&str>, key_path: &str) -> Option<
     let preview = FixPreview {
         // `-f` names the target; because we only reach here when no key exists,
         // this can never clobber. ed25519 with no passphrase by default; the UI
-        // asks about a passphrase and explains the trade-off (§11.2 C1).
+        // asks about a passphrase and explains the trade-off.
         command: format!("ssh-keygen -t ed25519 -f {key_path} -N \"\" -C \"popush\""),
         description:
             "Create a new ed25519 SSH key. A passphrase is more secure but requires ssh-agent."
@@ -70,13 +69,13 @@ pub fn remote_conversion_fix(remote_name: &str, current_url: &str) -> Option<Fix
     let preview = FixPreview {
         command: set_url_preview(remote_name, &new_url),
         description: format!("Point `{remote_name}` at GitHub over SSH instead of HTTPS."),
-        // Fully reversible: set the URL back (§11.2 C4 "Fully reversible, says so").
+        // Fully reversible: set the URL back.
         undo: Some(set_url_preview(remote_name, current_url)),
     };
     Some(Fix::ConvertRemote { preview })
 }
 
-/// Detect a **personal** private key present on the server (§11.3): the wizard
+/// Detect a **personal** private key present on the server: the wizard
 /// must warn about this and never put a personal key on a VPS. A deploy key is
 /// scoped and read-only; a personal key grants far more. The heuristic: a private
 /// key file whose comment/name is not a deploy-key marker.
@@ -100,7 +99,7 @@ mod tests {
 
     #[test]
     fn key_generation_is_impossible_when_a_key_exists() {
-        // The by-construction guarantee: no fix, therefore no keygen path (D13).
+        // The by-construction guarantee: no fix, therefore no keygen path.
         assert_eq!(
             key_generation_fix(Some("ssh-ed25519 AAAA..."), "~/.ssh/id_ed25519"),
             None

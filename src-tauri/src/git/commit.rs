@@ -1,8 +1,8 @@
-//! Local commit and push via `git2` (§10.1, §10.3), with agent-based credentials
-//! (§10.3). The refusals and URL classification are decided by `popush_core`; this
-//! layer performs the libgit2 calls (D14).
+//! Local commit and push via `git2`, with agent-based credentials
+//! The refusals and URL classification are decided by `popush_core`; this
+//! layer performs the libgit2 calls.
 //!
-//! Push credentials use the **same agent delegation** as SSH (§10.3): `git2`'s
+//! Push credentials use the **same agent delegation** as SSH: `git2`'s
 //! credential callback asks `ssh-agent`. Popush never collects a token; if the
 //! remote is HTTPS the caller routes to the wizard rather than reaching here.
 
@@ -14,7 +14,7 @@ use popush_core::git::RemoteKind;
 
 /// Stage the given paths and commit them with `message`. Returns the new commit's
 /// short SHA. Refuses on merge conflicts and detached HEAD with the exact
-/// `popush_core` errors (§10.2).
+/// `popush_core` errors.
 pub fn stage_and_commit(
     repo_path: &Path,
     message: &str,
@@ -22,7 +22,7 @@ pub fn stage_and_commit(
 ) -> Result<String, GitError> {
     let repo = open(repo_path)?;
 
-    // Refuse in the states Popush does not handle (§10.2).
+    // Refuse in the states Popush does not handle.
     if repo.state() != git2::RepositoryState::Clean {
         let conflicted = conflicted_paths(&repo)?;
         if !conflicted.is_empty() {
@@ -64,7 +64,7 @@ pub fn stage_and_commit(
 }
 
 /// Push `branch` to `remote_name`. Refuses HTTPS remotes (routes to the wizard,
-/// §10.3) and classifies rejection reasons (§12.4).
+/// and classifies rejection reasons.
 pub fn push(repo_path: &Path, remote_name: &str, branch: &str) -> Result<(), GitError> {
     let repo = open(repo_path)?;
     let mut remote = repo.find_remote(remote_name).map_err(op)?;
@@ -82,7 +82,7 @@ pub fn push(repo_path: &Path, remote_name: &str, branch: &str) -> Result<(), Git
     let refspec = format!("refs/heads/{branch}:refs/heads/{branch}");
     {
         let mut callbacks = git2::RemoteCallbacks::new();
-        // Agent delegation (§10.3): let ssh-agent sign. Popush never sees the key.
+        // Agent delegation: let ssh-agent sign. Popush never sees the key.
         callbacks.credentials(|_url, username, allowed| {
             if allowed.contains(git2::CredentialType::SSH_KEY) {
                 git2::Cred::ssh_key_from_agent(username.unwrap_or("git"))
@@ -111,7 +111,7 @@ pub fn push(repo_path: &Path, remote_name: &str, branch: &str) -> Result<(), Git
     Ok(())
 }
 
-/// Map a push rejection message to a structured error (§12.4).
+/// Map a push rejection message to a structured error.
 fn classify_push_rejection(msg: &str) -> GitError {
     let m = msg.to_lowercase();
     if m.contains("non-fast-forward") || m.contains("fetch first") || m.contains("behind") {

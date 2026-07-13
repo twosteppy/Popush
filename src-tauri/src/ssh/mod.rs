@@ -1,16 +1,16 @@
-//! SSH socket I/O for the binary (§8): the connection pool, `ssh-agent`
+//! SSH socket I/O for the binary: the connection pool, `ssh-agent`
 //! delegation, and host-key verification wired to `russh`. The *decisions* -
 //! command construction and host-key verdicts, come from `popush_core::ssh`;
-//! this layer only performs I/O (D14).
+//! this layer only performs I/O.
 //!
-//! ## Verification note (Agent Rule 3)
+//! ## Verification note
 //! This module is written against the pinned `russh` 0.45 / `russh-keys` 0.45 API,
 //! read from the resolved crate source rather than trusted from memory: agent
 //! authentication uses `authenticate_future` with the `AgentClient`'s `Signer`
 //! impl (there is no `authenticate_publickey_with` in this line), and host-key
 //! data is read via `PublicKey::name`/`fingerprint`/`public_key_base64`. It links
 //! native crypto and only builds on the Linux target; `popush-core` holds
-//! everything testable without a live SSH server. The integration tests (§23.3)
+//! everything testable without a live SSH server. The integration tests
 //! exercise this module against the containerised test VPS on the target.
 
 use std::sync::Arc;
@@ -27,7 +27,7 @@ use russh_keys::agent::client::AgentClient;
 use russh_keys::key::PublicKey;
 use russh_keys::PublicKeyBase64;
 
-/// A live, multiplexed SSH connection to one server (§8.1). Commands share this
+/// A live, multiplexed SSH connection to one server. Commands share this
 /// single TCP connection via channels; a keepalive runs to detect a dead link.
 pub struct SshPool {
     session: Arc<client::Handle<Handler>>,
@@ -35,7 +35,7 @@ pub struct SshPool {
 }
 
 /// The `russh` client handler. Host-key checking delegates its *decision* to
-/// `popush_core::ssh::hostkey` (§8.3); here we only extract the presented key's
+/// `popush_core::ssh::hostkey`; here we only extract the presented key's
 /// algorithm, base64 blob, and fingerprint and consult `known_hosts`. Unknown and
 /// mismatched keys are refused here so the UI can surface the fingerprint prompt
 /// or the loud mismatch warning; the UI enforces the friction, never a one-click
@@ -66,7 +66,7 @@ impl client::Handler for Handler {
 }
 
 impl SshPool {
-    /// Open a pooled connection to `server`, authenticating via `ssh-agent` (§8.2).
+    /// Open a pooled connection to `server`, authenticating via `ssh-agent`.
     /// Popush never handles a passphrase: if the agent offers no identity the
     /// server accepts, this returns a structured [`SshError`], never a generic one.
     pub async fn connect(
@@ -90,7 +90,7 @@ impl SshPool {
             }
         })?;
 
-        // Agent delegation: ask ssh-agent for identities and let it sign (§8.2).
+        // Agent delegation: ask ssh-agent for identities and let it sign.
         // A missing SSH_AUTH_SOCK is a specific, actionable error.
         let mut agent = AgentClient::connect_env()
             .await
@@ -106,7 +106,7 @@ impl SshPool {
             })?;
 
         if identities.is_empty() {
-            // The agent is running but holds nothing usable for this key (§8.2).
+            // The agent is running but holds nothing usable for this key.
             return Err(SshError::KeyNotInAgent {
                 path: server.identity_file.clone(),
             });
@@ -138,8 +138,8 @@ impl SshPool {
         })
     }
 
-    /// Run a [`RemoteCommand`] on this server (§8.4). Returns a [`CommandOutcome`]
-    /// carrying the exact command shown in the command log (D8).
+    /// Run a [`RemoteCommand`] on this server. Returns a [`CommandOutcome`]
+    /// carrying the exact command shown in the command log.
     pub async fn exec(&self, command: RemoteCommand) -> Result<CommandOutcome, SshError> {
         let rendered = command.render();
         let display = command.display();
@@ -162,7 +162,7 @@ impl SshPool {
         // Drain the channel to completion. We do NOT break on `Eof`/`Close`: SSH
         // servers may send `ExitStatus` *after* `Eof` (and sometimes after
         // `Close`), so breaking early loses the real exit code and reports 0. The
-        // loop ends naturally when `wait()` returns `None`, by which point every
+        // loop ends naturally when `wait` returns `None`, by which point every
         // message, including a trailing exit status, has been seen. Verified
         // against a live sshd: `exit 7` now reports 7, not 0.
         while let Some(msg) = channel.wait().await {

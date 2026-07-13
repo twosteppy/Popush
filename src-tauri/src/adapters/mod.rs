@@ -1,7 +1,7 @@
-//! Adapter runtime (§9): runs each adapter's command over SSH and hands the raw
+//! Adapter runtime: runs each adapter's command over SSH and hands the raw
 //! output to the corresponding pure parser in `popush_core::adapters`. The parse -
-//! where honest status is won (D12), is tested in the core crate; this layer only
-//! issues the command and records it in the log (D8).
+//! where honest status is won, is tested in the core crate; this layer only
+//! issues the command and records it in the log.
 
 use popush_core::adapters::{docker, pm2, static_site, systemd, Capabilities};
 use popush_core::config::{ServiceConfig, SiteStatus};
@@ -9,7 +9,7 @@ use popush_core::error::AdapterError;
 
 use crate::ssh::SshPool;
 
-/// Capabilities for a service configuration (§9.1). Static reliability depends on
+/// Capabilities for a service configuration. Static reliability depends on
 /// whether a health check is configured.
 pub fn capabilities(service: &ServiceConfig, has_health_check: bool) -> Capabilities {
     match service {

@@ -1,4 +1,4 @@
-//! Parsing `~/.ssh/known_hosts` into [`KnownHost`] entries (§8.3).
+//! Parsing `~/.ssh/known_hosts` into [`KnownHost`] entries.
 //!
 //! This is the pure, testable half of host-key verification: turning the on-disk
 //! file into the structured entries [`super::hostkey::HostKeyVerifier`] consults.
@@ -9,7 +9,7 @@
 //! skipped: Popush compares against the plaintext host it is connecting to, and a
 //! hashed line would need the salt+HMAC to match. Skipping them means an entry
 //! Popush cannot verify is treated as "unknown" rather than silently trusted,
-//! which is the safe direction (D12/§8.3).
+//! which is the safe direction.
 
 use super::hostkey::KnownHost;
 

@@ -1,4 +1,4 @@
-//! Docker Compose adapter (§9.2). The recommended setup.
+//! Docker Compose adapter. The recommended setup.
 
 use serde::Deserialize;
 
@@ -17,7 +17,7 @@ pub fn capabilities() -> Capabilities {
     }
 }
 
-/// `docker compose ps --format json` in the site directory (§9.2).
+/// `docker compose ps --format json` in the site directory.
 pub fn status_command(remote_path: &str) -> RemoteCommand {
     RemoteCommand::new(
         "cd {} && docker compose ps --format json",
@@ -74,7 +74,7 @@ struct ContainerRow {
 }
 
 /// Parse `docker compose ps --format json` output into a [`SiteStatus`] using the
-/// mapping in §9.2. An empty output means no containers → `Stopped`.
+/// mapping An empty output means no containers → `Stopped`.
 pub fn parse_status(output: &str) -> Result<SiteStatus, AdapterError> {
     let rows = parse_rows(output)?;
     if rows.is_empty() {
@@ -121,7 +121,7 @@ pub fn parse_status(output: &str) -> Result<SiteStatus, AdapterError> {
         return Ok(SiteStatus::Stopped);
     }
     // Mixed states with no explicit non-zero exit: name the container that is not
-    // running, per §9.2 ("Mixed → Failed, describing which container is down").
+    // running, ("Mixed → Failed, describing which container is down").
     let down = rows
         .iter()
         .find(|r| !r.state.eq_ignore_ascii_case("running"))

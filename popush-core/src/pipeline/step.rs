@@ -1,9 +1,9 @@
-//! Pipeline steps and the state machine (§12.1, §12.2).
+//! Pipeline steps and the state machine.
 
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-/// The seven steps of Ship It, in order (§12.1).
+/// The seven steps of Ship It, in order.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 pub enum Step {
@@ -17,7 +17,7 @@ pub enum Step {
     Pull,
     /// Run the site's build command in the remote path.
     Build,
-    /// Adapter `restart()`.
+    /// Adapter `restart`.
     Restart,
     /// Poll status and hit the health check.
     Verify,
@@ -48,14 +48,14 @@ impl Step {
         }
     }
 
-    /// Whether this step mutates the server. Used by cancellation (§12.6) to warn
+    /// Whether this step mutates the server. Used by cancellation to warn
     /// when the site may be left in an inconsistent state.
     pub fn mutates_server(self) -> bool {
         matches!(self, Step::Pull | Step::Build | Step::Restart)
     }
 }
 
-/// The facts that decide which steps are skipped (§12.1). Computed before the run.
+/// The facts that decide which steps are skipped. Computed before the run.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SkipContext {
     /// Whether there are local changes to commit.
@@ -69,7 +69,7 @@ pub struct SkipContext {
 }
 
 impl Step {
-    /// Whether this step is skipped given the context (§12.1). `Check`, `Pull`,
+    /// Whether this step is skipped given the context. `Check`, `Pull`,
     /// and `Verify` are never skipped.
     pub fn is_skipped(self, ctx: &SkipContext) -> bool {
         match self {
@@ -82,7 +82,7 @@ impl Step {
     }
 }
 
-/// The live state of one step in the UI (§12.2).
+/// The live state of one step in the UI.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(tag = "state", rename_all = "snake_case")]
 pub enum StepState {
@@ -122,14 +122,14 @@ pub enum StepOutcome {
 }
 
 /// The whole pipeline's live state: each step and its state. The frontend mirrors
-/// this from events (§6.3); it never computes transitions itself.
+/// this from events; it never computes transitions itself.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 pub struct PipelineState {
     /// Per-step state, indexed parallel to [`Step::ALL`].
     pub steps: Vec<StepEntry>,
     /// Whether the pipeline has finished (all done, failed, or cancelled).
     pub finished: bool,
-    /// The pre-deploy git SHA, captured for rollback (§12.5). `None` until Check.
+    /// The pre-deploy git SHA, captured for rollback. `None` until Check.
     pub rollback_sha: Option<String>,
 }
 

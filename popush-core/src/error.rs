@@ -1,12 +1,12 @@
-//! The error taxonomy (§16).
+//! The error taxonomy.
 //!
-//! Prime Directive D11: **no generic errors.** Every failure names its step,
+//! Prime Directive: **no generic errors.** Every failure names its step,
 //! states its consequence for the user, and offers a next action. The strings
 //! "Deploy failed" and "Something went wrong" are banned and asserted absent by
 //! [`crate::pipeline::messages`] tests and the banned-strings test.
 //!
-//! Errors are *structured* (§16.2): each variant carries the context a good
-//! message needs. A `String` error cannot answer the three questions of §16.1
+//! Errors are *structured*: each variant carries the context a good
+//! message needs. A `String` error cannot answer the three questions
 //! because by the time it reaches the UI the structure is gone. So every variant
 //! here can produce a [`UserMessage`] with all three parts filled in.
 
@@ -15,8 +15,8 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-/// A user-facing message that answers the three questions of §16.1. Rendered by
-/// the frontend; never assembled there (D14).
+/// A user-facing message that answers the three questions Rendered by
+/// the frontend; never assembled there.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 pub struct UserMessage {
     /// What happened. Specific, the failing step, never "Deploy failed".
@@ -90,7 +90,7 @@ pub enum AuthFailureReason {
     AllMethodsExhausted,
 }
 
-/// SSH-layer errors (§16.2). Every variant carries the context a message needs.
+/// SSH-layer errors. Every variant carries the context a message needs.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error, Serialize, Deserialize, TS)]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum SshError {
@@ -108,7 +108,7 @@ pub enum SshError {
         /// The specific reason auth failed.
         reason: AuthFailureReason,
     },
-    /// The stored host key does not match, a possible man-in-the-middle (§8.3).
+    /// The stored host key does not match, a possible man-in-the-middle.
     #[error("host key mismatch for {host}")]
     HostKeyMismatch {
         /// The host whose key changed.
@@ -118,7 +118,7 @@ pub enum SshError {
         /// The key the server actually presented.
         got: String,
     },
-    /// The host is not yet known; the user must verify the fingerprint (§8.3).
+    /// The host is not yet known; the user must verify the fingerprint.
     #[error("host {host} is unknown; fingerprint {fingerprint}")]
     HostKeyUnknown {
         /// The unknown host.
@@ -159,7 +159,7 @@ pub enum SshError {
     },
 }
 
-/// Local git errors (§10.2). The refusal messages are verbatim from the spec.
+/// Local git errors. The refusal messages are verbatim from the spec.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error, Serialize, Deserialize, TS)]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum GitError {
@@ -180,7 +180,7 @@ pub enum GitError {
         /// The branch with no upstream.
         branch: String,
     },
-    /// The remote is HTTPS, which needs a token; route to the wizard (§10.3).
+    /// The remote is HTTPS, which needs a token; route to the wizard.
     #[error("remote {url} is HTTPS, not SSH")]
     HttpsRemote {
         /// The HTTPS remote URL.
@@ -200,7 +200,7 @@ pub enum GitError {
     },
 }
 
-/// Service-adapter errors (§9).
+/// Service-adapter errors.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error, Serialize, Deserialize, TS)]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum AdapterError {
@@ -225,7 +225,7 @@ pub enum AdapterError {
     Ssh(SshError),
 }
 
-/// Config load/validate/migrate errors (§7).
+/// Config load/validate/migrate errors.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error, Serialize, Deserialize, TS)]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum ConfigError {
@@ -243,7 +243,7 @@ pub enum ConfigError {
         /// The parser's message.
         detail: String,
     },
-    /// A field is missing or invalid; names the field and the problem (§7.2 gate).
+    /// A field is missing or invalid; names the field and the problem.
     #[error("field `{field}` is invalid: {problem}")]
     InvalidField {
         /// The offending field path.
@@ -261,11 +261,11 @@ pub enum ConfigError {
     },
 }
 
-/// Pipeline (Ship It) errors (§12). The messages are the verbatim ones from §12.4.
+/// Pipeline (Ship It) errors. The messages are the verbatim ones
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error, Serialize, Deserialize, TS)]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum PipelineError {
-    /// A named step failed. Never rendered as "Deploy failed" (D11).
+    /// A named step failed. Never rendered as "Deploy failed".
     #[error("step {step} failed")]
     StepFailed {
         /// The step that failed (e.g. `"Build"`).
@@ -273,7 +273,7 @@ pub enum PipelineError {
         /// The failure detail.
         detail: String,
     },
-    /// The run was cancelled by the user (§12.6).
+    /// The run was cancelled by the user.
     #[error("cancelled at step {step}")]
     Cancelled {
         /// The step in progress when cancelled.
@@ -285,7 +285,7 @@ pub enum PipelineError {
 
 impl AppError {
     /// Produce the user-facing message. This is the single place errors become
-    /// human text, so the three-questions rule (§16.1) is enforced in one spot.
+    /// human text, so the three-questions rule is enforced in one spot.
     pub fn user_message(&self) -> UserMessage {
         match self {
             AppError::Ssh(e) => e.user_message(),
@@ -298,7 +298,7 @@ impl AppError {
 }
 
 impl SshError {
-    /// Human message for an SSH error, answering all three questions (§16.1).
+    /// Human message for an SSH error, answering all three questions.
     pub fn user_message(&self) -> UserMessage {
         match self {
             SshError::HostUnreachable { host, detail } => UserMessage {
@@ -374,7 +374,7 @@ impl SshError {
 }
 
 impl GitError {
-    /// Human message for a git error. The refusal texts are verbatim from §10.2.
+    /// Human message for a git error. The refusal texts are verbatim
     pub fn user_message(&self) -> UserMessage {
         match self {
             GitError::MergeConflicts { count, files } => UserMessage {
@@ -465,7 +465,7 @@ impl AdapterError {
 }
 
 impl ConfigError {
-    /// Human message for a config error, always naming the field/problem (§7.2).
+    /// Human message for a config error, always naming the field/problem.
     pub fn user_message(&self) -> UserMessage {
         match self {
             ConfigError::Unreadable { path, detail } => UserMessage {
@@ -499,7 +499,7 @@ impl ConfigError {
 }
 
 impl PipelineError {
-    /// Human message for a pipeline error. Never "Deploy failed" (D11); the
+    /// Human message for a pipeline error. Never "Deploy failed"; the
     /// step-specific text comes from [`crate::pipeline::messages`].
     pub fn user_message(&self) -> UserMessage {
         match self {
@@ -556,7 +556,7 @@ impl From<PipelineError> for AppError {
 mod tests {
     use super::*;
 
-    /// Strings banned by D11 anywhere in a user-facing message.
+    /// Strings banned by anywhere in a user-facing message.
     const BANNED: &[&str] = &["Deploy failed", "Something went wrong"];
 
     fn assert_answers_three_questions(m: &UserMessage) {
@@ -640,7 +640,7 @@ mod tests {
 
     #[test]
     fn passphrase_message_matches_spec_8_2() {
-        // §8.2 requires this exact guidance, with the key path and ssh-add command.
+        // requires this exact guidance, with the key path and ssh-add command.
         let m = SshError::KeyNotInAgent {
             path: "/home/u/.ssh/id_ed25519".into(),
         }

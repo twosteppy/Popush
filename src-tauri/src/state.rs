@@ -1,4 +1,4 @@
-//! Backend-owned application state (§6.3). The frontend holds only a mirror,
+//! Backend-owned application state. The frontend holds only a mirror,
 //! updated by events; it never holds authoritative state.
 
 use std::collections::HashMap;
@@ -18,16 +18,16 @@ pub struct AppState {
 struct Inner {
     /// Loaded config, or `None` before first load / on load error.
     config: Option<Config>,
-    /// Live SSH connection pools, one per server, opened lazily (§8.1). Read by
+    /// Live SSH connection pools, one per server, opened lazily. Read by
     /// the connection-pool lifecycle wiring (the remaining integration point noted
     /// in docs/DECISIONS.md); allowed dead until those command handlers land.
     #[allow(dead_code)]
     connections: HashMap<ServerId, SshPool>,
-    /// Last known status per site (§6.3).
+    /// Last known status per site.
     site_status: HashMap<SiteId, SiteStatus>,
     /// In-flight pipeline cancellation flags.
     cancelled: HashMap<PipelineId, bool>,
-    /// The command log (D8), every remote command, inspectable at any time.
+    /// The command log, every remote command, inspectable at any time.
     command_log: Vec<CommandLogEntry>,
 }
 
@@ -45,7 +45,7 @@ impl AppState {
         }
     }
 
-    /// Load config from the XDG path on startup. A missing file is fine (D2): the
+    /// Load config from the XDG path on startup. A missing file is fine: the
     /// app shows its empty state. A malformed file is surfaced to the UI as a
     /// config error, never a silent failure.
     pub fn load_config_on_startup(&self) {
@@ -89,7 +89,7 @@ impl AppState {
     }
 
     /// Add or replace a server (the in-app "Add a server" flow), then persist the
-    /// config to disk so the change survives a restart (§7, D6). Writing goes
+    /// config to disk so the change survives a restart. Writing goes
     /// through `popush_core`, which keeps the file human-editable and secret-free.
     pub fn add_or_update_server(
         &self,
@@ -117,7 +117,7 @@ impl AppState {
         Ok(removed)
     }
 
-    /// Append an entry to the command log (D8).
+    /// Append an entry to the command log.
     pub fn record_command(&self, entry: CommandLogEntry) {
         self.inner.lock().unwrap().command_log.push(entry);
     }
@@ -127,7 +127,7 @@ impl AppState {
         self.inner.lock().unwrap().command_log.clone()
     }
 
-    /// Mark a pipeline cancelled (§12.6).
+    /// Mark a pipeline cancelled.
     pub fn cancel(&self, id: &PipelineId) {
         self.inner
             .lock()
@@ -159,7 +159,7 @@ impl Default for AppState {
     }
 }
 
-/// The XDG config path, `~/.config/popush/config.toml` (§7.1).
+/// The XDG config path, `~/.config/popush/config.toml`.
 pub fn config_path() -> Option<std::path::PathBuf> {
     directories::ProjectDirs::from("dev", "popush", "popush")
         .map(|d| d.config_dir().join("config.toml"))

@@ -1,5 +1,5 @@
-//! Tauri IPC command handlers (§6.2). Each is a thin adapter from the typed IPC
-//! boundary to `popush_core` logic and the infrastructure modules (D14). Types
+//! Tauri IPC command handlers. Each is a thin adapter from the typed IPC
+//! boundary to `popush_core` logic and the infrastructure modules. Types
 //! crossing the boundary are defined once in `popush-core` and generated into
 //! `src/types/generated.ts` via `ts-rs`.
 
@@ -21,13 +21,13 @@ pub struct ConnectionResult {
     pub latency_ms: Option<u64>,
 }
 
-/// List configured servers (§6.2).
+/// List configured servers.
 #[tauri::command]
 pub async fn list_servers(state: State<'_, AppState>) -> Result<Vec<ServerConfig>, AppError> {
     Ok(state.servers())
 }
 
-/// List sites on a server (§6.2).
+/// List sites on a server.
 #[tauri::command]
 pub async fn list_sites(
     state: State<'_, AppState>,
@@ -41,7 +41,7 @@ pub async fn list_sites(
         .unwrap_or_default())
 }
 
-/// Test a connection to a server by opening a pool and running `true` (§6.2).
+/// Test a connection to a server by opening a pool and running `true`.
 #[tauri::command]
 pub async fn test_connection(
     _state: State<'_, AppState>,
@@ -49,14 +49,14 @@ pub async fn test_connection(
 ) -> Result<ConnectionResult, AppError> {
     // The pool open + a trivial `exec` proves reachability, auth, and host key.
     // Wired to the SSH layer on the target; returns a structured error otherwise,
-    // never a generic one (D11).
+    // never a generic one.
     Ok(ConnectionResult {
         ok: true,
         latency_ms: None,
     })
 }
 
-/// Get a site's last-known status (§6.2).
+/// Get a site's last-known status.
 #[tauri::command]
 pub async fn get_site_status(
     _state: State<'_, AppState>,
@@ -65,7 +65,7 @@ pub async fn get_site_status(
     Ok(SiteStatus::Checking)
 }
 
-/// Read local git status for a site (§6.2, §10).
+/// Read local git status for a site.
 #[tauri::command]
 pub async fn git_status(
     state: State<'_, AppState>,
@@ -85,7 +85,7 @@ pub async fn git_status(
     crate::git::status(&local, &site.git_remote).map_err(AppError::Git)
 }
 
-/// Start a Ship It pipeline (§12). Returns its id; progress streams via events.
+/// Start a Ship It pipeline. Returns its id; progress streams via events.
 #[tauri::command]
 pub async fn start_deploy(
     _state: State<'_, AppState>,
@@ -94,7 +94,7 @@ pub async fn start_deploy(
     Ok(PipelineId::new())
 }
 
-/// Cancel a running pipeline (§12.6).
+/// Cancel a running pipeline.
 #[tauri::command]
 pub async fn cancel_pipeline(
     state: State<'_, AppState>,
@@ -104,7 +104,7 @@ pub async fn cancel_pipeline(
     Ok(())
 }
 
-/// Run a wizard check (§11.2). Local checks (C1, C4) are performed here against
+/// Run a wizard check. Local checks (C1, C4) are performed here against
 /// `~/.ssh` and the site's local clone; checks needing the agent, GitHub, or the
 /// server report `NotApplicable` honestly rather than faking a pass.
 #[tauri::command]
@@ -124,9 +124,9 @@ pub async fn run_wizard_check(
     ))
 }
 
-/// Apply a previewed wizard fix (§11.1). The preview was shown before this call.
+/// Apply a previewed wizard fix. The preview was shown before this call.
 /// Remote conversion is applied via `git2`; key generation is applied through its
-/// previewed command (guarded so it can never overwrite a key, D13).
+/// previewed command (guarded so it can never overwrite a key).
 #[tauri::command]
 pub async fn apply_wizard_fix(
     state: State<'_, AppState>,
@@ -141,7 +141,7 @@ pub async fn apply_wizard_fix(
 }
 
 /// Add or replace a server from the in-app form, persisting to `config.toml`
-/// (§7). The user never has to hand-edit TOML; the file stays human-editable.
+/// The user never has to hand-edit TOML; the file stays human-editable.
 #[tauri::command]
 pub async fn add_server(state: State<'_, AppState>, server: ServerConfig) -> Result<(), AppError> {
     state.add_or_update_server(server).map_err(AppError::Config)
@@ -165,8 +165,8 @@ pub async fn get_config(
     Ok(state.config_snapshot())
 }
 
-/// The absolute path to `config.toml`, so the UI can offer "open in your editor"
-/// (§7.1), the app is not the sole source of truth (D6).
+/// The absolute path to `config.toml`, so the UI can offer to open it in the
+/// user's editor. The app is not the sole source of truth for configuration.
 #[tauri::command]
 pub async fn config_file_path() -> Result<String, AppError> {
     Ok(crate::state::config_path()
@@ -174,14 +174,14 @@ pub async fn config_file_path() -> Result<String, AppError> {
         .unwrap_or_else(|| "~/.config/popush/config.toml".into()))
 }
 
-/// The full command log (D8).
+/// The full command log.
 #[tauri::command]
 pub async fn command_log(state: State<'_, AppState>) -> Result<Vec<CommandLogEntry>, AppError> {
     Ok(state.command_log())
 }
 
 /// Commit the selected files and push, using the verified local-git module. Push
-/// credentials come from `ssh-agent` (§10.3); an HTTPS remote is refused and routes
+/// credentials come from `ssh-agent`; an HTTPS remote is refused and routes
 /// to the wizard. Returns the new commit's short SHA.
 #[tauri::command]
 pub async fn git_commit_and_push(
@@ -206,7 +206,7 @@ pub async fn git_commit_and_push(
     Ok(sha)
 }
 
-/// Store the optional GitHub PAT in the system keyring (§11.5). Never written to
+/// Store the optional GitHub PAT in the system keyring. Never written to
 /// `config.toml` or any log.
 #[tauri::command]
 pub async fn set_github_token(token: String) -> Result<(), AppError> {
@@ -229,7 +229,7 @@ pub async fn clear_github_token() -> Result<(), AppError> {
     })
 }
 
-/// The optional GitHub info panel (§11.5): latest commit, CI status, open PRs. All
+/// The optional GitHub info panel: latest commit, CI status, open PRs. All
 /// three are `None`/default when no token is present, so the UI shows the feature
 /// as off. The token is sent only to `api.github.com`.
 #[tauri::command]
@@ -249,7 +249,7 @@ pub async fn github_repo_info(
     })
 }
 
-/// The optional GitHub info surfaced to the UI (§11.5).
+/// The optional GitHub info surfaced to the UI.
 #[derive(serde::Serialize, Default)]
 pub struct GithubInfo {
     /// The latest commit, if a token is present and the fetch succeeded.
@@ -263,7 +263,7 @@ pub struct GithubInfo {
     pub token_present: bool,
 }
 
-/// The author credit and version for the About dialog (D9).
+/// The author credit and version for the About dialog.
 #[tauri::command]
 pub async fn app_credit() -> Result<Credit, AppError> {
     Ok(Credit {
@@ -272,7 +272,7 @@ pub async fn app_credit() -> Result<Credit, AppError> {
     })
 }
 
-/// About-dialog credit payload (D9).
+/// About-dialog credit payload.
 #[derive(serde::Serialize)]
 pub struct Credit {
     /// The author: twostep.
@@ -282,7 +282,7 @@ pub struct Credit {
 }
 
 /// The user's `~/.ssh` directory. Popush only ever reads public keys and
-/// `known_hosts` from here (the Flatpak grants it read-only, §21.1).
+/// `known_hosts` from here (the Flatpak grants it read-only).
 fn ssh_dir() -> std::path::PathBuf {
     directories::UserDirs::new()
         .map(|d| d.home_dir().join(".ssh"))

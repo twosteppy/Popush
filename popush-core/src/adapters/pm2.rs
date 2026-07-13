@@ -1,4 +1,4 @@
-//! PM2 adapter (§9.4). Parses `pm2 jlist` JSON.
+//! PM2 adapter. Parses `pm2 jlist` JSON.
 
 use serde::Deserialize;
 
@@ -57,7 +57,7 @@ struct Pm2Env {
     pm_uptime: Option<i64>,
 }
 
-/// Parse `pm2 jlist` output for a specific app name (§9.4).
+/// Parse `pm2 jlist` output for a specific app name.
 pub fn parse_status(output: &str, app_name: &str) -> Result<SiteStatus, AdapterError> {
     let entries: Vec<Pm2Entry> =
         serde_json::from_str(output.trim()).map_err(|e| AdapterError::Unparseable {

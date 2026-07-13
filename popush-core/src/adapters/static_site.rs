@@ -1,9 +1,9 @@
-//! Static-site adapter (§9.5), the honest one.
+//! Static-site adapter, the honest one.
 //!
 //! A static site served by nginx has no process of its own. Its "status" is
 //! whether files exist and, if a `health_check_url` is configured, whether an
 //! HTTP `HEAD` succeeds. Without a health check, status is **not reliable**
-//! (`status_is_reliable = false`) and the UI shows **amber Unknown** (D12). A
+//! (`status_is_reliable = false`) and the UI shows **amber Unknown**. A
 //! green light that means "the folder exists" is worse than an honest amber one,
 //! so this adapter refuses to earn green from a directory listing alone.
 
@@ -12,7 +12,7 @@ use crate::config::SiteStatus;
 use crate::ssh::RemoteCommand;
 
 /// Static sites cannot be started, stopped, or restarted; status is reliable only
-/// with a health check (§9.5). The `has_health_check` argument decides that.
+/// with a health check. The `has_health_check` argument decides that.
 pub fn capabilities(has_health_check: bool) -> Capabilities {
     Capabilities {
         can_start_stop: false,
@@ -23,7 +23,7 @@ pub fn capabilities(has_health_check: bool) -> Capabilities {
     }
 }
 
-/// `test -d <root> && ls -1 <root> | head -1` (§9.5). Confirms the web root exists
+/// `test -d <root> && ls -1 <root> | head -1`. Confirms the web root exists
 /// and is non-empty. This alone never earns green.
 pub fn presence_command(web_root: &str) -> RemoteCommand {
     RemoteCommand::new(
@@ -52,7 +52,7 @@ pub fn interpret_presence(exit_code: i32, stdout: &str) -> PresenceOutcome {
 
 /// Combine file presence with an optional HTTP health verdict into a status.
 ///
-/// The honesty rule (D12): files present but no health check → **amber Unknown**,
+/// The honesty rule: files present but no health check → **amber Unknown**,
 /// never green. Only a passing health check earns `Running`.
 pub fn resolve_status(presence: PresenceOutcome, health: Option<HealthVerdict>) -> SiteStatus {
     match (presence, health) {
@@ -74,7 +74,7 @@ pub fn resolve_status(presence: PresenceOutcome, health: Option<HealthVerdict>) 
 
 impl HealthVerdict {
     /// Classify an HTTP status code from a `HEAD` to the health check URL. A 2xx
-    /// earns `Ok`; anything else is reported honestly with its code (§9.5). The
+    /// earns `Ok`; anything else is reported honestly with its code. The
     /// binary calls this after performing the request.
     pub fn from_http_status(code: u16) -> Self {
         if (200..300).contains(&code) {
@@ -105,7 +105,7 @@ mod tests {
 
     #[test]
     fn present_without_health_check_is_amber_unknown_not_green() {
-        // The single most important honesty test for this adapter (D12).
+        // The single most important honesty test for this adapter.
         let status = resolve_status(PresenceOutcome::Present, None);
         assert!(matches!(status, SiteStatus::Unknown { .. }));
     }

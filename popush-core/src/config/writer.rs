@@ -1,6 +1,6 @@
-//! Writing config back to disk (§7): the in-app "Add a server" and "Add a site"
+//! Writing config back to disk: the in-app "Add a server" and "Add a site"
 //! flows persist here so a user never has to hand-edit TOML, while the file stays
-//! human-editable and secret-free (D6, D7). The serialisation and the upsert/remove
+//! human-editable and secret-free. The serialisation and the upsert/remove
 //! logic are pure and tested; the binary does the actual file write.
 
 use crate::config::schema::Config;
@@ -16,7 +16,7 @@ const HEADER: &str = "\
 # Contains no secrets: keys are referenced by path, never copied.
 ";
 
-/// Serialise a [`Config`] to a TOML string with the reassuring header (§7.2).
+/// Serialise a [`Config`] to a TOML string with the reassuring header.
 pub fn to_toml(config: &Config) -> Result<String, ConfigError> {
     let body = toml::to_string_pretty(config).map_err(|e| ConfigError::Malformed {
         detail: e.to_string(),

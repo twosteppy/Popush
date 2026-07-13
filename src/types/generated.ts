@@ -34,7 +34,7 @@ theme: Theme,
  */
 accent: string, 
 /**
- * Background poll interval in seconds; 0 disables polling (§6.4).
+ * Background poll interval in seconds; 0 disables polling.
  */
 poll_interval_seconds: bigint, 
 /**
@@ -70,7 +70,7 @@ port: number,
  */
 username: string, 
 /**
- * Path to the private key. **Never the key itself** (D7).
+ * Path to the private key. **Never the key itself**.
  */
 identity_file: string, 
 /**
@@ -128,7 +128,7 @@ local_path: string | null,
  */
 live_url: string | null, 
 /**
- * Optional health check URL; presence upgrades static status honesty (§9.5).
+ * Optional health check URL; presence upgrades static status honesty.
  */
 health_check_url: string | null, };
 
@@ -164,7 +164,7 @@ since: string | null, } | { "state": "stopped" } | { "state": "failed",
  */
 reason: string, } | { "state": "unknown", 
 /**
- * Why it is unknown, shown in the tooltip (§9.5).
+ * Why it is unknown, shown in the tooltip.
  */
 reason: string, } | { "state": "checking" };
 
@@ -231,7 +231,7 @@ can_restart: boolean,
 has_logs: boolean, 
 /**
  * Whether the reported status is trustworthy. False for static sites with no
- * health check (§9.5): the UI shows amber Unknown rather than a fake green.
+ * health check: the UI shows amber Unknown rather than a fake green.
  */
 status_is_reliable: boolean, };
 
@@ -468,7 +468,7 @@ steps: Array<StepEntry>,
  */
 finished: boolean, 
 /**
- * The pre-deploy git SHA, captured for rollback (§12.5). `None` until Check.
+ * The pre-deploy git SHA, captured for rollback. `None` until Check.
  */
 rollback_sha: string | null, };
 
@@ -496,7 +496,7 @@ why: string, } | { "status": "running" };
 
 export type FixPreview = { 
 /**
- * The exact command or change, shown before applying (§11.1 rule 1).
+ * The exact command or change, shown before applying.
  */
 command: string, 
 /**
@@ -504,7 +504,7 @@ command: string,
  */
 description: string, 
 /**
- * How to undo it (§11.1 rule 3). `None` only for inherently safe, additive
+ * How to undo it. `None` only for inherently safe, additive
  * actions that leave nothing to undo (documented per fix).
  */
 undo: string | null, };

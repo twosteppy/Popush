@@ -1,10 +1,10 @@
-//! Host-key verification decision logic (§8.3).
+//! Host-key verification decision logic.
 //!
 //! The rule is exactly `ssh`'s: a known, matching key connects; an unknown host
 //! is presented for the user to verify by fingerprint and **never auto-accepted**;
 //! a known host whose key has **changed** is refused, because that is the
 //! signature of a man-in-the-middle. The refusal is not one-click dismissible in
-//! the UI (§8.3 gate); this module only produces the decision, the UI enforces
+//! the UI; this module only produces the decision, the UI enforces
 //! the friction.
 //!
 //! This is decision logic over already-parsed data, so it is pure and unit-tested
@@ -33,12 +33,12 @@ pub struct KnownHost {
 pub enum HostKeyDecision {
     /// The presented key matches a pinned entry. Connect.
     Trusted,
-    /// The host is unknown. Present the fingerprint and ask the user (§8.3).
+    /// The host is unknown. Present the fingerprint and ask the user.
     Unknown {
         /// The fingerprint to show for verification.
         fingerprint: String,
     },
-    /// The host is known but the key changed. Refuse, warn loudly (§8.3).
+    /// The host is known but the key changed. Refuse, warn loudly.
     Mismatch {
         /// The pinned key Popush expected.
         expected: String,

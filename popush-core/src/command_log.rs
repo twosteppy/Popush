@@ -1,4 +1,4 @@
-//! The command log (D8, §8.5): a permanent, inspectable record of every remote
+//! The command log: a permanent, inspectable record of every remote
 //! command Popush ran, so the user can always answer "what did this app actually
 //! do to my server?" The log holds only what is safe to show, the command as
 //! sent (already escaped), never key material.
@@ -9,7 +9,7 @@ use ts_rs::TS;
 
 use crate::ids::ServerId;
 
-/// The outcome of running a remote command (§8.4).
+/// The outcome of running a remote command.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 pub struct CommandOutcome {
     /// The process exit code.
@@ -24,7 +24,7 @@ pub struct CommandOutcome {
     pub command_display: String,
 }
 
-/// One entry in the command log (§8.5).
+/// One entry in the command log.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 pub struct CommandLogEntry {
     /// When the command was sent.

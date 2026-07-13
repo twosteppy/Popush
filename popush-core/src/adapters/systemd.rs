@@ -1,5 +1,5 @@
-//! systemd adapter (§9.3). Start/stop/restart need root; Popush never prompts for
-//! a password (§9.3), the commands assume a passwordless sudoers entry the wizard
+//! systemd adapter. Start/stop/restart need root; Popush never prompts for
+//! a password, the commands assume a passwordless sudoers entry the wizard
 //! *generates for the user to install by hand*, or a user unit. Popush never edits
 //! sudoers itself.
 
@@ -19,7 +19,7 @@ pub fn capabilities() -> Capabilities {
 }
 
 /// `systemctl show <unit> --property=...`. `show` is chosen over `status` because
-/// its `key=value` output is stable and machine-parseable (§9.3).
+/// its `key=value` output is stable and machine-parseable.
 pub fn status_command(unit: &str) -> RemoteCommand {
     RemoteCommand::new(
         "systemctl show {} --property=ActiveState,SubState,ActiveEnterTimestamp",

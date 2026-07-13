@@ -1,7 +1,7 @@
-//! Credential redaction for logs (§17.3, defence in §17.2).
+//! Credential redaction for logs.
 //!
 //! The `tracing` layer must never write key material, tokens, or `Authorization`
-//! headers, even though logs are local-only and never transmitted (D3). Redaction
+//! headers, even though logs are local-only and never transmitted. Redaction
 //! is applied before a line is written. The transformation is pure and tested
 //! here; the binary installs it as a formatting layer.
 //!

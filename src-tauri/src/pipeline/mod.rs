@@ -1,7 +1,7 @@
-//! Ship It pipeline orchestration (§12). The *state machine, skip logic, and
+//! Ship It pipeline orchestration. The *state machine, skip logic, and
 //! messages* are `popush_core::pipeline`; this layer runs the steps over SSH and
-//! git, emits the typed events (§6.2), captures the rollback SHA (§12.5), and
-//! honours cancellation (§12.6). It is glue (D14): every decision and every string
+//! git, emits the typed events, captures the rollback SHA, and
+//! honours cancellation. It is glue: every decision and every string
 //! comes from the core.
 
 pub mod events;

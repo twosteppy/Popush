@@ -1,10 +1,10 @@
-//! The wizard checks C1–C7 (§11.2). Each is independent and resolves to pass,
+//! The wizard checks C1–C7. Each is independent and resolves to pass,
 //! fail, or not-applicable.
 
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-/// The seven checks (§11.2).
+/// The seven checks.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 pub enum Check {
@@ -36,7 +36,7 @@ impl Check {
         Check::ServerRemoteIsSsh,
     ];
 
-    /// The plain-English name shown on the checklist row (§11.4).
+    /// The plain-English name shown on the checklist row.
     pub fn title(self) -> &'static str {
         match self {
             Check::LocalKeyExists => "An SSH key exists on this machine",
@@ -49,7 +49,7 @@ impl Check {
         }
     }
 
-    /// The one-line explanation shown under the title (§11.4).
+    /// The one-line explanation shown under the title.
     pub fn explanation(self) -> &'static str {
         match self {
             Check::LocalKeyExists => "Popush needs a key to talk to your server and GitHub.",
@@ -63,7 +63,7 @@ impl Check {
     }
 }
 
-/// The resolved status of a check (§11.2).
+/// The resolved status of a check.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(tag = "status", rename_all = "snake_case")]
 pub enum CheckStatus {

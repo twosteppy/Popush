@@ -1,13 +1,13 @@
-//! Verbatim pipeline failure messages (§12.4), asserted in tests (§23.4).
+//! Verbatim pipeline failure messages, asserted in tests.
 //!
 //! These strings are contractual: the Phase 7 gate requires each verbatim message
 //! to be produced under failure injection. Paths, exit codes, and counts are
-//! filled from the real runtime values (§12.4). The banned-strings test at the
-//! bottom enforces D11 across this whole module.
+//! filled from the real runtime values. The banned-strings test at the
+//! bottom enforces across this whole module.
 
 use crate::error::{NextAction, UserMessage};
 
-/// The kinds of failure the pipeline distinguishes for messaging (§12.4). Each
+/// The kinds of failure the pipeline distinguishes for messaging. Each
 /// carries the runtime context its message needs.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FailureKind {
@@ -29,7 +29,7 @@ pub enum FailureKind {
     },
     /// The service did not come back after restart.
     RestartFailed {
-        /// The service logs, shown automatically (§12.4).
+        /// The service logs, shown automatically.
         service_logs: String,
     },
     /// The health check returned a non-2xx code after a successful restart.
@@ -41,7 +41,7 @@ pub enum FailureKind {
     },
 }
 
-/// Produce the verbatim user message for a pipeline failure (§12.4).
+/// Produce the verbatim user message for a pipeline failure.
 pub fn failure_message(kind: &FailureKind) -> UserMessage {
     match kind {
         FailureKind::PushNonFastForward => UserMessage {
@@ -96,7 +96,7 @@ pub fn failure_message(kind: &FailureKind) -> UserMessage {
     }
 }
 
-/// The rollback offer shown on failure (§12.5): the pre-deploy SHA and the exact
+/// The rollback offer shown on failure: the pre-deploy SHA and the exact
 /// command to return to it, never run automatically.
 pub fn rollback_offer(remote_path: &str, sha: &str) -> UserMessage {
     UserMessage {
@@ -112,7 +112,7 @@ pub fn rollback_offer(remote_path: &str, sha: &str) -> UserMessage {
 mod tests {
     use super::*;
 
-    /// D11: these strings must never appear in any user-facing message.
+    ///: these strings must never appear in any user-facing message.
     const BANNED: &[&str] = &["Deploy failed", "Something went wrong"];
 
     fn all_message_texts(m: &UserMessage) -> Vec<String> {
