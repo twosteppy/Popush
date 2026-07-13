@@ -19,7 +19,7 @@ import type {
 import { useServersStore } from '../../store/servers';
 import { Dialog } from '../ui/Dialog';
 import { Button } from '../ui/Button';
-import { Field, TextInput, SelectInput } from '../ui/Field';
+import { Field, TextInput, SelectInput, NumberField } from '../ui/Field';
 import { slugId } from '../../lib/slug';
 
 interface AddServerDialogProps {
@@ -302,16 +302,13 @@ export function AddServerDialog({ open, onOpenChange }: AddServerDialogProps) {
                   htmlFor="srv-port"
                   error={serverErrors.port}
                 >
-                  <TextInput
+                  <NumberField
                     id="srv-port"
-                    type="number"
                     min={1}
                     max={65535}
                     value={server.port}
                     invalid={Boolean(serverErrors.port)}
-                    onChange={(e) =>
-                      setServer({ ...server, port: e.target.value })
-                    }
+                    onValueChange={(v) => setServer({ ...server, port: v })}
                     onBlur={() => blurServer('port')}
                   />
                 </Field>

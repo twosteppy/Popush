@@ -7,7 +7,7 @@
 import { useState } from 'react';
 import { Palette, Timer, Github, X } from 'lucide-react';
 import type { Theme } from '../types/generated';
-import { Field, SelectInput, TextInput } from '../components/ui/Field';
+import { Field, SelectInput, NumberField } from '../components/ui/Field';
 
 interface SettingsViewProps {
   theme: Theme;
@@ -73,12 +73,11 @@ export function SettingsView({
           htmlFor="poll-interval"
           hint="Seconds between background status checks. 0 disables polling."
         >
-          <TextInput
+          <NumberField
             id="poll-interval"
-            type="number"
             min={0}
             value={pollIntervalSeconds}
-            onChange={(e) => onPollIntervalChange(Number(e.target.value))}
+            onValueChange={(v) => onPollIntervalChange(Number(v))}
             className="max-w-xs"
           />
         </Field>

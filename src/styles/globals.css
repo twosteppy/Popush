@@ -27,6 +27,21 @@
   src: url('./fonts/JetBrainsMono-Variable.woff2') format('woff2');
 }
 
+/*
+ * Number inputs get custom stepper buttons (see ui/Field NumberField), so the
+ * unstyled native spin buttons are hidden across engines.
+ */
+input[type='number'] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
 /* §20: respect the system font size - size the root in a relative-friendly way. */
 html {
   font-size: 100%;
@@ -72,6 +87,17 @@ body {
   font-family: var(--font-mono);
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+/*
+ * Dialog backdrop: a clean frosted blur rather than a heavy dark scrim. Most of
+ * the effect is the blur; the tint is light so the app reads as going soft, not
+ * black. The -webkit- prefix is required for WebKitGTK (Tauri on Linux).
+ */
+.dialog-overlay {
+  background: rgba(10, 10, 14, 0.35);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 /*

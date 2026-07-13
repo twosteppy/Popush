@@ -26,7 +26,7 @@ describe('HelpView explainer', () => {
 
   it('defines the core vocabulary', () => {
     render(<HelpView onAddServer={() => {}} />);
-    for (const term of ['Server', 'Site', 'Ship It', 'Setup wizard']) {
+    for (const term of ['Server', 'Site', 'Ship It']) {
       expect(screen.getByRole('heading', { name: term })).toBeInTheDocument();
     }
   });

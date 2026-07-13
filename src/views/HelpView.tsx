@@ -1,7 +1,6 @@
-// HelpView - the "What is Popush?" explainer. Plain, friendly onboarding for
-// people who open the app and are not sure what it does. It defines the few
-// words the rest of the UI leans on (Server, Site, Ship It, the setup wizard),
-// states the privacy stance, and lays out a 3-step getting-started path.
+// HelpView - the "What is Popush?" explainer. Short and plain: a one-line
+// intro, the three words the rest of the UI leans on (Server, Site, Ship It),
+// the privacy stance, and a 3-step start. It defines just enough to get moving.
 //
 // D14: presentation only. The single CTA dispatches an "add server" intent.
 
@@ -9,7 +8,6 @@ import {
   Server,
   Globe,
   Rocket,
-  Wand2,
   ShieldCheck,
   KeyRound,
   Plus,
@@ -34,67 +32,50 @@ export function HelpView({ onAddServer }: HelpViewProps) {
             What is Popush?
           </h1>
           <p className="mt-1.5 max-w-prose text-sm leading-relaxed text-text-secondary">
-            Popush is a desktop app for running and deploying your websites on
-            your own servers over SSH. You point it at a machine you already
-            rent, and it commits, ships, and restarts your site for you. There
-            is nothing to host and no dashboard in the cloud.
+            Popush deploys your websites to servers you already own, over SSH.
+            Nothing to host, no cloud dashboard, no account.
           </p>
         </div>
       </header>
 
       <Section title="The key ideas" icon={<ListChecks size={15} />}>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <IdeaCard icon={<Server size={16} />} term="Server">
-            One of your machines, usually a VPS. It is the computer Popush
-            connects to over SSH to do the actual work.
+            A machine you rent that Popush connects to over SSH.
           </IdeaCard>
           <IdeaCard icon={<Globe size={16} />} term="Site">
-            A single app or website living on a server. A server can hold
-            several sites, each with its own path, branch, and service.
+            One app on a server. A server can hold several.
           </IdeaCard>
           <IdeaCard icon={<Rocket size={16} />} term="Ship It">
-            The one-click deploy. Popush runs commit, push, pull, build,
-            restart, and verify in order, and streams each step live.
-          </IdeaCard>
-          <IdeaCard icon={<Wand2 size={16} />} term="Setup wizard">
-            A one-time helper that checks the SSH and GitHub path between your
-            machine, GitHub, and the server, and offers to fix what is broken.
+            One click to commit, push, build, restart, and verify.
           </IdeaCard>
         </div>
       </Section>
 
       <Section title="Your data stays yours" icon={<ShieldCheck size={15} />}>
-        <ul className="flex flex-col gap-2 text-sm text-text-secondary">
-          <Point>
-            No account and no sign-in. Popush runs entirely on this computer.
-          </Point>
-          <Point>
-            No secrets are stored. Popush keeps the path to your SSH key, never
-            the key itself, and never a password.
-          </Point>
-          <Point>
-            No telemetry. Nothing about your servers, keys, or deployments
-            leaves your machine.
-          </Point>
-        </ul>
+        <p className="max-w-prose text-sm leading-relaxed text-text-secondary">
+          No account and no sign-in. No secrets are stored: Popush keeps the
+          path to your SSH key, never the key itself. Nothing leaves this
+          machine.
+        </p>
       </Section>
 
       <Section title="Getting started" icon={<KeyRound size={15} />}>
         <ol className="flex flex-col gap-3">
           <Step
             n={1}
-            title="Create or load an SSH key"
-            body="If you already deploy over SSH you are set. If not, the setup wizard can create a key and register it with GitHub for you."
+            title="Add a server"
+            body="Give Popush the host, username, and the path to your SSH key."
           />
           <Step
             n={2}
-            title="Add a server"
-            body="Give Popush the host, username, and the path to your key. Nothing is tested against the network until you ask it to."
+            title="Add a site"
+            body="Point it at a folder on that server and its git branch."
           />
           <Step
             n={3}
-            title="Add a site and Ship It"
-            body="Point a site at a folder on that server, then press Ship It. Watch the pipeline run, step by step, in the log drawer."
+            title="Press Ship It"
+            body="Watch the pipeline run step by step in the log drawer."
           />
         </ol>
 
@@ -148,18 +129,6 @@ function IdeaCard({
         {children}
       </p>
     </div>
-  );
-}
-
-function Point({ children }: { children: ReactNode }) {
-  return (
-    <li className="flex items-start gap-2">
-      <span
-        aria-hidden="true"
-        className="mt-1.5 inline-block h-1.5 w-1.5 shrink-0 bg-accent"
-      />
-      <span className="leading-relaxed">{children}</span>
-    </li>
   );
 }
 
