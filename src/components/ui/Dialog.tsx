@@ -57,9 +57,9 @@ export function Dialog({
       <button
         type="button"
         aria-label="Close"
-        className="pressable -mr-1 -mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        className="pressable inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-border-subtle bg-surface-raised text-text-secondary hover:border-border-strong hover:bg-surface-hover hover:text-text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
-        <X size={16} aria-hidden="true" />
+        <X size={15} aria-hidden="true" />
       </button>
     </RadixDialog.Close>
   );
@@ -93,18 +93,19 @@ export function Dialog({
               transition={{ duration: 0.16, ease: 'easeOut' }}
               className="relative flex max-h-[calc(100vh-4rem)] flex-col overflow-hidden rounded-lg border-2 border-border-strong bg-surface-overlay shadow-hard focus:outline-none"
             >
-              {/* Header zone. The close button lives here in its own space, so it
-               * never overlaps the title, a field, or its border. */}
-              <div
-                className={cn(
-                  'flex shrink-0 items-start justify-between gap-3',
-                  hideTitle ? 'px-4 pt-4' : 'px-5 pt-5',
-                )}
-              >
+              {/* Header bar. A bottom border separates it from the body so the
+               * close button always sits alone in its own row, never against a
+               * title or the search field. */}
+              <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-strong px-4 py-3">
                 {hideTitle ? (
-                  <RadixDialog.Title className="sr-only">
-                    {title}
-                  </RadixDialog.Title>
+                  <>
+                    <span className="label-mono text-[10px] uppercase tracking-wide text-text-tertiary">
+                      Search
+                    </span>
+                    <RadixDialog.Title className="sr-only">
+                      {title}
+                    </RadixDialog.Title>
+                  </>
                 ) : (
                   <div className="min-w-0">
                     <RadixDialog.Title className="font-display text-sm font-semibold uppercase tracking-wide text-text-primary">
@@ -120,14 +121,7 @@ export function Dialog({
                 {closeButton}
               </div>
 
-              <div
-                className={cn(
-                  'flex-1 overflow-y-auto px-5 pb-5',
-                  hideTitle ? 'pt-3' : 'pt-4',
-                )}
-              >
-                {children}
-              </div>
+              <div className="flex-1 overflow-y-auto p-4">{children}</div>
 
               {footer ? (
                 <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border-strong bg-surface-raised px-5 py-3">
