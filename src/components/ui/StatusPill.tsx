@@ -1,9 +1,6 @@
-// StatusPill - a status shown as a coloured dot + a WORD, wrapped in a subtle
-// tinted chip (§20: colour is never the only signal, so the label always
-// renders). The in-progress ("working") dot pulses, disabled under
-// prefers-reduced-motion by the global rule and the motion-safe: gate.
-//
-// D14: presentation only. It names the status the backend already reported.
+// A status shown as a coloured dot plus a word, wrapped in a subtle tinted
+// chip. The label always renders, so colour is never the only signal. The
+// in-progress ("working") dot pulses, and stops under prefers-reduced-motion.
 
 import type { SiteStatus } from '../../types/generated';
 import { cn } from '../../lib/cn';

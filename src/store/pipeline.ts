@@ -1,7 +1,5 @@
-// §6.3: the backend is authoritative. The pipeline runs entirely in the
-// backend; this store mirrors the state it emits via events (see
-// src/hooks/usePipelineEvents.ts). The UI renders these steps and never decides
-// step order or semantics (D14).
+// The pipeline runs entirely in the backend; this store mirrors the state it
+// emits via events (see src/hooks/usePipelineEvents.ts).
 
 import { create } from 'zustand';
 import type {

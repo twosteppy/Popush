@@ -1,8 +1,6 @@
-// HelpView - the "What is Popush?" explainer. Short and plain: a one-line
-// intro, the three words the rest of the UI leans on (Server, Site, Ship It),
-// the privacy stance, and a 3-step start. It defines just enough to get moving.
-//
-// D14: presentation only. The single CTA dispatches an "add server" intent.
+// The "What is Popush?" explainer: a one-line intro, the three words the rest
+// of the UI leans on (Server, Site, Ship It), the privacy stance, and a
+// three-step start.
 
 import {
   Server,
@@ -120,7 +118,7 @@ function IdeaCard({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-lg border-2 border-border-strong bg-surface-raised p-4 shadow-hard-sm">
+    <div className="lift-card rounded-lg border-2 border-border-strong bg-surface-raised p-4 shadow-hard-sm">
       <h3 className="flex items-center gap-2 font-display text-sm font-semibold text-text-primary">
         <span className="text-accent">{icon}</span>
         {term}

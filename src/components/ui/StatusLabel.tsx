@@ -1,9 +1,5 @@
-// Maps a SiteStatus (or a StepState-derived phase) to a colour token and a
-// human label. §20: colour is never the only signal, so every consumer pairs
-// the token with this label text.
-//
-// D14: this is presentation-only. It does not decide what a status means for
-// the deployment; it only names the status the backend already reported.
+// Maps a SiteStatus to a colour token and a human label. Every consumer pairs
+// the token with this label text, so colour is never the only signal.
 
 import type { SiteStatus } from '../../types/generated';
 

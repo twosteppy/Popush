@@ -1,6 +1,5 @@
-// Popush mark + wordmark. The mark is a rounded-square glyph in the pink accent
-// (the one saturated brand colour permitted alongside status, D15); the
-// wordmark is plain type. Sizes scale together.
+// Popush mark and wordmark. The mark is a rounded-square glyph in the pink
+// accent; the wordmark is plain type. Sizes scale together.
 
 import { cn } from '../../lib/cn';
 

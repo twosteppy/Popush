@@ -1,8 +1,6 @@
-// AppHeader - a slim top bar with the Popush wordmark and a window-drag region
+// A slim top bar with the Popush wordmark and a window-drag region
 // (data-tauri-drag-region) so the frameless window can be moved. It also hosts
-// quick access to the command palette hint.
-//
-// D14: presentation + navigation intents only.
+// the command palette hint.
 
 import { Command } from 'lucide-react';
 import { Logo } from '../ui/Logo';

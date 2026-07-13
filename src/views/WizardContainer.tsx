@@ -1,9 +1,6 @@
-// WizardContainer - wires the presentational WizardView to the backend check
-// runners for the currently selected server + site. It holds the per-check
-// status mirror and dispatches run/fix intents through src/lib/ipc.ts.
-//
-// D14: it never decides what a check or fix does; it only asks the backend and
-// mirrors the CheckStatus it returns.
+// Wires WizardView to the backend check runners for the selected server and
+// site. Holds the per-check status mirror and dispatches run/fix intents
+// through src/lib/ipc.ts.
 
 import { useCallback, useEffect, useState } from 'react';
 import type { Check, CheckStatus } from '../types/generated';
@@ -75,7 +72,7 @@ export function WizardContainer({ serverId, siteId }: WizardContainerProps) {
         onRunCheck={(c) => void runCheck(c)}
         onFix={(c) => void runCheck(c)}
         onShowCommand={() => {
-          /* Command display handled inside the row; intent-only here (D14). */
+          /* Command display is handled inside the row. */
         }}
       />
     </div>

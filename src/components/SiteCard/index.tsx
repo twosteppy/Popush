@@ -1,9 +1,6 @@
-// SiteCard - the header card for a site. Title (20px/600), live URL, a status
-// pill (colour + word, §20), and a "Deployed … · branch · sha" metadata line.
-// surface-raised, border-subtle, radius-lg; a selected site gets a 2px accent
-// left edge.
-//
-// D14: purely presentational; it renders the SiteConfig/SiteStatus it is given.
+// The header card for a site: title, live URL, a status pill (colour plus
+// word), and a "Deployed … · branch · sha" metadata line. A selected site gets
+// an accent left edge.
 
 import { ExternalLink, GitBranch } from 'lucide-react';
 import type { SiteConfig, SiteStatus } from '../../types/generated';
@@ -32,7 +29,7 @@ export function SiteCard({
 
   return (
     <article
-      className={`rounded-lg border-2 bg-surface-raised p-5 shadow-hard ${
+      className={`lift-card rounded-lg border-2 bg-surface-raised p-5 shadow-hard ${
         selected
           ? 'border-border-strong border-l-4 border-l-accent'
           : 'border-border-strong'

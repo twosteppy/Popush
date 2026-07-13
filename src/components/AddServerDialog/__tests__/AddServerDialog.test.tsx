@@ -1,6 +1,6 @@
-// Add Server dialog validation (§20): required fields block advancing, and a
-// valid connection advances to the optional-site step. The dialog lets users
-// add a server without touching TOML.
+// Add Server dialog validation: required fields block advancing, and a valid
+// connection advances to the optional-site step. The dialog lets users add a
+// server without touching TOML.
 
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';

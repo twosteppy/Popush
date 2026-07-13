@@ -1,11 +1,8 @@
-// A single source of truth for "is a modal currently open" (Fix 1). Every
-// dialog built on the shared ui/Dialog wrapper registers its open state here by
-// incrementing a counter while it is mounted-open and decrementing when it
-// closes. Global shortcuts (Ctrl+K) consult this so only one modal is ever open
-// at a time and the command palette never stacks on top of another dialog.
-//
-// D14: this is UI coordination state, not business logic. It holds no
-// deployment state and dispatches no intents.
+// Tracks whether a modal is currently open. Every dialog built on the shared
+// ui/Dialog wrapper increments a counter while it is mounted-open and
+// decrements when it closes. Global shortcuts (Ctrl+K) consult this so only one
+// modal is open at a time and the command palette never stacks on another
+// dialog.
 
 import { create } from 'zustand';
 

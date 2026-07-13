@@ -1,8 +1,6 @@
-// Form primitives (§20): labels sit ABOVE inputs (never placeholder-as-label),
+// Form primitives: labels sit above inputs (never placeholder-as-label),
 // controls are 34px tall with visible focus rings, and validation errors get a
 // text message tied to the input via aria-describedby.
-//
-// D14: presentation only. These render values and emit change intents upward.
 
 import {
   forwardRef,

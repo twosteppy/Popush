@@ -1,8 +1,6 @@
-// SettingsView - calm, titled sections/cards: Appearance (theme), Polling
-// (interval), and GitHub (ONE dismissible, never-repeated suggestion about the
-// optional PAT). Generous spacing, labels above controls (§20).
-//
-// D14: emits preference-change intents; the backend persists and owns config.
+// Titled cards: Appearance (theme), Polling (interval), and GitHub (one
+// dismissible suggestion about the optional PAT). Preference changes are emitted
+// upward; the backend persists them.
 
 import { useState } from 'react';
 import { Palette, Timer, Github, X } from 'lucide-react';
@@ -122,7 +120,7 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg border-2 border-border-strong bg-surface-raised p-5 shadow-hard-sm">
+    <section className="lift-card rounded-lg border-2 border-border-strong bg-surface-raised p-5 shadow-hard-sm">
       <h2 className="label-mono mb-4 flex items-center gap-2 text-xs font-semibold text-text-primary">
         <span className="text-text-tertiary">{icon}</span>
         {title}

@@ -1,6 +1,5 @@
-// §6.3: the backend is authoritative. This store holds only a MIRROR of
-// backend state so the UI can render without round-tripping. It never mutates
-// server-side state; intents go through src/lib/ipc.ts.
+// Holds a mirror of backend state so the UI can render without round-tripping.
+// It never mutates server-side state; intents go through src/lib/ipc.ts.
 
 import { create } from 'zustand';
 import type { ServerConfig } from '../types/generated';
@@ -18,7 +17,7 @@ interface ServersState {
   refresh: () => Promise<void>;
   /**
    * Dispatch the add-server intent to the backend, then re-mirror and select
-   * the new server. D14: persistence happens in the backend, not here.
+   * the new server.
    */
   add: (server: ServerConfig) => Promise<void>;
   /** Dispatch the remove-server intent, then re-mirror. */

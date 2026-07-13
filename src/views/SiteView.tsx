@@ -1,8 +1,6 @@
-// SiteView - composes SiteCard + ActionBar + GitPanel + Pipeline for the
-// selected site.
-//
-// D14: this view wires stores to presentational components and dispatches
-// intents through src/lib/ipc.ts. It contains no deployment logic.
+// Composes SiteCard, ActionBar, GitPanel, and Pipeline for the selected site.
+// Wires stores to the presentational components and dispatches intents through
+// src/lib/ipc.ts.
 
 import { useEffect, useMemo, useState } from 'react';
 import type { Capabilities, SiteConfig, ServiceKind } from '../types/generated';
@@ -17,7 +15,7 @@ import { startDeploy, cancelPipeline } from '../lib/ipc';
 
 // Capabilities are reported by the backend adapter. Until the real value is
 // wired through an IPC call, derive a conservative default from service_type
-// purely for rendering; the backend remains authoritative (§6.3).
+// for rendering.
 function defaultCapabilities(kind: ServiceKind): Capabilities {
   switch (kind) {
     case 'static':
@@ -63,7 +61,7 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
     [steps.length, finished],
   );
 
-  // Mirror the working-tree state for the selected site (§6.3).
+  // Mirror the working-tree state for the selected site.
   useEffect(() => {
     void refreshGit(serverId, site.id);
   }, [serverId, site.id, refreshGit]);
@@ -93,7 +91,7 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
         onShipIt={() => void shipIt()}
         onRestart={() => void startDeploy(serverId, site.id, null)}
         onStop={() => {
-          /* Stop dispatched via ipc by the parent action; intent only (D14). */
+          /* Stop is dispatched via ipc by the parent action. */
         }}
         onLogs={() => setDrawerOpen(true)}
       />

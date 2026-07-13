@@ -1,11 +1,6 @@
-// Thin, typed wrappers around the Tauri IPC surface.
-//
-// D14: the frontend contains NO business logic. These wrappers only marshal
-// intents to the backend and marshal state back. They do not decide what a
-// command does; they name a backend command and pass typed arguments.
-//
-// §6.3: the backend is authoritative. Everything returned here is a snapshot
-// the UI mirrors; it is never the source of truth.
+// Thin, typed wrappers around the Tauri IPC surface. Each names a backend
+// command and passes typed arguments; everything returned is a snapshot the UI
+// mirrors, never the source of truth.
 
 import type {
   Capabilities,
@@ -105,10 +100,7 @@ export async function appCredit(): Promise<string> {
   return invoke<string>('app_credit');
 }
 
-/**
- * Persist a new server to config.toml (§6.3: backend owns the config file).
- * The frontend only marshals the intent; it never writes the file itself.
- */
+/** Persist a new server to config.toml. The backend owns the file. */
 export async function addServer(server: ServerConfig): Promise<void> {
   return invoke<void>('add_server', { server });
 }

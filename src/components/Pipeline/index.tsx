@@ -1,17 +1,15 @@
-// Pipeline - the seven-step vertical list, rendered entirely from the pipeline
-// store (D14: the frontend does not know the steps' meaning; it renders state).
+// The seven-step vertical list, rendered from the pipeline store.
 //
-//   pending  ○
+//   pending  circle
 //   running  spinner
-//   ok       ✓ with summary
-//   failed   ✗ (auto-expanded, shows output)
-//   skipped  – muted, with reason
+//   ok       check with summary
+//   failed   cross (auto-expanded, shows output)
+//   skipped  muted, with reason
 //
 // When the pipeline finishes with a failure, the backend's UserMessage
 // (headline / consequence / next_action) is rendered, plus any rollback offer
-// with its command and a copy affordance.
-//
-// §20 / Phase 8 gate: step changes are announced via an aria-live region.
+// with its command and a copy affordance. Step changes are announced via an
+// aria-live region.
 
 import { useState } from 'react';
 import { Check as CheckIcon, X, Loader2, Circle, Minus } from 'lucide-react';
@@ -51,7 +49,7 @@ export function Pipeline() {
 
   return (
     <div>
-      {/* §20: announce step changes to assistive tech. */}
+      {/* Announce step changes to assistive tech. */}
       <div aria-live="polite" className="sr-only">
         {announce(steps, finished)}
       </div>
@@ -81,8 +79,8 @@ function PipelineStep({
 
   return (
     <li
-      className={`rounded-md px-2 py-1.5 ${
-        running ? 'bg-accent-muted/40' : ''
+      className={`rounded-md px-2 py-1.5 transition-colors ${
+        running ? 'bg-accent-muted/40' : 'hover:bg-surface-hover'
       }`}
     >
       <div className="flex items-center gap-2">
@@ -209,7 +207,7 @@ function NextActionView({ action }: { action: NextAction }) {
   }
 }
 
-/** The rollback offer surfaced when a deploy failed mid-flight (§12.5). */
+/** The rollback offer surfaced when a deploy failed mid-flight. */
 function RollbackOffer({ message }: { message: UserMessage }) {
   return (
     <div className="mt-2 rounded-sm border border-border-strong bg-surface-raised p-3 shadow-hard-sm">

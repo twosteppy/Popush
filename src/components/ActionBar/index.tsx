@@ -1,9 +1,8 @@
-// ActionBar - Ship It (primary), Restart, Stop, Logs.
+// Ship It (primary), Restart, Stop, and Logs.
 //
-// Capability-driven (D14 + adapter capabilities): buttons the adapter does not
-// support are NOT rendered at all (never disable-and-fail). Buttons that do
-// render but are momentarily unavailable are disabled and carry a tooltip
-// explaining why (Radix Tooltip via Button.disabledReason).
+// Capability-driven: buttons the adapter does not support are not rendered at
+// all, rather than disabled-and-failing. Buttons that render but are momentarily
+// unavailable are disabled and carry a tooltip explaining why.
 
 import { Rocket, RotateCw, Square, ScrollText } from 'lucide-react';
 import type { Capabilities } from '../../types/generated';

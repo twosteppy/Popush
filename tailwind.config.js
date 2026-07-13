@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
-// D15: colour is reserved for status. Semantic token names map to the CSS
-// custom properties defined in src/styles/tokens.css. Components use these
-// names (e.g. bg-surface-raised) and never raw palette classes like bg-gray-800.
+// Semantic token names map to the CSS custom properties in
+// src/styles/tokens.css. Components use these names (e.g. bg-surface-raised) and
+// never raw palette classes like bg-gray-800.
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
@@ -64,8 +64,8 @@ export default {
         8: 'var(--space-8)',
       },
       keyframes: {
-        // In-progress status dot pulse (§20). Disabled by prefers-reduced-motion
-        // via the global rule and the motion-safe: variant on the element.
+        // In-progress status dot pulse. Disabled by prefers-reduced-motion via
+        // the global rule and the motion-safe variant on the element.
         'status-pulse': {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.5' },

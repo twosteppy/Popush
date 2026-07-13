@@ -1,14 +1,14 @@
-// LogDrawer - the bottom drawer (§14.2). Collapsed to a thin bar showing the
+// LogDrawer - the bottom drawer. Collapsed to a thin bar showing the
 // last line cleanly (monospaced, muted, truncated); expandable. Ctrl+` toggles
 // it (wired in App). Height is remembered in the pipeline store.
 //
 // The xterm.js terminal is mounted ONLY when there is real output to show, so
 // there are no cursor artifacts or corrupted glyphs in the empty state. Its
 // stylesheet is imported, a FitAddon sizes it to the container on open and on
-// resize, and its theme is derived from the design tokens (D15).
+// resize, and its theme is derived from the design tokens.
 //
-// D14: this is a viewport onto backend log output; it holds no logic. Lines
-// come from the pipeline store, which mirrors backend events (§6.3).
+// this is a viewport onto backend log output; it holds no logic. Lines
+// come from the pipeline store, which mirrors backend events.
 
 import { useEffect, useMemo, useRef } from 'react';
 import { ChevronUp, ChevronDown, TerminalSquare } from 'lucide-react';
