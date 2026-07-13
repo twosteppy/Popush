@@ -165,6 +165,28 @@ pub fn config_path() -> Option<std::path::PathBuf> {
         .map(|d| d.config_dir().join("config.toml"))
 }
 
+/// Ensure `config.toml` exists on disk, writing a default (empty) config with a
+/// short header comment if it is missing, and return its path. The "open your
+/// config file" affordance can appear before any server is added, when the file
+/// does not exist yet; without this the OS would be asked to open a missing path
+/// and nothing would happen.
+pub fn ensure_config_file() -> Result<std::path::PathBuf, popush_core::error::ConfigError> {
+    let path = config_path().ok_or_else(|| popush_core::error::ConfigError::Unreadable {
+        path: "~/.config/popush/config.toml".into(),
+        detail: "could not resolve the XDG config directory".into(),
+    })?;
+    if !path.exists() {
+        let body = popush_core::config::to_toml(&Config::default())?;
+        let toml = format!(
+            "# Popush configuration.\n\
+             # Edit this by hand, or use the in-app \"Add a server\" flow.\n\
+             # No secrets live here: SSH keys come from your ssh-agent.\n\n{body}"
+        );
+        write_config_file(&toml)?;
+    }
+    Ok(path)
+}
+
 /// Write the config TOML to the XDG path, creating the directory if needed.
 fn write_config_file(toml: &str) -> Result<(), popush_core::error::ConfigError> {
     let path = config_path().ok_or_else(|| popush_core::error::ConfigError::Unreadable {

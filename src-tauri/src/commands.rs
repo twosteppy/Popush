@@ -169,9 +169,8 @@ pub async fn get_config(
 /// user's editor. The app is not the sole source of truth for configuration.
 #[tauri::command]
 pub async fn config_file_path() -> Result<String, AppError> {
-    Ok(crate::state::config_path()
-        .map(|p| p.to_string_lossy().into_owned())
-        .unwrap_or_else(|| "~/.config/popush/config.toml".into()))
+    let path = crate::state::ensure_config_file().map_err(AppError::Config)?;
+    Ok(path.to_string_lossy().into_owned())
 }
 
 /// The full command log.
