@@ -1,7 +1,3 @@
-// Wires WizardView to the backend check runners for the selected server and
-// site. Holds the per-check status mirror and dispatches run/fix intents
-// through src/lib/ipc.ts.
-
 import { useCallback, useEffect, useState } from 'react';
 import type { Check, CheckStatus } from '../types/generated';
 import { runWizardCheck } from '../lib/ipc';
@@ -36,13 +32,12 @@ export function WizardContainer({ serverId, siteId }: WizardContainerProps) {
         const result = await runWizardCheck(serverId, siteId, check);
         setStatuses((prev) => ({ ...prev, [check]: result }));
       } catch {
-        // Leave the prior status; outside Tauri this simply no-ops.
+        /* ignore */
       }
     },
     [serverId, siteId],
   );
 
-  // Kick off all checks once a site is available.
   useEffect(() => {
     if (!serverId || !siteId) return;
     for (const check of ALL_CHECKS) void runCheck(check);

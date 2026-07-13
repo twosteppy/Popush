@@ -1,7 +1,3 @@
-// Add Server dialog validation: required fields block advancing, and a valid
-// connection advances to the optional-site step. The dialog lets users add a
-// server without touching TOML.
-
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { AddServerDialog } from '../index';
@@ -19,7 +15,6 @@ describe('AddServerDialog validation', () => {
 
     expect(screen.getByText('Host is required.')).toBeInTheDocument();
     expect(screen.getByText('Username is required.')).toBeInTheDocument();
-    // Still on step 1 - the site step has not appeared.
     expect(screen.queryByText('Add a site to deploy now')).toBeNull();
   });
 

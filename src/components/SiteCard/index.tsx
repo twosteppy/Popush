@@ -1,7 +1,3 @@
-// The header card for a site: title, live URL, a status pill (colour plus
-// word), and a "Deployed … · branch · sha" metadata line. A selected site gets
-// an accent left edge.
-
 import { ExternalLink, GitBranch } from 'lucide-react';
 import type { SiteConfig, SiteStatus } from '../../types/generated';
 import { StatusPill } from '../ui/StatusPill';
@@ -43,9 +39,6 @@ export function SiteCard({
             {site.label}
           </h1>
           {isSafeHttpUrl(site.live_url) ? (
-            // Open in the system browser via the opener plugin, never by
-            // navigating the app webview. Only http(s) URLs are rendered as a
-            // link; anything else falls through to "No public URL".
             <button
               type="button"
               onClick={() => void openUrl(site.live_url as string)}

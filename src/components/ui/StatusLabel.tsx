@@ -1,6 +1,3 @@
-// Maps a SiteStatus to a colour token and a human label. Every consumer pairs
-// the token with this label text, so colour is never the only signal.
-
 import type { SiteStatus } from '../../types/generated';
 
 export type StatusToken =

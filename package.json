@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "author": "twostep",
-  "description": "Popush — a Linux desktop deployment client.",
+  "description": "Popush, a Linux desktop deployment client.",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

@@ -1,22 +1,14 @@
-//! Writing config back to disk: the in-app "Add a server" and "Add a site"
-//! flows persist here so a user never has to hand-edit TOML, while the file stays
-//! human-editable and secret-free. The serialisation and the upsert/remove
-//! logic are pure and tested; the binary does the actual file write.
-
 use crate::config::schema::Config;
 use crate::config::ServerConfig;
 use crate::error::ConfigError;
 use crate::ids::{ServerId, SiteId};
 
-/// The header written atop a generated `config.toml`, so a user opening the file
-/// sees what it is and that it holds no secrets.
 const HEADER: &str = "\
 # ~/.config/popush/config.toml
 # Popush configuration. Safe to edit by hand.
 # Contains no secrets: keys are referenced by path, never copied.
 ";
 
-/// Serialise a [`Config`] to a TOML string with the reassuring header.
 pub fn to_toml(config: &Config) -> Result<String, ConfigError> {
     let body = toml::to_string_pretty(config).map_err(|e| ConfigError::Malformed {
         detail: e.to_string(),
@@ -24,8 +16,6 @@ pub fn to_toml(config: &Config) -> Result<String, ConfigError> {
     Ok(format!("{HEADER}\n{body}"))
 }
 
-/// Insert a server, or replace the existing one with the same id. Returns whether
-/// an existing server was replaced (vs. a fresh insert).
 pub fn upsert_server(config: &mut Config, server: ServerConfig) -> bool {
     if let Some(existing) = config.servers.iter_mut().find(|s| s.id == server.id) {
         *existing = server;
@@ -36,15 +26,12 @@ pub fn upsert_server(config: &mut Config, server: ServerConfig) -> bool {
     }
 }
 
-/// Remove a server by id. Returns whether one was removed.
 pub fn remove_server(config: &mut Config, id: &ServerId) -> bool {
     let before = config.servers.len();
     config.servers.retain(|s| &s.id != id);
     config.servers.len() != before
 }
 
-/// Remove a site by id from whichever server holds it. Returns whether one was
-/// removed.
 pub fn remove_site(config: &mut Config, id: &SiteId) -> bool {
     let mut removed = false;
     for server in &mut config.servers {
@@ -101,7 +88,6 @@ mod tests {
 
         let text = to_toml(&config).unwrap();
         assert!(text.contains("Safe to edit by hand"));
-        // The written file must parse straight back to the same config.
         let reloaded = load_from_str(&text).unwrap();
         assert_eq!(config, reloaded);
     }
@@ -115,7 +101,6 @@ mod tests {
         };
         assert!(!upsert_server(&mut config, server("a")));
         assert_eq!(config.servers.len(), 1);
-        // Same id replaces, does not duplicate.
         let mut updated = server("a");
         updated.label = "Renamed".into();
         assert!(upsert_server(&mut config, updated));

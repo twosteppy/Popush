@@ -1,6 +1,3 @@
-// Colour is never the only signal: a StatusDot must always render a text label
-// alongside the coloured dot.
-
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { StatusDot } from '../components/StatusDot';
@@ -22,7 +19,6 @@ describe('StatusDot', () => {
   it('keeps the label available even when visually hidden', () => {
     const stopped: SiteStatus = { state: 'stopped' };
     render(<StatusDot status={stopped} showLabel={false} />);
-    // Still in the accessibility tree (sr-only), never colour-only.
     expect(screen.getByText('Stopped')).toBeInTheDocument();
   });
 });

@@ -1,6 +1,3 @@
-// App name, version, the privacy summary, and the twostep credit. No server, no
-// account, no telemetry.
-
 import { Logo } from '../components/ui/Logo';
 
 interface AboutViewProps {

@@ -12,7 +12,6 @@ describe('sanitizeTerminalOutput', () => {
   });
 
   it('strips cursor-motion sequences used to overwrite lines', () => {
-    // Move-up + carriage-return + erase-line: the classic log-spoofing tools.
     const spoof = 'real command\x1b[1A\x1b[2Kfake success';
     const out = sanitizeTerminalOutput(spoof);
     expect(out).toBe('real commandfake success');

@@ -1,9 +1,3 @@
-// Tracks whether a modal is currently open. Every dialog built on the shared
-// ui/Dialog wrapper increments a counter while it is mounted-open and
-// decrements when it closes. Global shortcuts (Ctrl+K) consult this so only one
-// modal is open at a time and the command palette never stacks on another
-// dialog.
-
 import { create } from 'zustand';
 
 interface ModalState {

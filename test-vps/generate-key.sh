@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Generate a throwaway ed25519 key pair for the test VPS (§23.3). This key is used
-# ONLY by the integration harness against the container — it never touches the
+# ONLY by the integration harness against the container, it never touches the
 # developer's ~/.ssh (Agent Rule 6).
 set -euo pipefail
 cd "$(dirname "$0")"

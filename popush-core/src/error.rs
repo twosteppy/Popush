@@ -1,299 +1,139 @@
-//! The error taxonomy.
-//!
-//! Prime Directive: **no generic errors.** Every failure names its step,
-//! states its consequence for the user, and offers a next action. The strings
-//! "Deploy failed" and "Something went wrong" are banned and asserted absent by
-//! [`crate::pipeline::messages`] tests and the banned-strings test.
-//!
-//! Errors are *structured*: each variant carries the context a good
-//! message needs. A `String` error cannot answer the three questions
-//! because by the time it reaches the UI the structure is gone. So every variant
-//! here can produce a [`UserMessage`] with all three parts filled in.
-
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-/// A user-facing message that answers the three questions Rendered by
-/// the frontend; never assembled there.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 pub struct UserMessage {
-    /// What happened. Specific, the failing step, never "Deploy failed".
     pub headline: String,
-    /// What it means for the user. E.g. "Your site is still running the previous
-    /// version."
     pub consequence: String,
-    /// What to do now: an action, a command, or a button the UI can offer.
     pub next_action: NextAction,
 }
 
-/// The concrete "what do I do now" affordance the UI should present.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum NextAction {
-    /// Show a shell command with a copy button.
-    RunCommand {
-        /// The exact command to display and copy.
-        command: String,
-    },
-    /// Offer a button that triggers an in-app flow (e.g. the setup wizard).
-    OpenFlow {
-        /// The flow identifier (e.g. `"wizard"`).
-        flow: String,
-        /// The button label.
-        label: String,
-    },
-    /// Offer a plain retry button.
+    RunCommand { command: String },
+    OpenFlow { flow: String, label: String },
     Retry,
-    /// Nothing to do but read the guidance; the text itself is the action.
-    Advice {
-        /// The guidance text.
-        text: String,
-    },
+    Advice { text: String },
 }
 
-/// Top-level error crossing the IPC boundary. Each subsystem has its own typed
-/// enum; `thiserror` gives them `Display` and `Error` without `Box<dyn Error>`.
 #[derive(Debug, thiserror::Error, Serialize, Deserialize, TS)]
 #[serde(tag = "kind", content = "detail", rename_all = "snake_case")]
 pub enum AppError {
-    /// An SSH-layer failure.
     #[error("ssh: {0}")]
     Ssh(SshError),
-    /// A local git failure.
     #[error("git: {0}")]
     Git(GitError),
-    /// A service-adapter failure.
     #[error("adapter: {0}")]
     Adapter(AdapterError),
-    /// A config load/validate/migrate failure.
     #[error("config: {0}")]
     Config(ConfigError),
-    /// A pipeline (Ship It) failure.
     #[error("pipeline: {0}")]
     Pipeline(PipelineError),
 }
 
-/// Reasons authentication can fail, kept distinct so the message can be exact.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error, Serialize, Deserialize, TS)]
 #[serde(tag = "reason", rename_all = "snake_case")]
 pub enum AuthFailureReason {
-    /// The agent rejected every identity it holds.
     #[error("no identity in ssh-agent was accepted by the server")]
     AgentRejected,
-    /// `SSH_AUTH_SOCK` was not set, so there is no agent to talk to.
     #[error("SSH_AUTH_SOCK is not set; no ssh-agent is running")]
     NoAgentSocket,
-    /// The server accepted no offered method.
     #[error("the server accepted none of the offered authentication methods")]
     AllMethodsExhausted,
 }
 
-/// SSH-layer errors. Every variant carries the context a message needs.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error, Serialize, Deserialize, TS)]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum SshError {
-    /// The host could not be reached at all.
     #[error("host {host} is unreachable: {detail}")]
-    HostUnreachable {
-        /// The host that could not be reached.
-        host: String,
-        /// The underlying OS/network detail.
-        detail: String,
-    },
-    /// Authentication was refused.
+    HostUnreachable { host: String, detail: String },
     #[error("authentication failed: {reason}")]
-    AuthFailed {
-        /// The specific reason auth failed.
-        reason: AuthFailureReason,
-    },
-    /// The stored host key does not match, a possible man-in-the-middle.
+    AuthFailed { reason: AuthFailureReason },
     #[error("host key mismatch for {host}")]
     HostKeyMismatch {
-        /// The host whose key changed.
         host: String,
-        /// The pinned key Popush expected.
         expected: String,
-        /// The key the server actually presented.
         got: String,
     },
-    /// The host is not yet known; the user must verify the fingerprint.
     #[error("host {host} is unknown; fingerprint {fingerprint}")]
-    HostKeyUnknown {
-        /// The unknown host.
-        host: String,
-        /// The fingerprint for the user to verify.
-        fingerprint: String,
-    },
-    /// The configured key is passphrase-protected and not loaded in the agent.
+    HostKeyUnknown { host: String, fingerprint: String },
     #[error("key {path} has a passphrase and is not in the agent")]
-    KeyNotInAgent {
-        /// Path to the key that is not loaded.
-        path: PathBuf,
-    },
-    /// The configured key file does not exist.
+    KeyNotInAgent { path: PathBuf },
     #[error("key file {path} not found")]
-    KeyNotFound {
-        /// Path that does not exist.
-        path: PathBuf,
-    },
-    /// A remote command exited non-zero.
+    KeyNotFound { path: PathBuf },
     #[error("command exited {exit_code}")]
     CommandFailed {
-        /// The command that was run (safe display form).
         command: String,
-        /// The non-zero exit code.
         exit_code: i32,
-        /// Captured stderr.
         stderr: String,
     },
-    /// The connection dropped mid-operation.
     #[error("connection lost")]
     ConnectionLost,
-    /// An operation timed out, after the given number of milliseconds.
     #[error("timed out after {after_ms}ms")]
-    Timeout {
-        /// How long Popush waited, in milliseconds.
-        after_ms: u64,
-    },
+    Timeout { after_ms: u64 },
 }
 
-/// Local git errors. The refusal messages are verbatim from the spec.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error, Serialize, Deserialize, TS)]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum GitError {
-    /// Unresolved merge conflicts; Popush refuses to proceed.
     #[error("{count} files have unresolved merge conflicts")]
-    MergeConflicts {
-        /// Number of conflicted files.
-        count: usize,
-        /// The conflicted paths.
-        files: Vec<PathBuf>,
-    },
-    /// Not on a branch.
+    MergeConflicts { count: usize, files: Vec<PathBuf> },
     #[error("detached HEAD")]
     DetachedHead,
-    /// The current branch has no upstream configured.
     #[error("branch {branch} has no upstream")]
-    NoUpstream {
-        /// The branch with no upstream.
-        branch: String,
-    },
-    /// The remote is HTTPS, which needs a token; route to the wizard.
+    NoUpstream { branch: String },
     #[error("remote {url} is HTTPS, not SSH")]
-    HttpsRemote {
-        /// The HTTPS remote URL.
-        url: String,
-    },
-    /// The remote is neither SSH nor HTTPS (e.g. `git://`, a local path, or an
-    /// `ext::` helper). Popush only ever pushes over SSH, so anything else is
-    /// refused rather than trusted.
+    HttpsRemote { url: String },
     #[error("remote {url} is not an SSH remote")]
-    NonSshRemote {
-        /// The rejected remote URL.
-        url: String,
-    },
-    /// A push was rejected as non-fast-forward.
+    NonSshRemote { url: String },
     #[error("push rejected: non-fast-forward")]
     PushRejectedNonFastForward,
-    /// A push was rejected for lack of permission.
     #[error("push rejected: permission denied")]
     PushRejectedPermission,
-    /// libgit2 reported an error not otherwise classified.
     #[error("git operation failed: {detail}")]
-    Operation {
-        /// The underlying libgit2 detail.
-        detail: String,
-    },
+    Operation { detail: String },
 }
 
-/// Service-adapter errors.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error, Serialize, Deserialize, TS)]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum AdapterError {
-    /// The status output could not be parsed into a known shape.
     #[error("could not parse {tool} output: {detail}")]
-    Unparseable {
-        /// The tool whose output failed to parse (e.g. `docker compose ps`).
-        tool: String,
-        /// The parse detail.
-        detail: String,
-    },
-    /// The operation is not supported by this adapter (e.g. restart on static).
+    Unparseable { tool: String, detail: String },
     #[error("{operation} is not supported for {service_type} sites")]
     Unsupported {
-        /// The unsupported operation.
         operation: String,
-        /// The service type that lacks it.
         service_type: String,
     },
-    /// The underlying SSH command failed.
     #[error("remote command failed: {0}")]
     Ssh(SshError),
 }
 
-/// Config load/validate/migrate errors.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error, Serialize, Deserialize, TS)]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum ConfigError {
-    /// The file could not be read.
     #[error("cannot read config at {path}: {detail}")]
-    Unreadable {
-        /// The config path.
-        path: PathBuf,
-        /// The OS read error detail.
-        detail: String,
-    },
-    /// The TOML did not parse.
+    Unreadable { path: PathBuf, detail: String },
     #[error("config is not valid TOML: {detail}")]
-    Malformed {
-        /// The parser's message.
-        detail: String,
-    },
-    /// A field is missing or invalid; names the field and the problem.
+    Malformed { detail: String },
     #[error("field `{field}` is invalid: {problem}")]
-    InvalidField {
-        /// The offending field path.
-        field: String,
-        /// What is wrong with it.
-        problem: String,
-    },
-    /// The config schema version is newer than this Popush understands.
+    InvalidField { field: String, problem: String },
     #[error("config schema version {found} is newer than supported {supported}")]
-    SchemaTooNew {
-        /// The version found in the file.
-        found: u32,
-        /// The highest version this build supports.
-        supported: u32,
-    },
+    SchemaTooNew { found: u32, supported: u32 },
 }
 
-/// Pipeline (Ship It) errors. The messages are the verbatim ones
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error, Serialize, Deserialize, TS)]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub enum PipelineError {
-    /// A named step failed. Never rendered as "Deploy failed".
     #[error("step {step} failed")]
-    StepFailed {
-        /// The step that failed (e.g. `"Build"`).
-        step: String,
-        /// The failure detail.
-        detail: String,
-    },
-    /// The run was cancelled by the user.
+    StepFailed { step: String, detail: String },
     #[error("cancelled at step {step}")]
-    Cancelled {
-        /// The step in progress when cancelled.
-        step: String,
-        /// Whether that step was mutating the server.
-        mid_mutation: bool,
-    },
+    Cancelled { step: String, mid_mutation: bool },
 }
 
 impl AppError {
-    /// Produce the user-facing message. This is the single place errors become
-    /// human text, so the three-questions rule is enforced in one spot.
     pub fn user_message(&self) -> UserMessage {
         match self {
             AppError::Ssh(e) => e.user_message(),
@@ -306,7 +146,6 @@ impl AppError {
 }
 
 impl SshError {
-    /// Human message for an SSH error, answering all three questions.
     pub fn user_message(&self) -> UserMessage {
         match self {
             SshError::HostUnreachable { host, detail } => UserMessage {
@@ -382,7 +221,6 @@ impl SshError {
 }
 
 impl GitError {
-    /// Human message for a git error. The refusal texts are verbatim
     pub fn user_message(&self) -> UserMessage {
         match self {
             GitError::MergeConflicts { count, files } => UserMessage {
@@ -451,7 +289,6 @@ impl GitError {
 }
 
 impl AdapterError {
-    /// Human message for an adapter error.
     pub fn user_message(&self) -> UserMessage {
         match self {
             AdapterError::Unparseable { tool, detail } => UserMessage {
@@ -480,7 +317,6 @@ impl AdapterError {
 }
 
 impl ConfigError {
-    /// Human message for a config error, always naming the field/problem.
     pub fn user_message(&self) -> UserMessage {
         match self {
             ConfigError::Unreadable { path, detail } => UserMessage {
@@ -514,8 +350,6 @@ impl ConfigError {
 }
 
 impl PipelineError {
-    /// Human message for a pipeline error. Never "Deploy failed"; the
-    /// step-specific text comes from [`crate::pipeline::messages`].
     pub fn user_message(&self) -> UserMessage {
         match self {
             PipelineError::StepFailed { step, detail } => UserMessage {
@@ -540,7 +374,6 @@ impl PipelineError {
     }
 }
 
-// Ergonomic conversions so `?` works across layers without `Box<dyn Error>`.
 impl From<SshError> for AppError {
     fn from(e: SshError) -> Self {
         AppError::Ssh(e)
@@ -571,7 +404,6 @@ impl From<PipelineError> for AppError {
 mod tests {
     use super::*;
 
-    /// Strings banned by anywhere in a user-facing message.
     const BANNED: &[&str] = &["Deploy failed", "Something went wrong"];
 
     fn assert_answers_three_questions(m: &UserMessage) {
@@ -583,7 +415,6 @@ mod tests {
             !m.consequence.trim().is_empty(),
             "consequence (what it means) empty"
         );
-        // next_action is a non-optional enum, so "what do I do" is always present.
         for banned in BANNED {
             assert!(!m.headline.contains(banned), "banned string in headline");
             assert!(
@@ -655,7 +486,6 @@ mod tests {
 
     #[test]
     fn passphrase_message_matches_spec_8_2() {
-        // requires this exact guidance, with the key path and ssh-add command.
         let m = SshError::KeyNotInAgent {
             path: "/home/u/.ssh/id_ed25519".into(),
         }

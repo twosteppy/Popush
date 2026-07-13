@@ -1,6 +1,3 @@
-// Left sidebar: Servers and Sites sections with status dots and labels, an
-// "Add server" affordance, and the Help / Wizard / Settings entries.
-
 import { HelpCircle, Plus, Settings, Wand2 } from 'lucide-react';
 import type { Panel } from '../../App';
 import { useServersStore } from '../../store/servers';

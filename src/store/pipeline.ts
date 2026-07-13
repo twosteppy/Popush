@@ -1,6 +1,3 @@
-// The pipeline runs entirely in the backend; this store mirrors the state it
-// emits via events (see src/hooks/usePipelineEvents.ts).
-
 import { create } from 'zustand';
 import type {
   PipelineState,

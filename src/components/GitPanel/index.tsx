@@ -1,6 +1,3 @@
-// Changed files with checkboxes and change kind, a commit message textarea, and
-// a clean-tree empty state.
-
 import type { ChangedFile, ChangeKind, GitStatus } from '../../types/generated';
 
 interface GitPanelProps {

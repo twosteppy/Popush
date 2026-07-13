@@ -1,8 +1,3 @@
-// Fix 1 + Fix 3: the shared Dialog wrapper renders a themed Close button that
-// closes via the same onOpenChange(false) path as Escape, and registers its
-// open state in the modal registry so global shortcuts can enforce a single
-// modal at a time.
-
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Dialog } from '../Dialog';

@@ -1,47 +1,15 @@
-//! Verbatim pipeline failure messages, asserted in tests.
-//!
-//! These strings are contractual: the Phase 7 gate requires each verbatim message
-//! to be produced under failure injection. Paths, exit codes, and counts are
-//! filled from the real runtime values. The banned-strings test at the
-//! bottom enforces across this whole module.
-
 use crate::error::{NextAction, UserMessage};
 
-/// The kinds of failure the pipeline distinguishes for messaging. Each
-/// carries the runtime context its message needs.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FailureKind {
-    /// Push rejected because the remote is ahead (non-fast-forward).
     PushNonFastForward,
-    /// Push rejected for lack of permission.
     PushPermissionDenied,
-    /// Pull failed because the server has uncommitted local changes.
-    PullLocalChangesOnServer {
-        /// The remote path where uncommitted changes were found.
-        remote_path: String,
-    },
-    /// Build exited non-zero.
-    BuildFailed {
-        /// The build's exit code.
-        exit_code: i32,
-        /// The captured build output.
-        output: String,
-    },
-    /// The service did not come back after restart.
-    RestartFailed {
-        /// The service logs, shown automatically.
-        service_logs: String,
-    },
-    /// The health check returned a non-2xx code after a successful restart.
-    VerifyHealthCheck {
-        /// The HTTP status code the health check returned.
-        code: u16,
-        /// The service logs.
-        logs: String,
-    },
+    PullLocalChangesOnServer { remote_path: String },
+    BuildFailed { exit_code: i32, output: String },
+    RestartFailed { service_logs: String },
+    VerifyHealthCheck { code: u16, logs: String },
 }
 
-/// Produce the verbatim user message for a pipeline failure.
 pub fn failure_message(kind: &FailureKind) -> UserMessage {
     match kind {
         FailureKind::PushNonFastForward => UserMessage {
@@ -96,8 +64,6 @@ pub fn failure_message(kind: &FailureKind) -> UserMessage {
     }
 }
 
-/// The rollback offer shown on failure: the pre-deploy SHA and the exact
-/// command to return to it, never run automatically.
 pub fn rollback_offer(remote_path: &str, sha: &str) -> UserMessage {
     UserMessage {
         headline: format!("Previous version was `{sha}`."),
@@ -112,7 +78,6 @@ pub fn rollback_offer(remote_path: &str, sha: &str) -> UserMessage {
 mod tests {
     use super::*;
 
-    ///: these strings must never appear in any user-facing message.
     const BANNED: &[&str] = &["Deploy failed", "Something went wrong"];
 
     fn all_message_texts(m: &UserMessage) -> Vec<String> {

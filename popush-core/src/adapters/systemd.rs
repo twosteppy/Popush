@@ -1,14 +1,8 @@
-//! systemd adapter. Start/stop/restart need root; Popush never prompts for
-//! a password, the commands assume a passwordless sudoers entry the wizard
-//! *generates for the user to install by hand*, or a user unit. Popush never edits
-//! sudoers itself.
-
 use crate::adapters::Capabilities;
 use crate::config::SiteStatus;
 use crate::error::AdapterError;
 use crate::ssh::RemoteCommand;
 
-/// systemd can do everything and reports reliable status.
 pub fn capabilities() -> Capabilities {
     Capabilities {
         can_start_stop: true,
@@ -18,39 +12,29 @@ pub fn capabilities() -> Capabilities {
     }
 }
 
-/// `systemctl show <unit> --property=...`. `show` is chosen over `status` because
-/// its `key=value` output is stable and machine-parseable.
 pub fn status_command(unit: &str) -> RemoteCommand {
-    // `--` ends options so a unit name can never be read as a flag (in addition
-    // to config validation rejecting a leading `-`). Popush's own `--property`
-    // flag stays before the separator.
     RemoteCommand::new(
         "systemctl show --property=ActiveState,SubState,ActiveEnterTimestamp -- {}",
         vec![unit.to_string()],
     )
 }
 
-/// `sudo systemctl start -- <unit>`.
 pub fn start_command(unit: &str) -> RemoteCommand {
     RemoteCommand::new("sudo systemctl start -- {}", vec![unit.to_string()])
 }
 
-/// `sudo systemctl stop -- <unit>`.
 pub fn stop_command(unit: &str) -> RemoteCommand {
     RemoteCommand::new("sudo systemctl stop -- {}", vec![unit.to_string()])
 }
 
-/// `sudo systemctl restart -- <unit>`.
 pub fn restart_command(unit: &str) -> RemoteCommand {
     RemoteCommand::new("sudo systemctl restart -- {}", vec![unit.to_string()])
 }
 
-/// `journalctl -u <unit> -f -n 200`.
 pub fn logs_command(unit: &str) -> RemoteCommand {
     RemoteCommand::new("journalctl -u {} -f -n 200", vec![unit.to_string()])
 }
 
-/// Parse `systemctl show` `key=value` lines into a [`SiteStatus`].
 pub fn parse_status(output: &str) -> Result<SiteStatus, AdapterError> {
     let mut active_state = None;
     let mut sub_state = None;
@@ -92,12 +76,8 @@ pub fn parse_status(output: &str) -> Result<SiteStatus, AdapterError> {
     })
 }
 
-/// Parse systemd's timestamp form, e.g. `Sat 2026-07-11 14:03:22 UTC`. Returns
-/// `None` on anything unexpected rather than failing the whole status parse.
 fn parse_systemd_timestamp(s: &str) -> Option<chrono::DateTime<chrono::Utc>> {
-    // Systemd prints "Www YYYY-MM-DD HH:MM:SS TZ". Strip the leading weekday.
     let without_dow = s.split_once(' ')?.1;
-    // Try common zones; systemd usually prints the machine's zone name.
     for fmt in ["%Y-%m-%d %H:%M:%S %Z", "%Y-%m-%d %H:%M:%S UTC"] {
         if let Ok(naive) = chrono::NaiveDateTime::parse_from_str(without_dow, fmt) {
             return Some(chrono::DateTime::from_naive_utc_and_offset(

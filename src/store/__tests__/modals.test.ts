@@ -1,7 +1,3 @@
-// Fix 1: the modal registry enforces one modal at a time. The Ctrl+K palette
-// handler consults nextPaletteOpen(current, anyModalOpen); this pins down its
-// truth table so the palette can never stack on top of another dialog.
-
 import { beforeEach, describe, expect, it } from 'vitest';
 import { isAnyModalOpen, nextPaletteOpen, useModalStore } from '../modals';
 

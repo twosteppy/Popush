@@ -1,5 +1,3 @@
-//! PM2 adapter. Parses `pm2 jlist` JSON.
-
 use serde::Deserialize;
 
 use crate::adapters::Capabilities;
@@ -7,7 +5,6 @@ use crate::config::SiteStatus;
 use crate::error::AdapterError;
 use crate::ssh::RemoteCommand;
 
-/// pm2 can do everything and reports reliable status.
 pub fn capabilities() -> Capabilities {
     Capabilities {
         can_start_stop: true,
@@ -17,27 +14,22 @@ pub fn capabilities() -> Capabilities {
     }
 }
 
-/// `pm2 jlist` (machine-readable JSON).
 pub fn status_command() -> RemoteCommand {
     RemoteCommand::literal("pm2 jlist")
 }
 
-/// `pm2 start <app>`.
 pub fn start_command(app: &str) -> RemoteCommand {
     RemoteCommand::new("pm2 start {}", vec![app.to_string()])
 }
 
-/// `pm2 stop <app>`.
 pub fn stop_command(app: &str) -> RemoteCommand {
     RemoteCommand::new("pm2 stop {}", vec![app.to_string()])
 }
 
-/// `pm2 restart <app>`.
 pub fn restart_command(app: &str) -> RemoteCommand {
     RemoteCommand::new("pm2 restart {}", vec![app.to_string()])
 }
 
-/// `pm2 logs <app> --lines 200`.
 pub fn logs_command(app: &str) -> RemoteCommand {
     RemoteCommand::new("pm2 logs {} --lines 200", vec![app.to_string()])
 }
@@ -57,7 +49,6 @@ struct Pm2Env {
     pm_uptime: Option<i64>,
 }
 
-/// Parse `pm2 jlist` output for a specific app name.
 pub fn parse_status(output: &str, app_name: &str) -> Result<SiteStatus, AdapterError> {
     let entries: Vec<Pm2Entry> =
         serde_json::from_str(output.trim()).map_err(|e| AdapterError::Unparseable {
@@ -95,7 +86,6 @@ pub fn parse_status(output: &str, app_name: &str) -> Result<SiteStatus, AdapterE
 mod tests {
     use super::*;
 
-    // Real captured `pm2 jlist` shape (trimmed to the fields Popush reads).
     const JLIST: &str = r#"[
       {"name":"api","pm2_env":{"status":"online","pm_uptime":1752242602000}},
       {"name":"worker","pm2_env":{"status":"stopped"}},

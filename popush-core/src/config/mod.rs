@@ -1,7 +1,3 @@
-//! Configuration: human-editable TOML on disk, the source of truth Popush
-//! shares with the user. No file Popush writes holds a secret: keys are
-//! referenced by path, tokens live in the keyring, passphrases are never stored.
-
 pub mod loader;
 pub mod schema;
 pub mod writer;

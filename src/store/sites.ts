@@ -1,6 +1,3 @@
-// Mirrors per-server sites and their statuses. Statuses arrive from the backend
-// (polling or events); the UI only renders them.
-
 import { create } from 'zustand';
 import type { GitStatus, SiteConfig, SiteStatus } from '../types/generated';
 import { listSites, getSiteStatus, gitStatus } from '../lib/ipc';
@@ -41,8 +38,6 @@ export const useSitesStore = create<SitesState>((set) => ({
     }
   },
   refreshGit: async (serverId, siteId) => {
-    // Outside Tauri (dev/test) or on failure the IPC layer returns null; the
-    // GitPanel then falls back to its clean-tree state gracefully.
     let status: GitStatus | null = null;
     try {
       status = await gitStatus(serverId, siteId);

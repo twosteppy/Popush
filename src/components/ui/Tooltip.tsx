@@ -1,5 +1,3 @@
-// Radix Tooltip wrapper: keyboard and screen-reader friendly out of the box.
-
 import * as RadixTooltip from '@radix-ui/react-tooltip';
 import type { ReactNode } from 'react';
 

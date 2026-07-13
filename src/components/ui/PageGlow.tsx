@@ -1,10 +1,3 @@
-// A non-interactive ambient layer: one or two soft, low-opacity radial glows
-// tinted with the accent, sitting behind a page's content to give each screen a
-// little depth without washing out text.
-//
-// Purely decorative: pointer-events-none, aria-hidden, and pinned behind
-// content (z-0) so it never intercepts clicks or focus.
-
 type GlowPlacement = 'top-left' | 'top-right' | 'split' | 'bottom-right';
 
 const GRADIENTS: Record<GlowPlacement, string> = {

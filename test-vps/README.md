@@ -2,7 +2,7 @@
 
 A throwaway container running `sshd` plus a sample site for each service type
 (docker, systemd, pm2, static). The integration suite connects to it over SSH and
-runs real operations — the test that catches the bugs that matter: escaping,
+runs real operations, the test that catches the bugs that matter: escaping,
 status parsing, and the Ship It pipeline end to end.
 
 It never touches your real environment (Agent Rule 6). The key pair it uses is

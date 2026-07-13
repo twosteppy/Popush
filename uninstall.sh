@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Remove Popush's desktop integration and the installed AppImage. Built by twostep.
-# This does NOT touch your config (~/.config/popush) or your servers — delete that
+# This does NOT touch your config (~/.config/popush) or your servers, delete that
 # directory by hand if you want to remove your settings too.
 set -euo pipefail
 

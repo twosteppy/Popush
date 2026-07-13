@@ -1,7 +1,3 @@
-// A slim top bar with the Popush wordmark and a window-drag region
-// (data-tauri-drag-region) so the frameless window can be moved. It also hosts
-// the command palette hint.
-
 import { Search } from 'lucide-react';
 import { Logo } from '../ui/Logo';
 

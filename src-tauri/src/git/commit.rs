@@ -1,20 +1,9 @@
-//! Local commit and push via `git2`, with agent-based credentials
-//! The refusals and URL classification are decided by `popush_core`; this
-//! layer performs the libgit2 calls.
-//!
-//! Push credentials use the **same agent delegation** as SSH: `git2`'s
-//! credential callback asks `ssh-agent`. Popush never collects a token; if the
-//! remote is HTTPS the caller routes to the wizard rather than reaching here.
-
 use std::path::{Path, PathBuf};
 
 use popush_core::error::GitError;
 use popush_core::git::remote::classify_remote;
 use popush_core::git::RemoteKind;
 
-/// Stage the given paths and commit them with `message`. Returns the new commit's
-/// short SHA. Refuses on merge conflicts and detached HEAD with the exact
-/// `popush_core` errors.
 pub fn stage_and_commit(
     repo_path: &Path,
     message: &str,
@@ -22,7 +11,6 @@ pub fn stage_and_commit(
 ) -> Result<String, GitError> {
     let repo = open(repo_path)?;
 
-    // Refuse in the states Popush does not handle.
     if repo.state() != git2::RepositoryState::Clean {
         let conflicted = conflicted_paths(&repo)?;
         if !conflicted.is_empty() {
@@ -37,7 +25,6 @@ pub fn stage_and_commit(
         return Err(GitError::DetachedHead);
     }
 
-    // Stage the selected files.
     let mut index = repo.index().map_err(op)?;
     for file in files {
         index.add_path(file).map_err(op)?;
@@ -46,7 +33,6 @@ pub fn stage_and_commit(
     let tree_oid = index.write_tree().map_err(op)?;
     let tree = repo.find_tree(tree_oid).map_err(op)?;
 
-    // Build the commit on top of HEAD.
     let parent = head.peel_to_commit().map_err(op)?;
     let signature = repo.signature().map_err(op)?;
     let commit_oid = repo
@@ -63,16 +49,10 @@ pub fn stage_and_commit(
     Ok(commit_oid.to_string().chars().take(7).collect())
 }
 
-/// Push `branch` to `remote_name`. Refuses HTTPS remotes (routes to the wizard,
-/// and classifies rejection reasons.
 pub fn push(repo_path: &Path, remote_name: &str, branch: &str) -> Result<(), GitError> {
     let repo = open(repo_path)?;
     let mut remote = repo.find_remote(remote_name).map_err(op)?;
 
-    // Push over SSH only. An HTTPS remote routes to the wizard; anything else
-    // (git://, file://, a bare local path, an ext:: helper) is refused outright
-    // rather than pushed to. This is an allow-list, not a single HTTPS block, so
-    // the "SSH only" invariant actually holds.
     let url = remote.url().unwrap_or_default().to_string();
     match classify_remote(&url) {
         RemoteKind::Ssh => {}
@@ -80,15 +60,10 @@ pub fn push(repo_path: &Path, remote_name: &str, branch: &str) -> Result<(), Git
         RemoteKind::Other => return Err(GitError::NonSshRemote { url }),
     }
 
-    // The server's per-reference rejection message arrives in a callback that
-    // borrows for the whole push; a RefCell lets us read it back afterwards. The
-    // callbacks/options are scoped so their borrow of `push_error` ends before we
-    // read it.
     let push_error: std::cell::RefCell<Option<GitError>> = std::cell::RefCell::new(None);
     let refspec = format!("refs/heads/{branch}:refs/heads/{branch}");
     {
         let mut callbacks = git2::RemoteCallbacks::new();
-        // Agent delegation: let ssh-agent sign. Popush never sees the key.
         callbacks.credentials(|_url, username, allowed| {
             if allowed.contains(git2::CredentialType::SSH_KEY) {
                 git2::Cred::ssh_key_from_agent(username.unwrap_or("git"))
@@ -117,7 +92,6 @@ pub fn push(repo_path: &Path, remote_name: &str, branch: &str) -> Result<(), Git
     Ok(())
 }
 
-/// Map a push rejection message to a structured error.
 fn classify_push_rejection(msg: &str) -> GitError {
     let m = msg.to_lowercase();
     if m.contains("non-fast-forward") || m.contains("fetch first") || m.contains("behind") {

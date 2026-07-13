@@ -1,10 +1,3 @@
-// Button variants. Real <button> elements, visible focus rings, and a tooltip
-// on disabled buttons explaining why they are disabled.
-//
-// primary:     filled accent + text-inverse
-// secondary:   surface-raised + border-strong
-// destructive: subtle red-tinted outline (not solid red)
-
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { Tooltip } from './Tooltip';
 
@@ -17,8 +10,6 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
 }
 
-// Chunky solid border + hard offset shadow that deepens on hover and collapses
-// on press. Mono caption, slight tracking.
 const BASE =
   'pressable inline-flex h-[34px] items-center justify-center gap-2 rounded-sm border px-3.5 font-display text-xs font-medium uppercase tracking-wider focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none active:shadow-none';
 
@@ -56,7 +47,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       </button>
     );
 
-    // A disabled button that renders carries a tooltip explaining why.
     if (disabled && disabledReason) {
       return (
         <Tooltip content={disabledReason}>

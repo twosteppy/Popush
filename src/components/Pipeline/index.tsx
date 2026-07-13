@@ -1,16 +1,3 @@
-// The seven-step vertical list, rendered from the pipeline store.
-//
-//   pending  circle
-//   running  spinner
-//   ok       check with summary
-//   failed   cross (auto-expanded, shows output)
-//   skipped  muted, with reason
-//
-// When the pipeline finishes with a failure, the backend's UserMessage
-// (headline / consequence / next_action) is rendered, plus any rollback offer
-// with its command and a copy affordance. Step changes are announced via an
-// aria-live region.
-
 import { useState } from 'react';
 import { Check as CheckIcon, X, Loader2, Circle, Minus } from 'lucide-react';
 import type {
@@ -230,7 +217,7 @@ function CopyableCommand({ command }: { command: string }) {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
-      // Clipboard unavailable; the command stays visible for manual copy.
+      /* ignore */
     }
   }
 

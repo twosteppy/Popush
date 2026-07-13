@@ -1,8 +1,3 @@
-//! Local git I/O via `git2`. Reads status, classifies the remote, and, in
-//! the pipeline, stages, commits, and pushes with agent-based credentials. The
-//! URL classification logic is `popush_core::git::remote`; this layer performs the
-//! libgit2 calls.
-
 pub mod commit;
 
 pub use commit::{push, stage_and_commit};
@@ -14,15 +9,11 @@ use popush_core::error::GitError;
 use popush_core::git::remote::classify_remote;
 use popush_core::git::RemoteKind;
 
-/// Read the git status of the repository at `path`. Detects conflicts,
-/// detached HEAD, ahead/behind, and whether the remote is SSH, the facts the
-/// git panel and the wizard need.
 pub fn status(path: &Path, remote_name: &str) -> Result<GitStatus, GitError> {
     let repo = git2::Repository::open(path).map_err(|e| GitError::Operation {
         detail: e.to_string(),
     })?;
 
-    // Branch (detached HEAD is a refusal state).
     let head = repo.head().map_err(|e| GitError::Operation {
         detail: e.to_string(),
     })?;
@@ -31,7 +22,6 @@ pub fn status(path: &Path, remote_name: &str) -> Result<GitStatus, GitError> {
     }
     let branch = head.shorthand().unwrap_or("HEAD").to_string();
 
-    // Changed files and conflicts.
     let mut opts = git2::StatusOptions::new();
     opts.include_untracked(true).recurse_untracked_dirs(true);
     let statuses = repo
@@ -47,8 +37,6 @@ pub fn status(path: &Path, remote_name: &str) -> Result<GitStatus, GitError> {
         if s.is_conflicted() {
             has_conflicts = true;
         }
-        // `entry.path` is None only for a path that is not valid UTF-8; Popush
-        // shows what it can and skips the rest rather than failing the whole read.
         if let Some(path) = entry.path() {
             if let Some(cf) = classify_status(path, s) {
                 changed_files.push(cf);
@@ -56,10 +44,8 @@ pub fn status(path: &Path, remote_name: &str) -> Result<GitStatus, GitError> {
         }
     }
 
-    // Ahead/behind vs upstream.
     let (ahead, behind) = ahead_behind(&repo).unwrap_or((0, 0));
 
-    // Remote URL and transport.
     let (remote_url, remote_is_ssh) = match repo.find_remote(remote_name) {
         Ok(remote) => {
             let url = remote.url().unwrap_or_default().to_string();

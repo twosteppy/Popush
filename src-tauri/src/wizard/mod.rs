@@ -1,11 +1,3 @@
-//! Setup-wizard I/O. The decisions, which fix, whether a key may be
-//! generated, how to convert a remote, come from `popush_core::wizard`; this
-//! layer performs the local filesystem and `git2` operations for the checks that
-//! are local (C1 and C4) and applies previewed fixes. The remote checks (C3, C5,
-//! C6, C7) run over SSH against a live server and are exercised by the integration
-//! suite; this module implements the parts that are verifiable without a
-//! server.
-
 use std::path::{Path, PathBuf};
 
 use popush_core::git::remote::classify_remote;
@@ -13,11 +5,8 @@ use popush_core::git::RemoteKind;
 use popush_core::wizard::fixes::key_generation_fix;
 use popush_core::wizard::{Check, CheckStatus, Fix};
 
-/// The candidate local key paths C1 looks for, in preference order.
 const KEY_CANDIDATES: [&str; 3] = ["id_ed25519", "id_ecdsa", "id_rsa"];
 
-/// Run a local wizard check. Remote checks return a truthful `NotApplicable` here
-/// and are performed by the SSH-backed path on the target.
 pub fn run_local_check(check: Check, ssh_dir: &Path, repo_path: Option<&Path>) -> CheckStatus {
     match check {
         Check::LocalKeyExists => match find_local_key(ssh_dir) {
@@ -32,15 +21,12 @@ pub fn run_local_check(check: Check, ssh_dir: &Path, repo_path: Option<&Path>) -
                 why: "This site has no local clone configured.".into(),
             },
         },
-        // Checks that need the agent, GitHub, or the server run elsewhere.
         _ => CheckStatus::NotApplicable {
             why: format!("{} runs against a live environment.", check.title()),
         },
     }
 }
 
-/// Find an existing private key in `ssh_dir`, if any. Returns the path so the
-/// caller can offer to *use* it (never replace it).
 pub fn find_local_key(ssh_dir: &Path) -> Option<PathBuf> {
     KEY_CANDIDATES
         .iter()
@@ -48,8 +34,6 @@ pub fn find_local_key(ssh_dir: &Path) -> Option<PathBuf> {
         .find(|p| p.exists())
 }
 
-/// Build the C1 key-generation fix, honouring the by-construction guarantee: it is
-/// `None` when a key already exists, so no code path can reach `ssh-keygen`.
 pub fn local_key_fix(ssh_dir: &Path) -> Option<Fix> {
     let existing = find_local_key(ssh_dir);
     let target = ssh_dir.join("id_ed25519");
@@ -59,7 +43,6 @@ pub fn local_key_fix(ssh_dir: &Path) -> Option<Fix> {
     )
 }
 
-/// Classify a repository's `origin` remote as SSH, HTTPS (→ wizard), or other.
 fn classify_local_remote(repo_path: &Path) -> CheckStatus {
     let repo = match git2::Repository::open(repo_path) {
         Ok(r) => r,
@@ -89,19 +72,11 @@ fn classify_local_remote(repo_path: &Path) -> CheckStatus {
     }
 }
 
-/// Apply a previewed fix that Popush can perform directly (: preview shown
-/// first by the UI). Remote conversion runs through `git2`, never a shell, so
-/// the URL is set structurally, not string-spliced.
 pub fn apply_fix(fix: &Fix, repo_path: Option<&Path>) -> Result<(), String> {
     match fix {
         Fix::ConvertRemote { .. } => {
             let repo_path = repo_path.ok_or("no local repository for remote conversion")?;
             let repo = git2::Repository::open(repo_path).map_err(|e| e.to_string())?;
-            // Recompute the new URL from the repository's OWN current `origin`,
-            // ignoring any URL carried in the (frontend-supplied) preview. This
-            // prevents a caller from repointing `origin` at an arbitrary host via
-            // a crafted fix payload: we only ever convert this repo's real HTTPS
-            // origin to its SSH equivalent, and refuse anything else.
             let current = repo
                 .find_remote("origin")
                 .ok()
@@ -115,9 +90,6 @@ pub fn apply_fix(fix: &Fix, repo_path: Option<&Path>) -> Result<(), String> {
             repo.remote_set_url("origin", &new_url)
                 .map_err(|e| e.to_string())
         }
-        // Key generation is applied by the caller via a previewed `ssh-keygen`
-        // invocation, guarded so it is unreachable when a key exists. It is
-        // not performed here because it runs a process, not a git2 call.
         Fix::GenerateLocalKey { .. } => {
             Err("key generation is applied through its previewed command".into())
         }
@@ -130,7 +102,6 @@ mod tests {
     use std::fs;
 
     fn tmp() -> PathBuf {
-        // A unique-enough scratch dir under the system temp; created fresh.
         let base = std::env::temp_dir().join(format!("popush-wiz-{}", std::process::id()));
         let _ = fs::create_dir_all(&base);
         base
@@ -153,7 +124,6 @@ mod tests {
         let dir = tmp().join("no-key");
         fs::create_dir_all(&dir).unwrap();
         assert!(find_local_key(&dir).is_none());
-        // A key does not exist, so the generation fix IS offered.
         assert!(local_key_fix(&dir).is_some());
     }
 
@@ -162,7 +132,6 @@ mod tests {
         let dir = tmp().join("guard");
         fs::create_dir_all(&dir).unwrap();
         fs::write(dir.join("id_ed25519"), "x").unwrap();
-        // By construction, no generation fix is offered.
         assert!(local_key_fix(&dir).is_none());
     }
 }

@@ -1,8 +1,3 @@
-// The strings "Deploy failed" and "Something went wrong" are banned anywhere in
-// user-facing copy. This test recursively reads every .ts/.tsx file under src/
-// and fails if either appears. This test file itself is excluded (it
-// necessarily names the banned strings).
-
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -11,8 +6,6 @@ const SRC_DIR = resolve(__dirname, '..');
 const SELF = resolve(__filename);
 const BANNED = ['Deploy failed', 'Something went wrong'];
 
-// Backend-owned generated types are not frontend user-facing strings; the file
-// legitimately references the banned phrase in a doc comment.
 const EXCLUDED = new Set([resolve(SRC_DIR, 'types', 'generated.ts')]);
 
 function collectFiles(dir: string): string[] {

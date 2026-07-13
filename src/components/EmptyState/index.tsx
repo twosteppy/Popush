@@ -1,8 +1,3 @@
-// The first-run onboarding hero. With no servers it presents the Popush mark, a
-// tagline, one line about what the app does, and a large primary CTA that opens
-// the Add Server dialog. Secondary affordances let power users open the raw
-// config.toml or run the setup wizard.
-
 import { motion, useReducedMotion } from 'framer-motion';
 import { Wand2, Plus, HelpCircle } from 'lucide-react';
 import { Logo } from '../ui/Logo';

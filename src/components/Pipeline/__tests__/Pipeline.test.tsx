@@ -1,7 +1,3 @@
-// A failed pipeline renders the backend's specific UserMessage (the concrete
-// failing step, never a generic phrase), auto-expands the failed step, and
-// offers rollback.
-
 import { render, screen, cleanup } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { Pipeline } from '../index';
@@ -74,11 +70,9 @@ describe('Pipeline failed render', () => {
     expect(
       screen.getByText('Your site is still running the previous version.'),
     ).toBeInTheDocument();
-    // Failed step auto-expands its captured output.
     expect(
       screen.getByText(/error: build failed on line 42/),
     ).toBeInTheDocument();
-    // Rollback offer with its copyable command.
     expect(
       screen.getByText('Roll back to the previous version?'),
     ).toBeInTheDocument();
