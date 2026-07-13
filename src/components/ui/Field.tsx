@@ -11,6 +11,7 @@ import {
   type ReactNode,
   type SelectHTMLAttributes,
 } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '../../lib/cn';
 
 const CONTROL =
@@ -112,6 +113,116 @@ export const SelectInput = forwardRef<HTMLSelectElement, SelectInputProps>(
     );
   },
 );
+
+interface NumberFieldProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'value' | 'onChange' | 'type'
+> {
+  invalid?: boolean;
+  /** Current value as a string (mirrors the raw input value). */
+  value: string | number;
+  /** Emits the next value as a string on both typing and stepper presses. */
+  onValueChange: (value: string) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+}
+
+/**
+ * A number input with custom, token-themed stepper buttons. The native spin
+ * buttons are hidden globally (see globals.css); these ChevronUp/ChevronDown
+ * <button>s increment/decrement while respecting min/max/step. Keyboard arrows
+ * on the input itself still work as usual.
+ */
+export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
+  function NumberField(
+    { invalid, value, onValueChange, min, max, step = 1, className, ...rest },
+    ref,
+  ) {
+    const disabled = rest.disabled;
+
+    function clamp(n: number): number {
+      if (min !== undefined && n < min) return min;
+      if (max !== undefined && n > max) return max;
+      return n;
+    }
+
+    function nudge(direction: 1 | -1): void {
+      const current = Number(value);
+      const base = Number.isFinite(current) ? current : (min ?? 0);
+      onValueChange(String(clamp(base + direction * step)));
+    }
+
+    const numeric = Number(value);
+    const atMax =
+      max !== undefined && Number.isFinite(numeric) && numeric >= max;
+    const atMin =
+      min !== undefined && Number.isFinite(numeric) && numeric <= min;
+
+    return (
+      <div className={cn('relative', className)}>
+        <input
+          ref={ref}
+          type="number"
+          inputMode="numeric"
+          value={value}
+          min={min}
+          max={max}
+          step={step}
+          aria-invalid={invalid || undefined}
+          onChange={(e) => onValueChange(e.target.value)}
+          className={cn(
+            CONTROL,
+            'pr-9',
+            invalid ? 'border-status-failed' : 'border-border-strong',
+          )}
+          {...rest}
+        />
+        <div className="absolute inset-y-0 right-0 flex w-8 flex-col overflow-hidden rounded-r-sm border-l border-border-subtle">
+          <StepperButton
+            label="Increase"
+            onClick={() => nudge(1)}
+            disabled={disabled || atMax}
+          >
+            <ChevronUp size={12} aria-hidden="true" />
+          </StepperButton>
+          <span className="h-px bg-border-subtle" aria-hidden="true" />
+          <StepperButton
+            label="Decrease"
+            onClick={() => nudge(-1)}
+            disabled={disabled || atMin}
+          >
+            <ChevronDown size={12} aria-hidden="true" />
+          </StepperButton>
+        </div>
+      </div>
+    );
+  },
+);
+
+function StepperButton({
+  label,
+  onClick,
+  disabled,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      disabled={disabled}
+      onClick={onClick}
+      className="flex flex-1 items-center justify-center bg-surface-raised text-text-secondary transition-colors hover:bg-surface-hover hover:text-accent focus-visible:z-10 focus-visible:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface-raised disabled:hover:text-text-secondary"
+    >
+      {children}
+    </button>
+  );
+}
 
 /** Generate a stable field id from a base name. */
 export function useFieldId(base: string): string {

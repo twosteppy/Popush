@@ -14,6 +14,7 @@ import { LogDrawer } from './components/LogDrawer';
 import { EmptyState } from './components/EmptyState';
 import { AddServerDialog } from './components/AddServerDialog';
 import { CommandPalette, type PaletteItem } from './components/CommandPalette';
+import { PageGlow } from './components/ui/PageGlow';
 import { SiteView } from './views/SiteView';
 import { SettingsView } from './views/SettingsView';
 import { AboutView } from './views/AboutView';
@@ -171,6 +172,16 @@ export function App() {
 
   const contentKey = `${panel}:${selectedSite?.id ?? 'none'}`;
 
+  // Vary the ambient glow corner per view so screens feel distinct.
+  const glowPlacement =
+    panel === 'settings' || panel === 'about'
+      ? 'top-right'
+      : panel === 'help'
+        ? 'split'
+        : panel === 'log'
+          ? 'bottom-right'
+          : 'top-left';
+
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-surface-base text-text-primary">
       <AppHeader onOpenPalette={() => setPaletteOpen(true)} />
@@ -191,9 +202,10 @@ export function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={reduce ? undefined : { opacity: 0, y: -4 }}
               transition={{ duration: 0.16, ease: 'easeOut' }}
-              className="h-full"
+              className="relative isolate h-full"
             >
-              {content}
+              <PageGlow placement={glowPlacement} />
+              <div className="relative z-10 h-full">{content}</div>
             </motion.div>
           </AnimatePresence>
         </main>
