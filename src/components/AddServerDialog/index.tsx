@@ -115,33 +115,24 @@ function nullable(v: string): string | null {
   return t.length ? t : null;
 }
 
-/** Strip markdown code fences (```toml ... ```) that get copied by accident. */
+/**
+ * Clean a pasted config: strip markdown code fences and normalize the curly
+ * quotes that chat and word processors substitute for straight quotes, which
+ * would otherwise break TOML parsing.
+ */
 function cleanPastedConfig(raw: string): string {
   return raw
     .trim()
     .replace(/^```[a-zA-Z]*\s*\n?/, '')
     .replace(/\n?```$/, '')
+    .replace(/[“”″]/g, '"')
+    .replace(/[‘’′]/g, "'")
     .trim();
 }
 
-/** Turn a backend config error into a readable, specific message. */
+/** The backend returns a readable error string; show it, or a fallback. */
 function describeConfigError(e: unknown): string {
-  const err = e as {
-    detail?: {
-      code?: string;
-      detail?: string;
-      field?: string;
-      problem?: string;
-    };
-  };
-  const d = err?.detail;
-  if (d?.code === 'malformed')
-    return `Not valid TOML. ${d.detail ?? ''}`.trim();
-  if (d?.code === 'invalid_field')
-    return `Problem with "${d.field}": ${d.problem}`;
-  if (d?.code === 'schema_too_new')
-    return 'This config is from a newer version of Popush.';
-  if (typeof e === 'string') return e;
+  if (typeof e === 'string' && e.trim()) return e;
   return 'Could not import. Check it is valid TOML with at least one [[server]] block.';
 }
 
