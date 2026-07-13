@@ -57,6 +57,35 @@ pub async fn run_action(
     Ok(())
 }
 
+/// Fetch a recent log snapshot for a service. Static sites have no service
+/// logs, so we say so rather than failing.
+pub async fn logs(
+    pool: &SshPool,
+    service: &ServiceConfig,
+    remote_path: &str,
+) -> Result<String, AdapterError> {
+    let cmd = match service {
+        ServiceConfig::Docker { .. } => docker::logs_snapshot_command(remote_path),
+        ServiceConfig::Systemd { unit } => systemd::logs_snapshot_command(unit),
+        ServiceConfig::Pm2 { app_name } => pm2::logs_snapshot_command(app_name),
+        ServiceConfig::Static { .. } => {
+            return Ok("This is a static site, so it has no service logs to show.".into())
+        }
+    };
+    let out = pool.exec(cmd).await.map_err(AdapterError::Ssh)?;
+    let mut text = out.stdout;
+    if !out.stderr.trim().is_empty() {
+        if !text.is_empty() {
+            text.push('\n');
+        }
+        text.push_str(&out.stderr);
+    }
+    if text.trim().is_empty() {
+        text = "No log output was returned.".into();
+    }
+    Ok(text)
+}
+
 pub async fn status(
     pool: &SshPool,
     service: &ServiceConfig,

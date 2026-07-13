@@ -37,9 +37,15 @@ export function App() {
   const [cfgError, setCfgError] = useState<string | null>(null);
   const reduce = useReducedMotion();
 
-  const { servers, selectedServerId, refresh } = useServersStore();
+  const {
+    servers,
+    selectedServerId,
+    refresh,
+    select: selectServer,
+  } = useServersStore();
   const {
     sitesByServer,
+    statusBySite,
     selectedSiteId,
     refreshSites,
     refreshAllStatuses,
@@ -100,6 +106,23 @@ export function App() {
 
   const sites = selectedServerId ? (sitesByServer[selectedServerId] ?? []) : [];
   const selectedSite = sites.find((s) => s.id === selectedSiteId) ?? null;
+
+  const serverLabelById = useMemo(
+    () => Object.fromEntries(servers.map((s) => [s.id, s.label])),
+    [servers],
+  );
+  const overviewSites = useMemo(
+    () =>
+      Object.entries(sitesByServer).flatMap(([serverId, serverSites]) =>
+        serverSites.map((site) => ({
+          id: site.id,
+          label: site.label,
+          serverLabel: serverLabelById[serverId] ?? '',
+          status: statusBySite[site.id],
+        })),
+      ),
+    [sitesByServer, serverLabelById, statusBySite],
+  );
 
   const paletteItems: PaletteItem[] = useMemo(() => {
     const items: PaletteItem[] = [];
@@ -181,6 +204,15 @@ export function App() {
         onAddServer={() => setAddServerOpen(true)}
         onRunWizard={() => setPanel('wizard')}
         onOpenHelp={() => setPanel('help')}
+        overview={overviewSites}
+        onSelectSite={(id) => {
+          const owner = Object.entries(sitesByServer).find(([, ss]) =>
+            ss.some((s) => s.id === id),
+          )?.[0];
+          if (owner) selectServer(owner);
+          selectSite(id);
+          setPanel('site');
+        }}
       />
     );
 

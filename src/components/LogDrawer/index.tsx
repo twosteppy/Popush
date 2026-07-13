@@ -19,6 +19,7 @@ interface XtermLike {
   dispose: () => void;
   loadAddon: (addon: unknown) => void;
   open: (el: HTMLElement) => void;
+  reset: () => void;
 }
 
 export function LogDrawer() {
@@ -26,8 +27,15 @@ export function LogDrawer() {
   const drawerHeight = usePipelineStore((s) => s.drawerHeight);
   const toggleDrawer = usePipelineStore((s) => s.toggleDrawer);
   const steps = usePipelineStore((s) => s.steps);
+  const directLines = usePipelineStore((s) => s.directLines);
 
-  const lines = useMemo(() => steps.flatMap((step) => step.output), [steps]);
+  const lines = useMemo(
+    () =>
+      directLines.length > 0
+        ? directLines
+        : steps.flatMap((step) => step.output),
+    [directLines, steps],
+  );
   const hasOutput = lines.length > 0;
   const lastLine = hasOutput ? lines[lines.length - 1] : null;
 
@@ -92,6 +100,12 @@ export function LogDrawer() {
   useEffect(() => {
     const term = instanceRef.current;
     if (!term) return;
+    // When the log is replaced (a fresh fetch) rather than appended to, the
+    // new content is shorter or different, so start the terminal clean.
+    if (lines.length < writtenRef.current) {
+      term.reset();
+      writtenRef.current = 0;
+    }
     for (let i = writtenRef.current; i < lines.length; i++) {
       term.write(`${sanitizeTerminalOutput(lines[i] ?? '')}\r\n`);
     }

@@ -64,6 +64,13 @@ pub async fn site_action(
         .map_err(friendly)
 }
 
+#[tauri::command]
+pub async fn get_site_logs(state: State<'_, AppState>, site_id: SiteId) -> Result<String, String> {
+    crate::ops::site_logs(&state, &site_id)
+        .await
+        .map_err(friendly)
+}
+
 /// Keep a server's SSH password for this session only. An empty password
 /// forgets it. Nothing is ever written to disk.
 #[tauri::command]
@@ -71,9 +78,18 @@ pub async fn set_ssh_password(
     state: State<'_, AppState>,
     server_id: ServerId,
     password: String,
+    save: bool,
 ) -> Result<(), AppError> {
-    state.set_ssh_password(server_id, password);
+    state.set_ssh_password(server_id, password, save);
     Ok(())
+}
+
+#[tauri::command]
+pub async fn ssh_password_saved(
+    state: State<'_, AppState>,
+    server_id: ServerId,
+) -> Result<bool, AppError> {
+    Ok(state.ssh_password_is_saved(&server_id))
 }
 
 /// Render an error the way a person would say it: what happened, then the

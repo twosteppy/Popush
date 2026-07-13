@@ -33,6 +33,8 @@ interface PipelineStore {
   /** True while the drawer/log height is being remembered. */
   drawerHeight: number;
   drawerOpen: boolean;
+  /** Ad-hoc log lines shown by the LOGS button, separate from a pipeline run. */
+  directLines: string[];
 
   /** Begin mirroring a fresh pipeline; clears prior state. */
   begin: (pipelineId: string) => void;
@@ -54,6 +56,8 @@ interface PipelineStore {
   setDrawerHeight: (height: number) => void;
   toggleDrawer: () => void;
   setDrawerOpen: (open: boolean) => void;
+  /** Replace the ad-hoc log with this text (split into lines). */
+  setDirectLog: (text: string) => void;
 }
 
 const EMPTY = {
@@ -69,8 +73,9 @@ export const usePipelineStore = create<PipelineStore>((set) => ({
   ...EMPTY,
   drawerHeight: 220,
   drawerOpen: false,
+  directLines: [],
 
-  begin: (pipelineId) => set({ ...EMPTY, pipelineId }),
+  begin: (pipelineId) => set({ ...EMPTY, pipelineId, directLines: [] }),
 
   plan: (state) =>
     set({
@@ -106,8 +111,10 @@ export const usePipelineStore = create<PipelineStore>((set) => ({
   finish: (outcome, failure, rollback) =>
     set({ finished: true, outcome, failure, rollback }),
 
-  reset: () => set({ ...EMPTY }),
+  reset: () => set({ ...EMPTY, directLines: [] }),
   setDrawerHeight: (height) => set({ drawerHeight: height }),
   toggleDrawer: () => set((s) => ({ drawerOpen: !s.drawerOpen })),
   setDrawerOpen: (open) => set({ drawerOpen: open }),
+  setDirectLog: (text) =>
+    set({ directLines: text.split('\n'), pipelineId: null, steps: [] }),
 }));

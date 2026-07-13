@@ -161,3 +161,11 @@ pub async fn site_action(state: &AppState, site_id: &SiteId, action: &str) -> Re
         .await
         .map_err(AppError::Adapter)
 }
+
+/// Fetch a recent log snapshot for a site over SSH.
+pub async fn site_logs(state: &AppState, site_id: &SiteId) -> Result<String, AppError> {
+    let (pool, site, service) = connect_site(state, site_id).await?;
+    crate::adapters::logs(&pool, &service, &site.remote_path.to_string_lossy())
+        .await
+        .map_err(AppError::Adapter)
+}

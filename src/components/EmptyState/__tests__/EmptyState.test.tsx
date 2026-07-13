@@ -51,13 +51,43 @@ describe('EmptyState onboarding', () => {
     expect(onRunWizard).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the calm "select a site" hint once servers exist', () => {
+  it('shows a sites overview once servers exist', () => {
     render(
-      <EmptyState hasServers onAddServer={() => {}} onRunWizard={() => {}} />,
+      <EmptyState
+        hasServers
+        onAddServer={() => {}}
+        onRunWizard={() => {}}
+        overview={[
+          {
+            id: 's1',
+            label: 'My Site',
+            serverLabel: 'My VPS',
+            status: { state: 'running', since: null },
+          },
+        ]}
+        onSelectSite={() => {}}
+      />,
     );
-    expect(screen.getByText(/Select a site/)).toBeInTheDocument();
+    expect(screen.getByText('Your sites')).toBeInTheDocument();
+    expect(screen.getByText('My Site')).toBeInTheDocument();
+    expect(screen.getByText('1 of 1 online')).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: /Add your first server/ }),
     ).toBeNull();
+  });
+
+  it('opens a site when its overview card is clicked', () => {
+    const onSelectSite = vi.fn();
+    render(
+      <EmptyState
+        hasServers
+        onAddServer={() => {}}
+        onRunWizard={() => {}}
+        overview={[{ id: 's1', label: 'My Site', serverLabel: 'My VPS' }]}
+        onSelectSite={onSelectSite}
+      />,
+    );
+    fireEvent.click(screen.getByText('My Site'));
+    expect(onSelectSite).toHaveBeenCalledWith('s1');
   });
 });
