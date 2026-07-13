@@ -137,6 +137,18 @@ impl AppState {
         Ok(count)
     }
 
+    pub fn remove_site(&self, id: &SiteId) -> Result<bool, popush_core::error::ConfigError> {
+        let mut guard = self.inner.lock().unwrap();
+        let Some(config) = guard.config.as_mut() else {
+            return Ok(false);
+        };
+        let removed = popush_core::config::remove_site(config, id);
+        let toml = popush_core::config::to_toml(config)?;
+        drop(guard);
+        write_config_file(&toml)?;
+        Ok(removed)
+    }
+
     pub fn remove_server(&self, id: &ServerId) -> Result<bool, popush_core::error::ConfigError> {
         let mut guard = self.inner.lock().unwrap();
         let Some(config) = guard.config.as_mut() else {

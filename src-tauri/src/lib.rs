@@ -57,6 +57,7 @@ pub fn run() {
             commands::import_config,
             commands::config_error,
             commands::remove_server,
+            commands::remove_site,
             commands::get_config,
             commands::config_file_path,
             commands::git_commit_and_push,

@@ -143,6 +143,11 @@ export async function removeServer(serverId: string): Promise<void> {
   return invoke<void>('remove_server', { serverId });
 }
 
+/** Remove a single site from config.toml by id. */
+export async function removeSite(siteId: string): Promise<void> {
+  return invoke<void>('remove_site', { siteId });
+}
+
 /** Read the whole authoritative config snapshot. */
 export async function getConfig(): Promise<Config | null> {
   if (!inTauri()) return null;
