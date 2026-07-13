@@ -59,7 +59,7 @@ export function CommandPalette({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search sites and actions…"
-        className="mb-3 w-full rounded-sm border border-border-strong bg-surface-base px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+        className="mb-3 w-full rounded-sm border border-border-strong bg-surface-base py-2 pl-3 pr-10 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
       />
       <ul className="max-h-72 overflow-y-auto">
         {filtered.length === 0 ? (

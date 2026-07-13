@@ -9,6 +9,10 @@ import { listServers, addServer, removeServer } from '../lib/ipc';
 interface ServersState {
   servers: ServerConfig[];
   selectedServerId: string | null;
+  /** True while the initial list_servers mirror is still resolving. */
+  loading: boolean;
+  /** True once the mirror has been hydrated at least once. */
+  hydrated: boolean;
   select: (id: string | null) => void;
   /** Refresh the mirror from the authoritative backend. */
   refresh: () => Promise<void>;
@@ -26,13 +30,20 @@ interface ServersState {
 export const useServersStore = create<ServersState>((set, get) => ({
   servers: [],
   selectedServerId: null,
+  loading: false,
+  hydrated: false,
   select: (id) => set({ selectedServerId: id }),
   refresh: async () => {
-    const servers = await listServers();
-    set((state) => ({
-      servers,
-      selectedServerId: state.selectedServerId ?? servers[0]?.id ?? null,
-    }));
+    set((state) => ({ loading: !state.hydrated }));
+    try {
+      const servers = await listServers();
+      set((state) => ({
+        servers,
+        selectedServerId: state.selectedServerId ?? servers[0]?.id ?? null,
+      }));
+    } finally {
+      set({ loading: false, hydrated: true });
+    }
   },
   add: async (server) => {
     await addServer(server);

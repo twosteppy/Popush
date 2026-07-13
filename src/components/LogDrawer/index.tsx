@@ -14,6 +14,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { ChevronUp, ChevronDown, TerminalSquare } from 'lucide-react';
 import 'xterm/css/xterm.css';
 import { usePipelineStore } from '../../store/pipeline';
+import { Spinner } from '../ui/Spinner';
 
 /** Read a design token value from the document root. */
 function token(name: string, fallback: string): string {
@@ -170,7 +171,10 @@ export function LogDrawer() {
         ) : (
           <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 bg-surface-base text-text-tertiary">
             <TerminalSquare size={20} aria-hidden="true" />
-            <p className="text-xs">Waiting for output…</p>
+            <p className="label-mono flex items-center gap-2 text-[11px]">
+              <Spinner size={13} />
+              Waiting for output…
+            </p>
           </div>
         )
       ) : null}

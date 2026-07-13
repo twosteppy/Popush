@@ -70,9 +70,15 @@ export default {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.5' },
         },
+        // Loading skeleton sweep (ui/Skeleton). Gated behind motion-safe at the
+        // call site, so prefers-reduced-motion leaves a static block.
+        shimmer: {
+          '100%': { transform: 'translateX(200%)' },
+        },
       },
       animation: {
         'status-pulse': 'status-pulse 1.5s ease-in-out infinite',
+        shimmer: 'shimmer 1.6s ease-in-out infinite',
       },
     },
   },
