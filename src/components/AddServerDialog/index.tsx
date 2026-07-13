@@ -130,9 +130,19 @@ function cleanPastedConfig(raw: string): string {
     .trim();
 }
 
-/** The backend returns a readable error string; show it, or a fallback. */
+/** Show whatever the backend reported, in any shape, so the reason is visible. */
 function describeConfigError(e: unknown): string {
   if (typeof e === 'string' && e.trim()) return e;
+  if (e && typeof e === 'object') {
+    const o = e as Record<string, unknown>;
+    if (typeof o.message === 'string' && o.message.trim()) return o.message;
+    try {
+      const s = JSON.stringify(e);
+      if (s && s !== '{}' && s !== 'null') return s;
+    } catch {
+      /* ignore */
+    }
+  }
   return 'Could not import. Check it is valid TOML with at least one [[server]] block.';
 }
 
