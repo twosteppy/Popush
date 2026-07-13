@@ -1,7 +1,3 @@
-// The "what did this app do to my server" record: a read-only, chronological
-// list of every command Popush sent, with the exact command text shown
-// monospaced.
-
 import { useEffect, useState } from 'react';
 import type { CommandLogEntry } from '../types/generated';
 import { commandLog } from '../lib/ipc';

@@ -1,6 +1,3 @@
-// Holds a mirror of backend state so the UI can render without round-tripping.
-// It never mutates server-side state; intents go through src/lib/ipc.ts.
-
 import { create } from 'zustand';
 import type { ServerConfig } from '../types/generated';
 import { listServers, addServer, removeServer } from '../lib/ipc';

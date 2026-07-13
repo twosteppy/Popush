@@ -1,7 +1,3 @@
-// The "What is Popush?" explainer: a one-line intro, the three words the rest
-// of the UI leans on (Server, Site, Ship It), the privacy stance, and a
-// three-step start.
-
 import {
   Server,
   Globe,

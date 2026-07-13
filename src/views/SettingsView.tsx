@@ -1,7 +1,3 @@
-// Titled cards: Appearance (theme), Polling (interval), and GitHub (one
-// dismissible suggestion about the optional PAT). Preference changes are emitted
-// upward; the backend persists them.
-
 import { useState } from 'react';
 import { Palette, Timer, Github, X } from 'lucide-react';
 import type { Theme } from '../types/generated';

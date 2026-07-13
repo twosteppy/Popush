@@ -1,21 +1,5 @@
-//! Parsing `~/.ssh/known_hosts` into [`KnownHost`] entries.
-//!
-//! This is the pure, testable half of host-key verification: turning the on-disk
-//! file into the structured entries [`super::hostkey::HostKeyVerifier`] consults.
-//! Reading the file from disk happens in the binary; the parsing, and the fiddly
-//! host-pattern handling, is here so it can be tested without a filesystem.
-//!
-//! Hashed host lines (`|1|...`) cannot be matched by plaintext host and are
-//! skipped: Popush compares against the plaintext host it is connecting to, and a
-//! hashed line would need the salt+HMAC to match. Skipping them means an entry
-//! Popush cannot verify is treated as "unknown" rather than silently trusted,
-//! which is the safe direction.
-
 use super::hostkey::KnownHost;
 
-/// Parse the contents of a `known_hosts` file, keeping only entries whose host is
-/// stored in plaintext. Malformed lines are skipped, not fatal, one bad line must
-/// not blind Popush to the rest of the file.
 pub fn parse(contents: &str) -> Vec<KnownHost> {
     let mut out = Vec::new();
     for line in contents.lines() {
@@ -23,12 +7,9 @@ pub fn parse(contents: &str) -> Vec<KnownHost> {
         if line.is_empty() || line.starts_with('#') {
             continue;
         }
-        // A marker line begins with `@cert-authority` or `@revoked`; those are not
-        // plain host-key pins, so skip them.
         if line.starts_with('@') {
             continue;
         }
-        // Format: `host[,host2,...] keytype base64 [comment]`.
         let mut parts = line.split_whitespace();
         let Some(hosts) = parts.next() else { continue };
         let Some(key_type) = parts.next() else {
@@ -37,11 +18,9 @@ pub fn parse(contents: &str) -> Vec<KnownHost> {
         let Some(key_base64) = parts.next() else {
             continue;
         };
-        // Hashed host entries cannot be matched against a plaintext host.
         if hosts.starts_with('|') {
             continue;
         }
-        // A single line may list several comma-separated host patterns.
         for host in hosts.split(',') {
             let host = normalize_host(host);
             if host.is_empty() {
@@ -57,11 +36,6 @@ pub fn parse(contents: &str) -> Vec<KnownHost> {
     out
 }
 
-/// The `known_hosts` lookup key for a connection, matching OpenSSH exactly: the
-/// bare host on the default port 22, and the bracketed `[host]:port` form on any
-/// other port. Callers must verify with this key (not the bare host) so a pin
-/// made for one port is never reused to trust a *different* service on another
-/// port of the same host.
 pub fn lookup_key(host: &str, port: u16) -> String {
     if port == 22 {
         host.to_string()
@@ -70,18 +44,11 @@ pub fn lookup_key(host: &str, port: u16) -> String {
     }
 }
 
-/// Normalise a host pattern to the form the verifier compares against. OpenSSH
-/// writes a non-default port as `[host]:port`; the verifier is given the bare host
-/// for the default port and the bracketed form otherwise, so we keep the string as
-/// written and only strip an enclosing `[...]` when there is no port.
 fn normalize_host(host: &str) -> String {
-    // `[example.com]:2222` stays as-is (the caller builds the same bracket form).
-    // `[example.com]` with no port unwraps to `example.com`.
     if let Some(inner) = host.strip_prefix('[') {
         if let Some(closing) = inner.strip_suffix(']') {
             return closing.to_string();
         }
-        // `[host]:port`, keep the whole pattern.
         return host.to_string();
     }
     host.to_string()
@@ -115,8 +82,6 @@ mod tests {
 
     #[test]
     fn skips_hashed_host_lines() {
-        // A |1| line cannot be matched against a plaintext host, so it is skipped
-        // rather than trusted (the safe direction).
         let entries = parse("|1|abc=|def= ssh-ed25519 AAAA\nplain ssh-ed25519 BBBB");
         assert_eq!(entries.len(), 1);
         assert_eq!(entries[0].host, "plain");
@@ -162,8 +127,6 @@ mod tests {
 
     #[test]
     fn a_port_22_pin_does_not_match_another_port() {
-        // Entry stored for the default port must not verify a connection to a
-        // different port of the same host.
         let entries = parse("example.com ssh-ed25519 AAAA");
         let key_for_2222 = lookup_key("example.com", 2222);
         assert!(!entries.iter().any(|e| e.host == key_for_2222));

@@ -1,7 +1,3 @@
-// Thin, typed wrappers around the Tauri IPC surface. Each names a backend
-// command and passes typed arguments; everything returned is a snapshot the UI
-// mirrors, never the source of truth.
-
 import type {
   Capabilities,
   CommandLogEntry,

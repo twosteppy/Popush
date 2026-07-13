@@ -1,14 +1,3 @@
-//! Popush Tauri binary library. Built by twostep.
-//!
-//! This is the presentation/IPC shell. It contains **no business logic**;
-//! it wires [`popush_core`]'s pure logic into Tauri commands and events and adds
-//! the socket-level I/O (`russh` sessions, `git2` operations, the `notify`
-//! watcher, the system keyring). Everything worth testing lives in `popush-core`
-//! and is exercised there; this layer is glue.
-//!
-//! It links WebKitGTK and therefore only builds on the Linux target. See
-//! `docs/DECISIONS.md` for why the workspace is split this way.
-
 pub mod adapters;
 pub mod commands;
 pub mod git;
@@ -21,11 +10,7 @@ pub mod wizard;
 
 use tauri::Manager;
 
-/// Build and run the Tauri application. Called by `main.rs`.
 pub fn run() {
-    // Logs are local-only and never transmitted, and every line is passed
-    // through the credential redactor first so key material and tokens
-    // never reach disk.
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -34,9 +19,6 @@ pub fn run() {
         .with_writer(logging::RedactingMakeWriter)
         .init();
 
-    // The default panic hook writes straight to raw stderr, bypassing the log
-    // redactor. Route panic messages through the same redactor so a panic can
-    // never print key material or a token.
     std::panic::set_hook(Box::new(|info| {
         eprintln!("{}", popush_core::redact::redact_line(&info.to_string()));
     }));
@@ -49,8 +31,6 @@ pub fn run() {
             let state = handle.state::<state::AppState>();
             state.load_config_on_startup();
 
-            // Set the window icon at runtime so the taskbar shows the Popush mark
-            // even when running unpackaged (no installed .desktop entry).
             if let Some(window) = handle.get_webview_window("main") {
                 if let Ok(icon) = tauri::image::Image::from_bytes(include_bytes!(
                     "../../packaging/desktop/icons/dev.popush.Popush-256.png"

@@ -1,6 +1,3 @@
-// A disabled button carries aria-disabled and cannot be clicked; an action
-// whose capability is absent is not rendered by the ActionBar at all.
-
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { Button } from '../Button';
@@ -42,9 +39,7 @@ describe('ActionBar capability gating', () => {
         onLogs={noop}
       />,
     );
-    // Ship It always renders.
     expect(screen.getByRole('button', { name: /Ship It/ })).toBeInTheDocument();
-    // Unsupported actions are absent, not merely disabled.
     expect(screen.queryByRole('button', { name: /Restart/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /Stop/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /Logs/ })).toBeNull();

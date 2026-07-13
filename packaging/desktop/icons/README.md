@@ -5,9 +5,9 @@ hicolor icon sizes.
 
 ## Files
 
-- `dev.popush.Popush.svg` — the source icon. This is the canonical artwork and
+- `dev.popush.Popush.svg`, the source icon. This is the canonical artwork and
   is installed into the `scalable` hicolor directory.
-- `dev.popush.Popush-<size>.png` — raster renders generated from the SVG.
+- `dev.popush.Popush-<size>.png`, raster renders generated from the SVG.
 
 ## Required sizes
 

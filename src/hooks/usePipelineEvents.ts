@@ -1,7 +1,3 @@
-// Subscribes to the backend pipeline event stream and mirrors it into the
-// pipeline store. Outside Tauri (dev/test) `listen` no-ops, so nothing here
-// runs.
-
 import { useEffect } from 'react';
 import { listen } from '../lib/ipc';
 import { usePipelineStore } from '../store/pipeline';

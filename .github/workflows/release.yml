@@ -59,9 +59,9 @@ jobs:
             dist/*.rpm
             dist/SHA256SUMS
           body: |
-            Popush — Your VPS, one click away. Built by twostep.
+            Popush, Your VPS, one click away. Built by twostep.
 
-            Download the `.AppImage`, make it executable (`chmod +x`), and run it —
+            Download the `.AppImage`, make it executable (`chmod +x`), and run it -
             or clone the repo and run `bash install.sh` to get a launcher icon and a
             Desktop shortcut automatically.
 

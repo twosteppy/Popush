@@ -1,14 +1,8 @@
-//! Load, validate, and migrate config. Rejects malformed config with a
-//! message that names the field and the problem (Phase 2 gate).
-
 use std::collections::HashSet;
 
 use crate::config::schema::{Config, ServiceKind, CURRENT_SCHEMA_VERSION};
 use crate::error::ConfigError;
 
-/// Parse and validate config from a TOML string. Kept string-based (rather than
-/// path-based) so it is testable without touching the filesystem;
-/// the binary layer reads the file and calls this.
 pub fn load_from_str(text: &str) -> Result<Config, ConfigError> {
     let config: Config = toml::from_str(text).map_err(|e| ConfigError::Malformed {
         detail: e.to_string(),
@@ -19,8 +13,6 @@ pub fn load_from_str(text: &str) -> Result<Config, ConfigError> {
     })
 }
 
-/// Migrate an older-schema config forward. v1 is the first version, so migration
-/// is currently identity plus a guard against configs from the future.
 pub fn migrate(config: Config) -> Result<Config, ConfigError> {
     if config.schema_version > CURRENT_SCHEMA_VERSION {
         return Err(ConfigError::SchemaTooNew {
@@ -28,12 +20,9 @@ pub fn migrate(config: Config) -> Result<Config, ConfigError> {
             supported: CURRENT_SCHEMA_VERSION,
         });
     }
-    // Future migrations (v1 -> v2, ...) chain here.
     Ok(config)
 }
 
-/// Reject a NUL byte in a config value. A NUL truncates the C string sshd hands
-/// to the remote shell, silently cutting the command in half.
 fn reject_nul(field: String, value: &str) -> Result<(), ConfigError> {
     if value.contains('\0') {
         return Err(ConfigError::InvalidField {
@@ -44,11 +33,6 @@ fn reject_nul(field: String, value: &str) -> Result<(), ConfigError> {
     Ok(())
 }
 
-/// Validate a value that becomes an operand of a remote command (a path, a unit,
-/// an app name). Rejects a NUL and a leading `-`: even though the value is always
-/// shell-escaped (so it cannot break quoting), a leading `-` would still be read
-/// by the target tool (`systemctl`, `pm2`, `ls`, `cd`) as an *option* rather than
-/// the intended operand.
 fn check_operand(field: String, value: &str) -> Result<(), ConfigError> {
     reject_nul(field.clone(), value)?;
     if value.starts_with('-') {
@@ -60,7 +44,6 @@ fn check_operand(field: String, value: &str) -> Result<(), ConfigError> {
     Ok(())
 }
 
-/// Validate a parsed config. Every failure names the offending field.
 pub fn validate(config: &Config) -> Result<(), ConfigError> {
     if config.preferences.poll_interval_seconds > 24 * 60 * 60 {
         return Err(ConfigError::InvalidField {
@@ -108,8 +91,6 @@ pub fn validate(config: &Config) -> Result<(), ConfigError> {
             format!("server[{}].username", server.id.0),
             &server.username,
         )?;
-        // guardrail: reject anything that looks like an inline private key,
-        // so a mis-paste never silently lands a secret in config.toml.
         let idf = server.identity_file.to_string_lossy();
         if idf.contains("PRIVATE KEY") || idf.contains("BEGIN OPENSSH") {
             return Err(ConfigError::InvalidField {
@@ -137,7 +118,6 @@ pub fn validate(config: &Config) -> Result<(), ConfigError> {
                     problem: "remote_path must not be empty".into(),
                 });
             }
-            // Fields that become remote-command operands must be shell-safe.
             check_operand(
                 format!("site[{}].remote_path", site.id.0),
                 &site.remote_path.to_string_lossy(),
@@ -154,13 +134,10 @@ pub fn validate(config: &Config) -> Result<(), ConfigError> {
             if let Some(build) = &site.build_command {
                 reject_nul(format!("site[{}].build_command", site.id.0), build)?;
             }
-            // A build command is required to make sense of the Build step, but
-            // only for non-static services where a build is expected.
             if matches!(
                 site.service_type,
                 ServiceKind::Systemd | ServiceKind::Pm2 | ServiceKind::Docker
             ) {
-                // resolve_service surfaces missing service_name with a named field.
                 site.resolve_service()
                     .map_err(|(field, problem)| ConfigError::InvalidField {
                         field: format!("site[{}].{}", site.id.0, field),
@@ -204,7 +181,6 @@ identity_file = "~/.ssh/id_ed25519"
         let cfg = load_from_str(GOOD).expect("should load");
         assert_eq!(cfg.servers.len(), 1);
         assert_eq!(cfg.servers[0].sites.len(), 1);
-        // Round-trip: serialising and reloading yields the same structure.
         let text = toml::to_string(&cfg).unwrap();
         let reloaded = load_from_str(&text).unwrap();
         assert_eq!(cfg, reloaded);
@@ -347,9 +323,6 @@ identity_file = "~/.ssh/k"
 
     #[test]
     fn nul_byte_in_remote_path_is_rejected() {
-        // A literal NUL cannot appear in a TOML string, so exercise `validate`
-        // directly the way the in-app add-server flow does: build a config, then
-        // inject a NUL into a path and confirm validation refuses it.
         let mut cfg = load_from_str(GOOD).expect("base config");
         cfg.servers[0].sites[0].remote_path = std::path::PathBuf::from("/srv/\0x");
         match validate(&cfg).unwrap_err() {

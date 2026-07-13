@@ -1,11 +1,3 @@
-// Makes Popush usable without hand-editing TOML. A two-step form: (1) the SSH
-// connection, (2) an optional first site. On submit it assembles a typed
-// ServerConfig (with slug ids derived from labels) and dispatches add() to the
-// servers store, which persists via the backend.
-//
-// Labels sit above inputs, validation appears on blur, and a short reassurance
-// line explains where the data goes and that no secrets are stored.
-
 import { useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Server, Globe } from 'lucide-react';

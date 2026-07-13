@@ -1,6 +1,3 @@
-// Derive a stable, url-safe slug id from a human label. Presentation-side
-// convenience only; the backend remains authoritative over ids it persists.
-
 export function slugify(input: string): string {
   return input
     .toLowerCase()

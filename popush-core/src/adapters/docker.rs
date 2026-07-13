@@ -1,5 +1,3 @@
-//! Docker Compose adapter. The recommended setup.
-
 use serde::Deserialize;
 
 use crate::adapters::Capabilities;
@@ -7,7 +5,6 @@ use crate::config::SiteStatus;
 use crate::error::AdapterError;
 use crate::ssh::RemoteCommand;
 
-/// Capabilities of the Docker adapter: full control, reliable status.
 pub fn capabilities() -> Capabilities {
     Capabilities {
         can_start_stop: true,
@@ -17,7 +14,6 @@ pub fn capabilities() -> Capabilities {
     }
 }
 
-/// `docker compose ps --format json` in the site directory.
 pub fn status_command(remote_path: &str) -> RemoteCommand {
     RemoteCommand::new(
         "cd -- {} && docker compose ps --format json",
@@ -25,7 +21,6 @@ pub fn status_command(remote_path: &str) -> RemoteCommand {
     )
 }
 
-/// `docker compose up -d`.
 pub fn start_command(remote_path: &str) -> RemoteCommand {
     RemoteCommand::new(
         "cd -- {} && docker compose up -d",
@@ -33,7 +28,6 @@ pub fn start_command(remote_path: &str) -> RemoteCommand {
     )
 }
 
-/// `docker compose down`.
 pub fn stop_command(remote_path: &str) -> RemoteCommand {
     RemoteCommand::new(
         "cd -- {} && docker compose down",
@@ -41,7 +35,6 @@ pub fn stop_command(remote_path: &str) -> RemoteCommand {
     )
 }
 
-/// `docker compose restart`.
 pub fn restart_command(remote_path: &str) -> RemoteCommand {
     RemoteCommand::new(
         "cd -- {} && docker compose restart",
@@ -49,7 +42,6 @@ pub fn restart_command(remote_path: &str) -> RemoteCommand {
     )
 }
 
-/// `docker compose logs -f --tail=200`.
 pub fn logs_command(remote_path: &str) -> RemoteCommand {
     RemoteCommand::new(
         "cd -- {} && docker compose logs -f --tail=200",
@@ -57,10 +49,6 @@ pub fn logs_command(remote_path: &str) -> RemoteCommand {
     )
 }
 
-/// One container row from `docker compose ps --format json`.
-///
-/// Modern `docker compose` emits one JSON object per line (JSONL); older/other
-/// versions emit a single JSON array. [`parse_status`] handles both.
 #[derive(Debug, Deserialize)]
 struct ContainerRow {
     #[serde(rename = "Name", default)]
@@ -73,8 +61,6 @@ struct ContainerRow {
     exit_code: i64,
 }
 
-/// Parse `docker compose ps --format json` output into a [`SiteStatus`] using the
-/// mapping An empty output means no containers → `Stopped`.
 pub fn parse_status(output: &str) -> Result<SiteStatus, AdapterError> {
     let rows = parse_rows(output)?;
     if rows.is_empty() {
@@ -97,7 +83,6 @@ pub fn parse_status(output: &str) -> Result<SiteStatus, AdapterError> {
         if !exited_zero {
             all_exited_zero = false;
         }
-        // Any container exited non-zero, or unhealthy, is a described failure.
         if (r.state.eq_ignore_ascii_case("exited") && r.exit_code != 0)
             || r.health.eq_ignore_ascii_case("unhealthy")
         {
@@ -120,8 +105,6 @@ pub fn parse_status(output: &str) -> Result<SiteStatus, AdapterError> {
     if all_exited_zero {
         return Ok(SiteStatus::Stopped);
     }
-    // Mixed states with no explicit non-zero exit: name the container that is not
-    // running, ("Mixed → Failed, describing which container is down").
     let down = rows
         .iter()
         .find(|r| !r.state.eq_ignore_ascii_case("running"))
@@ -137,7 +120,6 @@ fn parse_rows(output: &str) -> Result<Vec<ContainerRow>, AdapterError> {
     if trimmed.is_empty() {
         return Ok(Vec::new());
     }
-    // Try a single JSON array first.
     if trimmed.starts_with('[') {
         return serde_json::from_str::<Vec<ContainerRow>>(trimmed).map_err(|e| {
             AdapterError::Unparseable {
@@ -146,7 +128,6 @@ fn parse_rows(output: &str) -> Result<Vec<ContainerRow>, AdapterError> {
             }
         });
     }
-    // Otherwise JSONL: one object per non-empty line.
     let mut rows = Vec::new();
     for line in trimmed.lines() {
         let line = line.trim();
@@ -167,8 +148,6 @@ fn parse_rows(output: &str) -> Result<Vec<ContainerRow>, AdapterError> {
 mod tests {
     use super::*;
 
-    // Real captured output shapes from `docker compose ps --format json`.
-    // Modern compose emits JSONL (one object per line).
     const JSONL_HEALTHY: &str = r#"{"Name":"sterling-web-1","State":"running","Health":"healthy","ExitCode":0}
 {"Name":"sterling-db-1","State":"running","Health":"healthy","ExitCode":0}"#;
 
@@ -181,7 +160,6 @@ mod tests {
     const JSONL_UNHEALTHY: &str =
         r#"{"Name":"sterling-web-1","State":"running","Health":"unhealthy","ExitCode":0}"#;
 
-    // Older compose emitted a single JSON array.
     const ARRAY_HEALTHY: &str = r#"[{"Name":"web","State":"running","Health":"","ExitCode":0}]"#;
 
     #[test]
@@ -242,7 +220,6 @@ mod tests {
     #[test]
     fn commands_escape_the_path() {
         let c = status_command("/srv/a b; rm -rf /");
-        // The dangerous path is a single quoted word; `rm` never runs.
         assert!(c.render().starts_with("cd -- '/srv/a b; rm -rf /'"));
     }
 }

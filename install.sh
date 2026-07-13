@@ -8,7 +8,7 @@
 #     bash install.sh
 #
 # It installs the build prerequisites (on Fedora), builds Popush, and integrates
-# it into your desktop — icon, launcher entry, and a double-clickable shortcut on
+# it into your desktop, icon, launcher entry, and a double-clickable shortcut on
 # your Desktop. It never touches your ~/.ssh or your servers; it only builds and
 # installs the app itself.
 #
@@ -46,7 +46,7 @@ for arg in "$@"; do
     --no-desktop) DO_DESKTOP=0 ;;
     --help|-h)
       cat <<'HELP'
-Popush installer — one command from a fresh clone to a launchable Popush icon.
+Popush installer, one command from a fresh clone to a launchable Popush icon.
 
   bash install.sh
 
@@ -63,7 +63,7 @@ HELP
   esac
 done
 
-printf '\n%b%sPopush%b — Your VPS, one click away.\n%bBuilt by twostep.%b\n\n' \
+printf '\n%b%sPopush%b, Your VPS, one click away.\n%bBuilt by twostep.%b\n\n' \
   "$VIOLET$BOLD" "" "$RESET" "$DIM" "$RESET"
 
 # ---------------------------------------------------------------------------
@@ -143,7 +143,7 @@ if [[ "$DO_DESKTOP" -eq 0 ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 4. Desktop integration — icon + launcher + Desktop shortcut
+# 4. Desktop integration, icon + launcher + Desktop shortcut
 # ---------------------------------------------------------------------------
 step "Adding Popush to your applications and desktop"
 
@@ -213,6 +213,6 @@ else
   info "No Desktop folder found; skipped the desktop shortcut (it is still in your app launcher)."
 fi
 
-printf '\n%bDone.%b Popush is in your application launcher — search for “Popush”.\n' "$GREEN$BOLD" "$RESET"
+printf '\n%bDone.%b Popush is in your application launcher, search for “Popush”.\n' "$GREEN$BOLD" "$RESET"
 printf '%bYou can also double-click the Popush icon on your Desktop.%b\n\n' "$DIM" "$RESET"
 info "First run: create an SSH key if you do not have one (ssh-keygen -t ed25519), then click “Add your first server”."

@@ -1,7 +1,3 @@
-// GitPanel renders the changed-files list (with change kind + staged state) and
-// the branch/ahead-behind header, and falls back to a clean-tree empty state
-// when there are no changes or no status (e.g. running outside Tauri).
-
 import { render, screen, cleanup } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { GitPanel } from '../index';

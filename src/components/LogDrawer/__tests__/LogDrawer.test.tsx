@@ -1,7 +1,3 @@
-// The log drawer must show a clean centered "Waiting for output…" state when
-// there is no output (no terminal, no cursor artifacts), and reflect the last
-// line cleanly on the collapsed bar once output arrives.
-
 import { render, screen, cleanup } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { LogDrawer } from '../index';
@@ -22,7 +18,6 @@ describe('LogDrawer', () => {
     usePipelineStore.getState().setDrawerOpen(true);
     render(<LogDrawer />);
     expect(screen.getByText('Waiting for output…')).toBeInTheDocument();
-    // No terminal mounted while there is nothing to show.
     expect(screen.queryByTestId('log-terminal')).toBeNull();
   });
 

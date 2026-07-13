@@ -1,6 +1,3 @@
-// The first-run empty state must present the welcoming hero and a primary CTA
-// that dispatches the "add server" intent (highest-priority onboarding).
-
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EmptyState } from '../index';

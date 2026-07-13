@@ -1,7 +1,3 @@
-// Composes SiteCard, ActionBar, GitPanel, and Pipeline for the selected site.
-// Wires stores to the presentational components and dispatches intents through
-// src/lib/ipc.ts.
-
 import { useEffect, useMemo, useState } from 'react';
 import type { Capabilities, SiteConfig, ServiceKind } from '../types/generated';
 import { useSitesStore } from '../store/sites';
@@ -13,9 +9,6 @@ import { Pipeline } from '../components/Pipeline';
 import { Button } from '../components/ui/Button';
 import { startDeploy, cancelPipeline } from '../lib/ipc';
 
-// Capabilities are reported by the backend adapter. Until the real value is
-// wired through an IPC call, derive a conservative default from service_type
-// for rendering.
 function defaultCapabilities(kind: ServiceKind): Capabilities {
   switch (kind) {
     case 'static':
@@ -61,7 +54,6 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
     [steps.length, finished],
   );
 
-  // Mirror the working-tree state for the selected site.
   useEffect(() => {
     void refreshGit(serverId, site.id);
   }, [serverId, site.id, refreshGit]);

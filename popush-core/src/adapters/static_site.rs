@@ -1,30 +1,16 @@
-//! Static-site adapter, the honest one.
-//!
-//! A static site served by nginx has no process of its own. Its "status" is
-//! whether files exist and, if a `health_check_url` is configured, whether an
-//! HTTP `HEAD` succeeds. Without a health check, status is **not reliable**
-//! (`status_is_reliable = false`) and the UI shows **amber Unknown**. A
-//! green light that means "the folder exists" is worse than an honest amber one,
-//! so this adapter refuses to earn green from a directory listing alone.
-
 use crate::adapters::Capabilities;
 use crate::config::SiteStatus;
 use crate::ssh::RemoteCommand;
 
-/// Static sites cannot be started, stopped, or restarted; status is reliable only
-/// with a health check. The `has_health_check` argument decides that.
 pub fn capabilities(has_health_check: bool) -> Capabilities {
     Capabilities {
         can_start_stop: false,
         can_restart: false,
-        // Logs only if an nginx log path is configured; conservatively false here.
         has_logs: false,
         status_is_reliable: has_health_check,
     }
 }
 
-/// `test -d <root> && ls -1 <root> | head -1`. Confirms the web root exists
-/// and is non-empty. This alone never earns green.
 pub fn presence_command(web_root: &str) -> RemoteCommand {
     RemoteCommand::new(
         "test -d {} && ls -1 -- {} | head -1",
@@ -32,16 +18,12 @@ pub fn presence_command(web_root: &str) -> RemoteCommand {
     )
 }
 
-/// The outcome of the file-presence check, before any HTTP verdict.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PresenceOutcome {
-    /// The web root exists and has at least one entry.
     Present,
-    /// The web root is missing or empty.
     Absent,
 }
 
-/// Interpret the presence command's exit code and stdout.
 pub fn interpret_presence(exit_code: i32, stdout: &str) -> PresenceOutcome {
     if exit_code == 0 && !stdout.trim().is_empty() {
         PresenceOutcome::Present
@@ -50,10 +32,6 @@ pub fn interpret_presence(exit_code: i32, stdout: &str) -> PresenceOutcome {
     }
 }
 
-/// Combine file presence with an optional HTTP health verdict into a status.
-///
-/// The honesty rule: files present but no health check → **amber Unknown**,
-/// never green. Only a passing health check earns `Running`.
 pub fn resolve_status(presence: PresenceOutcome, health: Option<HealthVerdict>) -> SiteStatus {
     match (presence, health) {
         (PresenceOutcome::Absent, _) => SiteStatus::Failed {
@@ -73,9 +51,6 @@ pub fn resolve_status(presence: PresenceOutcome, health: Option<HealthVerdict>) 
 }
 
 impl HealthVerdict {
-    /// Classify an HTTP status code from a `HEAD` to the health check URL. A 2xx
-    /// earns `Ok`; anything else is reported honestly with its code. The
-    /// binary calls this after performing the request.
     pub fn from_http_status(code: u16) -> Self {
         if (200..300).contains(&code) {
             HealthVerdict::Ok
@@ -85,17 +60,10 @@ impl HealthVerdict {
     }
 }
 
-/// The verdict of an HTTP `HEAD` to the configured `health_check_url`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HealthVerdict {
-    /// A 2xx response.
     Ok,
-    /// A non-2xx HTTP response.
-    Http {
-        /// The HTTP status code returned.
-        code: u16,
-    },
-    /// No response at all.
+    Http { code: u16 },
     Unreachable,
 }
 
@@ -105,7 +73,6 @@ mod tests {
 
     #[test]
     fn present_without_health_check_is_amber_unknown_not_green() {
-        // The single most important honesty test for this adapter.
         let status = resolve_status(PresenceOutcome::Present, None);
         assert!(matches!(status, SiteStatus::Unknown { .. }));
     }

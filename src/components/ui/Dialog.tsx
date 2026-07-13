@@ -1,14 +1,3 @@
-// Radix Dialog wrapper. Escape closes, focus is trapped, and the overlay frosts
-// the background with a blur rather than a heavy dark scrim. A subtle fade plus
-// a small slide plays on open via framer-motion, disabled under
-// prefers-reduced-motion.
-//
-// The animating card must not rely on Tailwind -translate-* classes, because
-// framer-motion writes an inline transform (for the y slide) that would
-// override them and drop the card into the bottom-right quadrant. So the
-// centring lives on a static Radix Content wrapper (fixed + translate(-50%)),
-// and only the inner motion card owns the transform for its animation.
-
 import * as RadixDialog from '@radix-ui/react-dialog';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useEffect, type ReactNode } from 'react';
@@ -43,8 +32,6 @@ export function Dialog({
 }: DialogProps) {
   const reduce = useReducedMotion();
 
-  // Register as an open modal while mounted so global shortcuts (Ctrl+K) can
-  // keep a single modal open at a time.
   useEffect(() => {
     if (!open) return;
     const { register, unregister } = useModalStore.getState();

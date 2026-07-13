@@ -1,8 +1,3 @@
-// A small loading indicator built on lucide's Loader2, tinted with the pink
-// accent. It rotates via animate-spin; under prefers-reduced-motion the global
-// rule stops the rotation. It is decorative (aria-hidden), so the surrounding
-// label or button caption carries the accessible status.
-
 import { Loader2 } from 'lucide-react';
 import { cn } from '../../lib/cn';
 

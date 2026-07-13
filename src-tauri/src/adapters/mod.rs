@@ -1,16 +1,9 @@
-//! Adapter runtime: runs each adapter's command over SSH and hands the raw
-//! output to the corresponding pure parser in `popush_core::adapters`. The parse -
-//! where honest status is won, is tested in the core crate; this layer only
-//! issues the command and records it in the log.
-
 use popush_core::adapters::{docker, pm2, static_site, systemd, Capabilities};
 use popush_core::config::{ServiceConfig, SiteStatus};
 use popush_core::error::AdapterError;
 
 use crate::ssh::SshPool;
 
-/// Capabilities for a service configuration. Static reliability depends on
-/// whether a health check is configured.
 pub fn capabilities(service: &ServiceConfig, has_health_check: bool) -> Capabilities {
     match service {
         ServiceConfig::Docker { .. } => docker::capabilities(),
@@ -20,7 +13,6 @@ pub fn capabilities(service: &ServiceConfig, has_health_check: bool) -> Capabili
     }
 }
 
-/// Check a site's status by running the adapter's status command and parsing it.
 pub async fn status(
     pool: &SshPool,
     service: &ServiceConfig,
@@ -54,8 +46,6 @@ pub async fn status(
                 .await
                 .map_err(AdapterError::Ssh)?;
             let presence = static_site::interpret_presence(out.exit_code, &out.stdout);
-            // The HTTP health verdict is fetched by the caller (it is not an SSH
-            // command); here, with no health check, presence-only yields amber.
             Ok(static_site::resolve_status(presence, None))
         }
     }

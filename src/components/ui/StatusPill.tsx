@@ -1,7 +1,3 @@
-// A status shown as a coloured dot plus a word, wrapped in a subtle tinted
-// chip. The label always renders, so colour is never the only signal. The
-// in-progress ("working") dot pulses, and stops under prefers-reduced-motion.
-
 import type { SiteStatus } from '../../types/generated';
 import { cn } from '../../lib/cn';
 import {

@@ -1,7 +1,3 @@
-// Ctrl+K fuzzy finder over sites and actions, built on the Dialog wrapper. A
-// simple substring filter is enough. It emits the chosen intent upward and does
-// not perform the action itself.
-
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Dialog } from '../ui/Dialog';
 import { cn } from '../../lib/cn';
@@ -39,8 +35,6 @@ export function CommandPalette({
     );
   }, [items, query]);
 
-  // Keep the highlighted row in range as the list narrows, and scroll it into
-  // view when the keyboard moves it.
   useEffect(() => {
     setActive(0);
   }, [query]);

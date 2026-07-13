@@ -1,18 +1,3 @@
-//! SSH socket I/O for the binary: the connection pool, `ssh-agent`
-//! delegation, and host-key verification wired to `russh`. The *decisions* -
-//! command construction and host-key verdicts, come from `popush_core::ssh`;
-//! this layer only performs I/O.
-//!
-//! ## Verification note
-//! This module is written against the pinned `russh` 0.45 / `russh-keys` 0.45 API,
-//! read from the resolved crate source rather than trusted from memory: agent
-//! authentication uses `authenticate_future` with the `AgentClient`'s `Signer`
-//! impl (there is no `authenticate_publickey_with` in this line), and host-key
-//! data is read via `PublicKey::name`/`fingerprint`/`public_key_base64`. It links
-//! native crypto and only builds on the Linux target; `popush-core` holds
-//! everything testable without a live SSH server. The integration tests
-//! exercise this module against the containerised test VPS on the target.
-
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -23,9 +8,6 @@ use popush_core::ssh::{
     known_hosts_lookup_key, HostKeyDecision, HostKeyVerifier, KnownHost, RemoteCommand,
 };
 
-/// Hard cap on bytes captured per stream from a single command. A compromised or
-/// hostile server could otherwise stream unbounded output (e.g. `yes`) and drive
-/// the app to OOM. Beyond this, output is dropped and a marker is appended.
 const MAX_STREAM_BYTES: usize = 10 * 1024 * 1024;
 
 use russh::client;
@@ -34,27 +16,15 @@ use russh_keys::agent::client::AgentClient;
 use russh_keys::key::PublicKey;
 use russh_keys::PublicKeyBase64;
 
-/// A live, multiplexed SSH connection to one server. Commands share this
-/// single TCP connection via channels; a keepalive runs to detect a dead link.
 pub struct SshPool {
     session: Arc<client::Handle<Handler>>,
     server: ServerConfig,
 }
 
-/// The `russh` client handler. Host-key checking delegates its *decision* to
-/// `popush_core::ssh::hostkey`; here we only extract the presented key's
-/// algorithm, base64 blob, and fingerprint and consult `known_hosts`. Unknown and
-/// mismatched keys are refused here so the UI can surface the fingerprint prompt
-/// or the loud mismatch warning; the UI enforces the friction, never a one-click
-/// accept.
 struct Handler {
     host: String,
     port: u16,
     known_hosts: Vec<KnownHost>,
-    /// The verdict from the most recent `check_server_key`, shared with
-    /// `connect` so a refusal can be reported as the specific host-key error
-    /// (unknown host, or the loud key-changed/MITM warning) rather than a
-    /// generic "host unreachable".
     decision: Arc<Mutex<Option<HostKeyDecision>>>,
 }
 
@@ -70,8 +40,6 @@ impl client::Handler for Handler {
         let key_base64 = server_public_key.public_key_base64();
         let fingerprint = format!("SHA256:{}", server_public_key.fingerprint());
 
-        // Match known_hosts exactly as OpenSSH does, keying on the port so a pin
-        // for port 22 can never be reused to trust another port of the same host.
         let lookup = known_hosts_lookup_key(&self.host, self.port);
         let verifier = HostKeyVerifier::new(&self.known_hosts);
         let decision = verifier.verify(&lookup, &key_type, &key_base64, &fingerprint);
@@ -82,9 +50,6 @@ impl client::Handler for Handler {
 }
 
 impl SshPool {
-    /// Open a pooled connection to `server`, authenticating via `ssh-agent`.
-    /// Popush never handles a passphrase: if the agent offers no identity the
-    /// server accepts, this returns a structured [`SshError`], never a generic one.
     pub async fn connect(
         server: ServerConfig,
         known_hosts: Vec<KnownHost>,
@@ -105,9 +70,6 @@ impl SshPool {
         let mut session = match client::connect(config, addr, handler).await {
             Ok(session) => session,
             Err(e) => {
-                // If the handshake was refused because host-key verification
-                // failed, surface the specific verdict so the UI can show the
-                // fingerprint prompt or the loud key-changed/MITM warning.
                 let verdict = decision.lock().unwrap().take();
                 return Err(match verdict {
                     Some(HostKeyDecision::Mismatch { expected, got }) => {
@@ -129,8 +91,6 @@ impl SshPool {
             }
         };
 
-        // Agent delegation: ask ssh-agent for identities and let it sign.
-        // A missing SSH_AUTH_SOCK is a specific, actionable error.
         let mut agent = AgentClient::connect_env()
             .await
             .map_err(|_| SshError::AuthFailed {
@@ -145,14 +105,11 @@ impl SshPool {
             })?;
 
         if identities.is_empty() {
-            // The agent is running but holds nothing usable for this key.
             return Err(SshError::KeyNotInAgent {
                 path: server.identity_file.clone(),
             });
         }
 
-        // `authenticate_future` consumes and returns the agent (the `Signer`), so
-        // we thread it through each attempt until one succeeds.
         let mut authenticated = false;
         for key in identities {
             let (returned_agent, result) = session
@@ -177,8 +134,6 @@ impl SshPool {
         })
     }
 
-    /// Run a [`RemoteCommand`] on this server. Returns a [`CommandOutcome`]
-    /// carrying the exact command shown in the command log.
     pub async fn exec(&self, command: RemoteCommand) -> Result<CommandOutcome, SshError> {
         let rendered = command.render();
         let display = command.display();
@@ -200,8 +155,6 @@ impl SshPool {
         let mut stderr_truncated = false;
         let mut exit_code = 0i32;
 
-        // Append `data` to `buf` but never past the cap; flag truncation instead
-        // of growing without bound.
         fn append_capped(buf: &mut Vec<u8>, truncated: &mut bool, data: &[u8]) {
             if buf.len() >= MAX_STREAM_BYTES {
                 *truncated = true;
@@ -216,18 +169,11 @@ impl SshPool {
             }
         }
 
-        // Drain the channel to completion. We do NOT break on `Eof`/`Close`: SSH
-        // servers may send `ExitStatus` *after* `Eof` (and sometimes after
-        // `Close`), so breaking early loses the real exit code and reports 0. The
-        // loop ends naturally when `wait` returns `None`, by which point every
-        // message, including a trailing exit status, has been seen. Verified
-        // against a live sshd: `exit 7` now reports 7, not 0.
         while let Some(msg) = channel.wait().await {
             match msg {
                 ChannelMsg::Data { ref data } => {
                     append_capped(&mut stdout, &mut stdout_truncated, &data[..])
                 }
-                // ext == 1 is stderr (SSH_EXTENDED_DATA_STDERR).
                 ChannelMsg::ExtendedData { ref data, ext: 1 } => {
                     append_capped(&mut stderr, &mut stderr_truncated, &data[..])
                 }
@@ -255,7 +201,6 @@ impl SshPool {
         })
     }
 
-    /// The server this pool connects to.
     pub fn server(&self) -> &ServerConfig {
         &self.server
     }

@@ -1,8 +1,3 @@
-// The app shell: a top header, then the three-region body (left sidebar, main
-// panel, bottom log drawer). Wires Ctrl+K (command palette), Ctrl+` (drawer
-// toggle), the Add Server dialog, and hydrates the stores from the backend on
-// mount.
-
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { AppHeader } from './components/AppHeader';
@@ -47,32 +42,22 @@ export function App() {
   } = useSitesStore();
   const { toggleDrawer } = usePipelineStore();
 
-  // Mirror the backend pipeline event stream into the pipeline store.
   usePipelineEvents();
 
-  // Hydrate the server mirror on mount.
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
-  // Load sites whenever the selected server changes.
   useEffect(() => {
     if (selectedServerId) void refreshSites(selectedServerId);
   }, [selectedServerId, refreshSites]);
 
-  // Apply an explicit theme choice to the document root.
   useEffect(() => {
     const el = document.documentElement;
     if (theme === 'system') el.removeAttribute('data-theme');
     else el.setAttribute('data-theme', theme);
   }, [theme]);
 
-  // Global keyboard shortcuts: Ctrl+K palette, Ctrl+` drawer.
-  //
-  // Only one modal is open at a time. Ctrl+K may close the palette if it is the
-  // open modal, but must not open it while another dialog is open. Dialogs
-  // register their open state in the modal store; Escape still closes the open
-  // one via Radix.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.ctrlKey && e.key.toLowerCase() === 'k') {
@@ -87,14 +72,10 @@ export function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [toggleDrawer]);
 
-  // Opening the palette respects the single-modal rule: if a dialog is already
-  // open, the palette stays closed.
   const openPalette = () => {
     if (!isAnyModalOpen()) setPaletteOpen(true);
   };
 
-  // The header logo returns to the home screen: clear any selected site and drop
-  // back to the default panel, which renders the EmptyState hero.
   const goHome = () => {
     selectSite(null);
     setPanel('site');
@@ -188,7 +169,6 @@ export function App() {
 
   const contentKey = `${panel}:${selectedSite?.id ?? 'none'}`;
 
-  // Vary the ambient glow corner per view so screens feel distinct.
   const glowPlacement =
     panel === 'settings' || panel === 'about'
       ? 'top-right'

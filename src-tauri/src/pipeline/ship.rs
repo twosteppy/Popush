@@ -1,14 +1,3 @@
-//! The Ship It orchestrator. Runs the seven steps, emitting events and
-//! honouring cancellation, driving the `popush_core` state machine. Every failure
-//! message and skip reason comes from the core, so this file adds no user-facing
-//! strings of its own.
-//!
-//! ## Verification note
-//! This module is Tauri-coupled (it emits events through an `AppHandle`) and so
-//! compiles only with the GUI toolchain on the target. The step *logic* is thin:
-//! each step calls a `popush_core` decision function or an already-verified infra
-//! function (`crate::git`, `crate::adapters`, `crate::ssh`).
-
 use std::time::Instant;
 
 use popush_core::config::{ServiceConfig, SiteConfig};
@@ -26,7 +15,6 @@ use crate::pipeline::events::{
 use crate::ssh::SshPool;
 use crate::state::AppState;
 
-/// Everything one pipeline run needs. Assembled by the command handler.
 pub struct ShipContext<'a> {
     pub app: AppHandle,
     pub state: &'a AppState,
@@ -34,24 +22,16 @@ pub struct ShipContext<'a> {
     pub server_id: popush_core::ids::ServerId,
     pub site: SiteConfig,
     pub service: ServiceConfig,
-    /// The resolved local clone path (the git panel's `local_path`).
     pub local_path: std::path::PathBuf,
-    /// Files the user selected to commit.
     pub files: Vec<std::path::PathBuf>,
-    /// The commit message.
     pub message: String,
-    /// The pipeline id (already returned to the frontend).
     pub pipeline_id: popush_core::ids::PipelineId,
 }
 
-/// Run the whole pipeline. Emits step and pipeline events; returns when the run
-/// reaches a terminal state. Never returns a generic error, a failure is emitted
-/// as a structured [`UserMessage`].
 pub async fn run_pipeline(ctx: ShipContext<'_>) {
     let started = Instant::now();
     let remote_path = ctx.site.remote_path.to_string_lossy().to_string();
 
-    // Build the skip context from real facts.
     let git_status = crate::git::status(&ctx.local_path, &ctx.site.git_remote).ok();
     let has_changes = git_status
         .as_ref()
@@ -65,15 +45,11 @@ pub async fn run_pipeline(ctx: ShipContext<'_>) {
         has_build_command: ctx.site.build_command.is_some(),
         adapter_can_restart: caps.can_restart,
     };
-    // The initial plan (with skipped steps marked) seeds the frontend's mirror
-    // before anything runs; the frontend then updates it from step events.
     let plan = PipelineState::new(&skip);
     let _ = ctx.app.emit("pipeline:plan", &plan);
 
-    // Capture the pre-deploy SHA for rollback, before anything changes.
     let rollback_sha = capture_remote_sha(&ctx, &remote_path).await;
 
-    // Walk the steps in order, running each that is not pre-skipped.
     for step in Step::ALL {
         if step.is_skipped(&skip) {
             emit_step(
@@ -85,8 +61,6 @@ pub async fn run_pipeline(ctx: ShipContext<'_>) {
             );
             continue;
         }
-        // Cancellation is checked between steps: completed steps are never
-        // undone; the state is reported honestly.
         if ctx.state.is_cancelled(&ctx.pipeline_id) {
             finish(
                 &ctx,
@@ -125,7 +99,6 @@ pub async fn run_pipeline(ctx: ShipContext<'_>) {
     finish(&ctx, PipelineEventOutcome::Ok, started, None, None);
 }
 
-/// Run one step, returning a one-line success summary or the failure message.
 async fn run_step(
     ctx: &ShipContext<'_>,
     step: Step,
@@ -143,7 +116,6 @@ async fn run_step(
 }
 
 fn run_check(ctx: &ShipContext<'_>) -> Result<String, UserMessage> {
-    // A conflicted or detached repo is refused with the exact core message.
     let status =
         crate::git::status(&ctx.local_path, &ctx.site.git_remote).map_err(|e| e.user_message())?;
     if status.has_conflicts {
@@ -167,7 +139,6 @@ fn run_commit(ctx: &ShipContext<'_>) -> Result<String, UserMessage> {
 }
 
 fn run_push(ctx: &ShipContext<'_>) -> Result<String, UserMessage> {
-    // Rejections map to the verbatim messages via the core failure kinds.
     crate::git::push(&ctx.local_path, &ctx.site.git_remote, &ctx.site.git_branch).map_err(|e| {
         match e {
             popush_core::error::GitError::PushRejectedNonFastForward => {
@@ -189,7 +160,6 @@ async fn run_pull(ctx: &ShipContext<'_>, remote_path: &str) -> Result<String, Us
     );
     let out = exec_streaming(ctx, Step::Pull, cmd).await?;
     if out.exit_code != 0 {
-        // Local changes on the server are the common, nameable cause.
         if out.stderr.contains("local changes") || out.stderr.contains("would be overwritten") {
             return Err(failure_message(&FailureKind::PullLocalChangesOnServer {
                 remote_path: remote_path.to_string(),
@@ -209,9 +179,6 @@ async fn run_build(ctx: &ShipContext<'_>, remote_path: &str) -> Result<String, U
     let Some(build) = ctx.site.build_command.clone() else {
         return Ok("no build command".into());
     };
-    // The build command is user-configured; it runs as the *content* of one remote
-    // command with the path escaped. The build text itself is intentionally
-    // executed as the user asked (see the honest weakness note).
     let cmd = popush_core::ssh::RemoteCommand::new(
         "cd -- {} && sh -c {}",
         vec![remote_path.to_string(), build],
@@ -238,7 +205,6 @@ async fn run_restart(ctx: &ShipContext<'_>) -> Result<String, UserMessage> {
 }
 
 async fn run_verify(ctx: &ShipContext<'_>) -> Result<String, UserMessage> {
-    // Poll adapter status; then the health check if configured.
     let status = adapters::status(
         ctx.pool,
         &ctx.service,
@@ -259,36 +225,28 @@ async fn run_verify(ctx: &ShipContext<'_>) -> Result<String, UserMessage> {
     Ok(format!("{status:?}"))
 }
 
-/// Build the adapter's restart command (mirrors `adapters::status` dispatch).
 fn restart_command(service: &ServiceConfig, remote_path: &str) -> popush_core::ssh::RemoteCommand {
     use popush_core::adapters::{docker, pm2, systemd};
     match service {
         ServiceConfig::Docker { .. } => docker::restart_command(remote_path),
         ServiceConfig::Systemd { unit } => systemd::restart_command(unit),
         ServiceConfig::Pm2 { app_name } => pm2::restart_command(app_name),
-        // Static has no restart; this branch is unreachable because the step is
-        // pre-skipped when the adapter cannot restart.
         ServiceConfig::Static { .. } => popush_core::ssh::RemoteCommand::literal("true"),
     }
 }
 
-/// Execute a remote command, streaming each line to the frontend and recording it
-/// in the command log.
 async fn exec_streaming(
     ctx: &ShipContext<'_>,
     step: Step,
     cmd: popush_core::ssh::RemoteCommand,
 ) -> Result<popush_core::command_log::CommandOutcome, UserMessage> {
     let out = ctx.pool.exec(cmd).await.map_err(|e| e.user_message())?;
-    // Stream captured output as lines (the pool captures fully; large live streams
-    // use the dedicated log stream path).
     for line in out.stdout.lines() {
         emit_output(ctx, step, line, OutputStream::Stdout);
     }
     for line in out.stderr.lines() {
         emit_output(ctx, step, line, OutputStream::Stderr);
     }
-    // Record in the command log with a timestamp captured now.
     ctx.state
         .record_command(popush_core::command_log::CommandLogEntry {
             timestamp: chrono::Utc::now(),
@@ -317,10 +275,6 @@ fn rollback_offer_for(remote_path: &str, sha: &Option<String>) -> Option<UserMes
     sha.as_ref().map(|s| rollback_offer(remote_path, s))
 }
 
-/// An HTTP `HEAD` to the health check URL, returning the status code. The URL
-/// comes from user config and can point anywhere, so the client caps connect and
-/// total time to stop a slow or stalling endpoint from hanging the pipeline, and
-/// carries no credentials.
 async fn http_head_status(url: &str) -> Option<u16> {
     let client = reqwest::Client::builder()
         .connect_timeout(std::time::Duration::from_secs(10))
@@ -340,8 +294,6 @@ fn skip_summary(step: Step) -> String {
         _ => "skipped".into(),
     }
 }
-
-// --- event emission ---------------------------------------------------------
 
 fn emit_started(ctx: &ShipContext<'_>, step: Step) {
     let _ = ctx.app.emit(

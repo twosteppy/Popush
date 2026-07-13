@@ -1,12 +1,3 @@
-// Popush mark and wordmark. The mark is the app icon (src/assets/logo.png)
-// rendered as a square glyph; the wordmark is plain type beside it. Sizes scale
-// together.
-//
-// When `onClick` is supplied the whole lockup becomes a button (used in the
-// header to return home). It carries a smooth hover: the mark lifts slightly and
-// gains a soft pink glow, and the wordmark warms toward the accent. Everything
-// respects prefers-reduced-motion through the shared transition tokens.
-
 import { cn } from '../../lib/cn';
 import logoUrl from '../../assets/logo.png';
 

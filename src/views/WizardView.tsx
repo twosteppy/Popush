@@ -1,13 +1,8 @@
-// A vertical checklist of the seven setup checks with pass/fail/running/n-a
-// icons, plain-English names, expandable failed rows showing the exact command,
-// a "Fix it" button, and a "Show me the command instead" link.
-
 import { useState } from 'react';
 import { Check as CheckIcon, X, Loader2, MinusCircle } from 'lucide-react';
 import type { Check, CheckStatus } from '../types/generated';
 import { Button } from '../components/ui/Button';
 
-// Plain-English names for each check, ordered as the enum.
 const CHECK_ORDER: Check[] = [
   'local_key_exists',
   'key_in_agent',

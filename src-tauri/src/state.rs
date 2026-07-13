@@ -1,6 +1,3 @@
-//! Backend-owned application state. The frontend holds only a mirror,
-//! updated by events; it never holds authoritative state.
-
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -10,33 +7,22 @@ use popush_core::ids::{PipelineId, ServerId, SiteId};
 
 use crate::ssh::SshPool;
 
-/// Upper bound on retained command-log entries. The log is in-memory only, but a
-/// long-lived session doing many deploys should not grow it without limit.
 const MAX_COMMAND_LOG: usize = 5000;
 
-/// The single source of truth for the running app, guarded for concurrent access.
 pub struct AppState {
     inner: Mutex<Inner>,
 }
 
 struct Inner {
-    /// Loaded config, or `None` before first load / on load error.
     config: Option<Config>,
-    /// Live SSH connection pools, one per server, opened lazily. Read by
-    /// the connection-pool lifecycle wiring (the remaining integration point noted
-    /// in docs/DECISIONS.md); allowed dead until those command handlers land.
     #[allow(dead_code)]
     connections: HashMap<ServerId, SshPool>,
-    /// Last known status per site.
     site_status: HashMap<SiteId, SiteStatus>,
-    /// In-flight pipeline cancellation flags.
     cancelled: HashMap<PipelineId, bool>,
-    /// The command log, every remote command, inspectable at any time.
     command_log: Vec<CommandLogEntry>,
 }
 
 impl AppState {
-    /// Create empty state. Config is loaded in `setup` (see [`crate::run`]).
     pub fn new() -> Self {
         Self {
             inner: Mutex::new(Inner {
@@ -49,15 +35,11 @@ impl AppState {
         }
     }
 
-    /// Load config from the XDG path on startup. A missing file is fine: the
-    /// app shows its empty state. A malformed file is surfaced to the UI as a
-    /// config error, never a silent failure.
     pub fn load_config_on_startup(&self) {
         let Some(path) = config_path() else {
             return;
         };
         let Ok(text) = std::fs::read_to_string(&path) else {
-            // No config yet, first launch. Not an error.
             return;
         };
         match popush_core::config::load_from_str(&text) {
@@ -65,13 +47,11 @@ impl AppState {
                 self.inner.lock().unwrap().config = Some(cfg);
             }
             Err(e) => {
-                // Keep config None; the UI will show the config error on demand.
                 tracing::warn!(error = %e, "config failed to load");
             }
         }
     }
 
-    /// Snapshot the configured servers for the UI.
     pub fn servers(&self) -> Vec<popush_core::config::ServerConfig> {
         self.inner
             .lock()
@@ -82,7 +62,6 @@ impl AppState {
             .unwrap_or_default()
     }
 
-    /// Snapshot the whole config (or a fresh default if none is loaded).
     pub fn config_snapshot(&self) -> Config {
         self.inner
             .lock()
@@ -92,9 +71,6 @@ impl AppState {
             .unwrap_or_default()
     }
 
-    /// Add or replace a server (the in-app "Add a server" flow), then persist the
-    /// config to disk so the change survives a restart. Writing goes
-    /// through `popush_core`, which keeps the file human-editable and secret-free.
     pub fn add_or_update_server(
         &self,
         server: popush_core::config::ServerConfig,
@@ -108,7 +84,6 @@ impl AppState {
         write_config_file(&toml)
     }
 
-    /// Remove a server by id and persist.
     pub fn remove_server(&self, id: &ServerId) -> Result<bool, popush_core::error::ConfigError> {
         let mut guard = self.inner.lock().unwrap();
         let Some(config) = guard.config.as_mut() else {
@@ -121,9 +96,6 @@ impl AppState {
         Ok(removed)
     }
 
-    /// Append an entry to the command log, keeping only the most recent
-    /// [`MAX_COMMAND_LOG`] entries so a long-lived session cannot grow it without
-    /// bound.
     pub fn record_command(&self, entry: CommandLogEntry) {
         let mut guard = self.inner.lock().unwrap();
         guard.command_log.push(entry);
@@ -133,12 +105,10 @@ impl AppState {
         }
     }
 
-    /// The full command log, newest last.
     pub fn command_log(&self) -> Vec<CommandLogEntry> {
         self.inner.lock().unwrap().command_log.clone()
     }
 
-    /// Mark a pipeline cancelled.
     pub fn cancel(&self, id: &PipelineId) {
         self.inner
             .lock()
@@ -147,7 +117,6 @@ impl AppState {
             .insert(id.clone(), true);
     }
 
-    /// Whether a pipeline has been cancelled.
     pub fn is_cancelled(&self, id: &PipelineId) -> bool {
         self.inner
             .lock()
@@ -158,7 +127,6 @@ impl AppState {
             .unwrap_or(false)
     }
 
-    /// Update the cached status of a site.
     pub fn set_status(&self, site: SiteId, status: SiteStatus) {
         self.inner.lock().unwrap().site_status.insert(site, status);
     }
@@ -170,17 +138,11 @@ impl Default for AppState {
     }
 }
 
-/// The XDG config path, `~/.config/popush/config.toml`.
 pub fn config_path() -> Option<std::path::PathBuf> {
     directories::ProjectDirs::from("dev", "popush", "popush")
         .map(|d| d.config_dir().join("config.toml"))
 }
 
-/// Ensure `config.toml` exists on disk, writing a default (empty) config with a
-/// short header comment if it is missing, and return its path. The "open your
-/// config file" affordance can appear before any server is added, when the file
-/// does not exist yet; without this the OS would be asked to open a missing path
-/// and nothing would happen.
 pub fn ensure_config_file() -> Result<std::path::PathBuf, popush_core::error::ConfigError> {
     let path = config_path().ok_or_else(|| popush_core::error::ConfigError::Unreadable {
         path: "~/.config/popush/config.toml".into(),
@@ -198,7 +160,6 @@ pub fn ensure_config_file() -> Result<std::path::PathBuf, popush_core::error::Co
     Ok(path)
 }
 
-/// Write the config TOML to the XDG path, creating the directory if needed.
 fn write_config_file(toml: &str) -> Result<(), popush_core::error::ConfigError> {
     let path = config_path().ok_or_else(|| popush_core::error::ConfigError::Unreadable {
         path: "~/.config/popush/config.toml".into(),
@@ -211,9 +172,6 @@ fn write_config_file(toml: &str) -> Result<(), popush_core::error::ConfigError> 
                 detail: e.to_string(),
             }
         })?;
-        // Restrict the config directory to the owner. The file holds no secrets,
-        // but host addresses, usernames, and paths are nobody else's business on
-        // a shared machine.
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
@@ -224,7 +182,6 @@ fn write_config_file(toml: &str) -> Result<(), popush_core::error::ConfigError> 
         path: path.clone(),
         detail: e.to_string(),
     })?;
-    // Owner-only permissions on the file itself.
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;

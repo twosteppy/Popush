@@ -1,6 +1,3 @@
-// The explainer view must render its skimmable section headings and dispatch
-// the "add server" intent from its getting-started CTA.
-
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { HelpView } from '../HelpView';

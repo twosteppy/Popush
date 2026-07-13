@@ -1,15 +1,3 @@
-// LogDrawer - the bottom drawer. Collapsed to a thin bar showing the
-// last line cleanly (monospaced, muted, truncated); expandable. Ctrl+` toggles
-// it (wired in App). Height is remembered in the pipeline store.
-//
-// The xterm.js terminal is mounted ONLY when there is real output to show, so
-// there are no cursor artifacts or corrupted glyphs in the empty state. Its
-// stylesheet is imported, a FitAddon sizes it to the container on open and on
-// resize, and its theme is derived from the design tokens.
-//
-// this is a viewport onto backend log output; it holds no logic. Lines
-// come from the pipeline store, which mirrors backend events.
-
 import { useEffect, useMemo, useRef } from 'react';
 import { ChevronUp, ChevronDown, TerminalSquare } from 'lucide-react';
 import 'xterm/css/xterm.css';
@@ -39,7 +27,6 @@ export function LogDrawer() {
   const toggleDrawer = usePipelineStore((s) => s.toggleDrawer);
   const steps = usePipelineStore((s) => s.steps);
 
-  // Flatten all streamed output lines from every step, in order.
   const lines = useMemo(() => steps.flatMap((step) => step.output), [steps]);
   const hasOutput = lines.length > 0;
   const lastLine = hasOutput ? lines[lines.length - 1] : null;
@@ -49,7 +36,6 @@ export function LogDrawer() {
   const fitRef = useRef<{ fit: () => void } | null>(null);
   const writtenRef = useRef(0);
 
-  // Create the terminal only when we are open AND have real output.
   useEffect(() => {
     const shouldMount = drawerOpen && hasOutput && termRef.current;
     if (!shouldMount) return;
@@ -94,7 +80,7 @@ export function LogDrawer() {
         fitRef.current = fit;
         writtenRef.current = 0;
       } catch {
-        // xterm unavailable (e.g. under test) - the DOM fallback stays.
+        /* ignore */
       }
     })();
 
@@ -103,7 +89,6 @@ export function LogDrawer() {
     };
   }, [drawerOpen, hasOutput]);
 
-  // Stream any not-yet-written lines into the terminal.
   useEffect(() => {
     const term = instanceRef.current;
     if (!term) return;
@@ -114,7 +99,6 @@ export function LogDrawer() {
     fitRef.current?.fit();
   }, [lines]);
 
-  // Refit on container resize.
   useEffect(() => {
     if (!drawerOpen || !hasOutput || !termRef.current) return;
     const el = termRef.current;
@@ -123,7 +107,6 @@ export function LogDrawer() {
     return () => ro.disconnect();
   }, [drawerOpen, hasOutput]);
 
-  // Dispose on unmount.
   useEffect(() => {
     return () => {
       instanceRef.current?.dispose();

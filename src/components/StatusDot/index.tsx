@@ -1,7 +1,3 @@
-// An 8px dot coloured from a SiteStatus, always paired with a text label so
-// colour is never the only signal. The in-progress ("working") state pulses;
-// the pulse is disabled under prefers-reduced-motion.
-
 import type { SiteStatus } from '../../types/generated';
 import {
   describeSiteStatus,
