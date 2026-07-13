@@ -16,11 +16,21 @@ import type {
 /**
  * True when running inside the Tauri shell. Outside Tauri (dev server, tests)
  * we return empty/mock data so nothing crashes.
+ *
+ * Tauri v2 always injects `window.__TAURI_INTERNALS__`; it only injects
+ * `window.__TAURI__` when `withGlobalTauri` is enabled, which it is not. Checking
+ * only `__TAURI__` made every IPC call no-op in the real app, so we check the
+ * internals object (and keep `__TAURI__` for older mocks/tests).
  */
 function inTauri(): boolean {
+  if (typeof window === 'undefined') return false;
+  const w = window as {
+    __TAURI_INTERNALS__?: unknown;
+    __TAURI__?: unknown;
+  };
   return (
-    typeof window !== 'undefined' &&
-    typeof (window as { __TAURI__?: unknown }).__TAURI__ !== 'undefined'
+    typeof w.__TAURI_INTERNALS__ !== 'undefined' ||
+    typeof w.__TAURI__ !== 'undefined'
   );
 }
 
