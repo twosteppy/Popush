@@ -1,0 +1,16 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Permissions for the main window: the core defaults (windowing plus the event channel the Ship It pipeline streams over) and opening the Popush config directory in the user's default application.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    {
+      "identifier": "opener:allow-open-path",
+      "allow": [
+        { "path": "$CONFIG/popush/**" },
+        { "path": "$HOME/.config/popush/**" }
+      ]
+    }
+  ]
+}
