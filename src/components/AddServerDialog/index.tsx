@@ -115,6 +115,36 @@ function nullable(v: string): string | null {
   return t.length ? t : null;
 }
 
+/** Strip markdown code fences (```toml ... ```) that get copied by accident. */
+function cleanPastedConfig(raw: string): string {
+  return raw
+    .trim()
+    .replace(/^```[a-zA-Z]*\s*\n?/, '')
+    .replace(/\n?```$/, '')
+    .trim();
+}
+
+/** Turn a backend config error into a readable, specific message. */
+function describeConfigError(e: unknown): string {
+  const err = e as {
+    detail?: {
+      code?: string;
+      detail?: string;
+      field?: string;
+      problem?: string;
+    };
+  };
+  const d = err?.detail;
+  if (d?.code === 'malformed')
+    return `Not valid TOML. ${d.detail ?? ''}`.trim();
+  if (d?.code === 'invalid_field')
+    return `Problem with "${d.field}": ${d.problem}`;
+  if (d?.code === 'schema_too_new')
+    return 'This config is from a newer version of Popush.';
+  if (typeof e === 'string') return e;
+  return 'Could not import. Check it is valid TOML with at least one [[server]] block.';
+}
+
 export function AddServerDialog({ open, onOpenChange }: AddServerDialogProps) {
   const add = useServersStore((s) => s.add);
   const refresh = useServersStore((s) => s.refresh);
@@ -154,13 +184,11 @@ export function AddServerDialog({ open, onOpenChange }: AddServerDialogProps) {
     setImporting(true);
     setSubmitError(null);
     try {
-      await importConfig(paste);
+      await importConfig(cleanPastedConfig(paste));
       await refresh();
       close(false);
-    } catch {
-      setSubmitError(
-        'That config could not be imported. Check it is valid TOML with at least one [[server]] block.',
-      );
+    } catch (e) {
+      setSubmitError(describeConfigError(e));
       setImporting(false);
     }
   }
