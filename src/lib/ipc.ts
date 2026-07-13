@@ -88,6 +88,14 @@ export async function cancelPipeline(pipelineId: string): Promise<void> {
   return invoke<void>('cancel_pipeline', { pipelineId });
 }
 
+/** Run start/stop/restart for a site over SSH. */
+export async function siteAction(
+  siteId: string,
+  action: 'start' | 'stop' | 'restart',
+): Promise<void> {
+  return invoke<void>('site_action', { siteId, action });
+}
+
 export async function gitStatus(
   serverId: string,
   siteId: string,

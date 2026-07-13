@@ -7,7 +7,7 @@ import { ActionBar } from '../components/ActionBar';
 import { GitPanel } from '../components/GitPanel';
 import { Pipeline } from '../components/Pipeline';
 import { Button } from '../components/ui/Button';
-import { startDeploy, cancelPipeline } from '../lib/ipc';
+import { startDeploy, cancelPipeline, siteAction } from '../lib/ipc';
 
 function defaultCapabilities(kind: ServiceKind): Capabilities {
   switch (kind) {
@@ -38,6 +38,10 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
   const status = useSitesStore((s) => s.statusBySite[site.id]);
   const gitStatus = useSitesStore((s) => s.gitBySite[site.id]);
   const refreshGit = useSitesStore((s) => s.refreshGit);
+  const refreshStatus = useSitesStore((s) => s.refreshStatus);
+
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionBusy, setActionBusy] = useState(false);
 
   const pipelineId = usePipelineStore((s) => s.pipelineId);
   const steps = usePipelineStore((s) => s.steps);
@@ -56,7 +60,35 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
 
   useEffect(() => {
     void refreshGit(serverId, site.id);
-  }, [serverId, site.id, refreshGit]);
+    void refreshStatus(serverId, site.id);
+  }, [serverId, site.id, refreshGit, refreshStatus]);
+
+  function describeError(e: unknown): string {
+    if (typeof e === 'string') return e;
+    if (e && typeof e === 'object') {
+      const o = e as { message?: string };
+      if (o.message) return o.message;
+      try {
+        return JSON.stringify(e);
+      } catch {
+        /* ignore */
+      }
+    }
+    return 'Action failed.';
+  }
+
+  async function runAction(action: 'start' | 'stop' | 'restart') {
+    setActionBusy(true);
+    setActionError(null);
+    try {
+      await siteAction(site.id, action);
+      await refreshStatus(serverId, site.id);
+    } catch (e) {
+      setActionError(describeError(e));
+    } finally {
+      setActionBusy(false);
+    }
+  }
 
   function toggleFile(path: string) {
     setSelectedFiles((prev) => {
@@ -79,14 +111,17 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
 
       <ActionBar
         capabilities={caps}
-        busy={busy}
+        busy={busy || actionBusy}
         onShipIt={() => void shipIt()}
-        onRestart={() => void startDeploy(serverId, site.id, null)}
-        onStop={() => {
-          /* Stop is dispatched via ipc by the parent action. */
-        }}
+        onRestart={() => void runAction('restart')}
+        onStop={() => void runAction('stop')}
         onLogs={() => setDrawerOpen(true)}
       />
+      {actionError ? (
+        <p className="rounded-sm border border-status-failed bg-status-failed/10 px-3 py-2 text-sm text-status-failed">
+          {actionError}
+        </p>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <section className="flex flex-col gap-2">

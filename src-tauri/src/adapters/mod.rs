@@ -13,6 +13,50 @@ pub fn capabilities(service: &ServiceConfig, has_health_check: bool) -> Capabili
     }
 }
 
+/// Run a start/stop/restart action for a service and fail on a non-zero exit.
+pub async fn run_action(
+    pool: &SshPool,
+    service: &ServiceConfig,
+    remote_path: &str,
+    action: &str,
+) -> Result<(), AdapterError> {
+    let cmd = match (service, action) {
+        (ServiceConfig::Docker { .. }, "start") => docker::start_command(remote_path),
+        (ServiceConfig::Docker { .. }, "stop") => docker::stop_command(remote_path),
+        (ServiceConfig::Docker { .. }, "restart") => docker::restart_command(remote_path),
+        (ServiceConfig::Systemd { unit }, "start") => systemd::start_command(unit),
+        (ServiceConfig::Systemd { unit }, "stop") => systemd::stop_command(unit),
+        (ServiceConfig::Systemd { unit }, "restart") => systemd::restart_command(unit),
+        (ServiceConfig::Pm2 { app_name }, "start") => pm2::start_command(app_name),
+        (ServiceConfig::Pm2 { app_name }, "stop") => pm2::stop_command(app_name),
+        (ServiceConfig::Pm2 { app_name }, "restart") => pm2::restart_command(app_name),
+        (ServiceConfig::Static { .. }, _) => {
+            return Err(AdapterError::Unsupported {
+                operation: action.to_string(),
+                service_type: "static".into(),
+            })
+        }
+        (_, other) => {
+            return Err(AdapterError::Unsupported {
+                operation: other.to_string(),
+                service_type: "service".into(),
+            })
+        }
+    };
+    let out = pool.exec(cmd).await.map_err(AdapterError::Ssh)?;
+    if out.exit_code != 0 {
+        return Err(AdapterError::Unparseable {
+            tool: action.to_string(),
+            detail: if out.stderr.trim().is_empty() {
+                format!("command exited {}", out.exit_code)
+            } else {
+                out.stderr
+            },
+        });
+    }
+    Ok(())
+}
+
 pub async fn status(
     pool: &SshPool,
     service: &ServiceConfig,

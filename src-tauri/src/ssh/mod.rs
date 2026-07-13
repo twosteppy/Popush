@@ -25,7 +25,12 @@ struct Handler {
     host: String,
     port: u16,
     known_hosts: Vec<KnownHost>,
+    /// When true, an unknown host is accepted on first use and recorded in
+    /// `accepted` so the caller can persist it to known_hosts. A *changed* key is
+    /// still refused, since that is the man-in-the-middle case.
+    tofu: bool,
     decision: Arc<Mutex<Option<HostKeyDecision>>>,
+    accepted: Arc<Mutex<Option<KnownHost>>>,
 }
 
 #[async_trait::async_trait]
@@ -43,27 +48,59 @@ impl client::Handler for Handler {
         let lookup = known_hosts_lookup_key(&self.host, self.port);
         let verifier = HostKeyVerifier::new(&self.known_hosts);
         let decision = verifier.verify(&lookup, &key_type, &key_base64, &fingerprint);
-        let trusted = matches!(decision, HostKeyDecision::Trusted);
+        let trusted = match &decision {
+            HostKeyDecision::Trusted => true,
+            HostKeyDecision::Unknown { .. } if self.tofu => {
+                *self.accepted.lock().unwrap() = Some(KnownHost {
+                    host: lookup,
+                    key_type: key_type.clone(),
+                    key_base64: key_base64.clone(),
+                });
+                true
+            }
+            _ => false,
+        };
         *self.decision.lock().unwrap() = Some(decision);
         Ok(trusted)
     }
 }
 
 impl SshPool {
+    /// Connect, refusing any host that is not already trusted in known_hosts.
     pub async fn connect(
         server: ServerConfig,
         known_hosts: Vec<KnownHost>,
     ) -> Result<Self, SshError> {
+        Ok(Self::connect_inner(server, known_hosts, false).await?.0)
+    }
+
+    /// Connect with trust-on-first-use: an unknown host is accepted and returned
+    /// as a [`KnownHost`] so the caller can persist it; a changed key is refused.
+    pub async fn connect_tofu(
+        server: ServerConfig,
+        known_hosts: Vec<KnownHost>,
+    ) -> Result<(Self, Option<KnownHost>), SshError> {
+        Self::connect_inner(server, known_hosts, true).await
+    }
+
+    async fn connect_inner(
+        server: ServerConfig,
+        known_hosts: Vec<KnownHost>,
+        tofu: bool,
+    ) -> Result<(Self, Option<KnownHost>), SshError> {
         let config = Arc::new(client::Config {
             keepalive_interval: Some(Duration::from_secs(30)),
             ..Default::default()
         });
         let decision = Arc::new(Mutex::new(None));
+        let accepted = Arc::new(Mutex::new(None));
         let handler = Handler {
             host: server.host.clone(),
             port: server.port,
             known_hosts,
+            tofu,
             decision: decision.clone(),
+            accepted: accepted.clone(),
         };
 
         let addr = (server.host.as_str(), server.port);
@@ -128,10 +165,14 @@ impl SshPool {
             });
         }
 
-        Ok(Self {
-            session: Arc::new(session),
-            server,
-        })
+        let new_host = accepted.lock().unwrap().take();
+        Ok((
+            Self {
+                session: Arc::new(session),
+                server,
+            },
+            new_host,
+        ))
     }
 
     pub async fn exec(&self, command: RemoteCommand) -> Result<CommandOutcome, SshError> {
