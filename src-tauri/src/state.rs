@@ -84,6 +84,32 @@ impl AppState {
         write_config_file(&toml)
     }
 
+    pub fn add_site(
+        &self,
+        server_id: &ServerId,
+        site: popush_core::config::SiteConfig,
+    ) -> Result<(), popush_core::error::ConfigError> {
+        let mut guard = self.inner.lock().unwrap();
+        let config = guard.config.get_or_insert_with(Config::default);
+        let server = config
+            .servers
+            .iter_mut()
+            .find(|s| &s.id == server_id)
+            .ok_or_else(|| popush_core::error::ConfigError::InvalidField {
+                field: "server".into(),
+                problem: format!("no server with id `{}`", server_id.0),
+            })?;
+        if let Some(existing) = server.sites.iter_mut().find(|s| s.id == site.id) {
+            *existing = site;
+        } else {
+            server.sites.push(site);
+        }
+        popush_core::config::validate(config)?;
+        let toml = popush_core::config::to_toml(config)?;
+        drop(guard);
+        write_config_file(&toml)
+    }
+
     pub fn remove_server(&self, id: &ServerId) -> Result<bool, popush_core::error::ConfigError> {
         let mut guard = self.inner.lock().unwrap();
         let Some(config) = guard.config.as_mut() else {

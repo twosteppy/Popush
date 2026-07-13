@@ -19,17 +19,17 @@ identity_file = "~/.ssh/id_ed25519"   # PATH ONLY. Never the key itself.
 # proxy_jump = "bastion.example.com"   # optional jump host
 
   [[server.site]]
-  id = "sterling-defence"
-  label = "Sterling Defence"
-  remote_path = "/srv/sterling-defence"
+  id = "acme-store"
+  label = "Acme Store"
+  remote_path = "/srv/acme-store"
   service_type = "docker"
-  service_name = "sterling-defence"
+  service_name = "acme-store"
   build_command = "pnpm install --frozen-lockfile && pnpm build"
   git_remote = "origin"
   git_branch = "main"
-  local_path = "~/dev/sterling-defence"
-  live_url = "https://sterlingdefence.co.uk"
-  health_check_url = "https://sterlingdefence.co.uk/api/health"
+  local_path = "~/dev/acme-store"
+  live_url = "https://acme.example.com"
+  health_check_url = "https://acme.example.com/api/health"
 
   [[server.site]]
   id = "personal-blog"
@@ -40,4 +40,4 @@ identity_file = "~/.ssh/id_ed25519"   # PATH ONLY. Never the key itself.
   git_remote = "origin"
   git_branch = "main"
   local_path = "~/dev/blog"
-  live_url = "https://example.dev"
+  live_url = "https://example.com"

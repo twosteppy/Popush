@@ -12,6 +12,7 @@ interface SidebarProps {
   onOpenWizard: () => void;
   onOpenHelp: () => void;
   onAddServer: () => void;
+  onAddSite: () => void;
   onSelectSite: () => void;
 }
 
@@ -21,6 +22,7 @@ export function Sidebar({
   onOpenWizard,
   onOpenHelp,
   onAddServer,
+  onAddSite,
   onSelectSite,
 }: SidebarProps) {
   const {
@@ -80,7 +82,21 @@ export function Sidebar({
           )}
         </Section>
 
-        <Section title="Sites">
+        <Section
+          title="Sites"
+          action={
+            selectedServerId ? (
+              <button
+                type="button"
+                onClick={onAddSite}
+                aria-label="Add site"
+                className="inline-flex h-5 w-5 items-center justify-center rounded-sm border border-transparent text-text-tertiary transition-colors hover:border-border-subtle hover:bg-surface-hover hover:text-accent"
+              >
+                <Plus size={13} aria-hidden="true" />
+              </button>
+            ) : undefined
+          }
+        >
           {loading && servers.length === 0 ? (
             <ListSkeleton rows={2} />
           ) : sites.length === 0 ? (
