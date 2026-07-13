@@ -1,7 +1,7 @@
-//! Local git I/O via `git2` (§10). Reads status, classifies the remote, and, in
+//! Local git I/O via `git2`. Reads status, classifies the remote, and, in
 //! the pipeline, stages, commits, and pushes with agent-based credentials. The
 //! URL classification logic is `popush_core::git::remote`; this layer performs the
-//! libgit2 calls (D14).
+//! libgit2 calls.
 
 pub mod commit;
 
@@ -14,7 +14,7 @@ use popush_core::error::GitError;
 use popush_core::git::remote::classify_remote;
 use popush_core::git::RemoteKind;
 
-/// Read the git status of the repository at `path` (§10.1). Detects conflicts,
+/// Read the git status of the repository at `path`. Detects conflicts,
 /// detached HEAD, ahead/behind, and whether the remote is SSH, the facts the
 /// git panel and the wizard need.
 pub fn status(path: &Path, remote_name: &str) -> Result<GitStatus, GitError> {
@@ -22,7 +22,7 @@ pub fn status(path: &Path, remote_name: &str) -> Result<GitStatus, GitError> {
         detail: e.to_string(),
     })?;
 
-    // Branch (detached HEAD is a refusal state, §10.2).
+    // Branch (detached HEAD is a refusal state).
     let head = repo.head().map_err(|e| GitError::Operation {
         detail: e.to_string(),
     })?;
@@ -47,7 +47,7 @@ pub fn status(path: &Path, remote_name: &str) -> Result<GitStatus, GitError> {
         if s.is_conflicted() {
             has_conflicts = true;
         }
-        // `entry.path()` is None only for a path that is not valid UTF-8; Popush
+        // `entry.path` is None only for a path that is not valid UTF-8; Popush
         // shows what it can and skips the rest rather than failing the whole read.
         if let Some(path) = entry.path() {
             if let Some(cf) = classify_status(path, s) {

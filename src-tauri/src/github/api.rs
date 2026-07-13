@@ -1,4 +1,4 @@
-//! Optional GitHub API client (Phase 10, §11.5), the I/O half.
+//! Optional GitHub API client (Phase 10), the I/O half.
 //!
 //! Strictly optional: every core feature works with no token. When the user
 //! supplies a fine-grained read-only PAT, it is stored in the **system keyring
@@ -15,10 +15,10 @@ use popush_core::github::{
 const KEYRING_SERVICE: &str = "dev.popush.Popush";
 const KEYRING_ACCOUNT: &str = "github-pat";
 
-/// The single host Popush ever sends the token to (§11.5).
+/// The single host Popush ever sends the token to.
 const API_BASE: &str = "https://api.github.com";
 
-/// Store the PAT in the system keyring (§11.5). This is the only place Popush ever
+/// Store the PAT in the system keyring. This is the only place Popush ever
 /// writes it; it never touches `config.toml`, history, or logs.
 pub fn store_token(token: &str) -> Result<(), keyring::Error> {
     keyring::Entry::new(KEYRING_SERVICE, KEYRING_ACCOUNT)?.set_password(token)
@@ -56,7 +56,7 @@ impl GitHubClient {
     }
 
     async fn get(&self, path: &str) -> Result<String, reqwest::Error> {
-        // The token is sent to api.github.com and nowhere else (§11.5). The path
+        // The token is sent to api.github.com and nowhere else. The path
         // is always a fixed template built here, never a caller-supplied URL.
         self.http
             .get(format!("{API_BASE}{path}"))

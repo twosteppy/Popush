@@ -1,9 +1,9 @@
-//! Setup-wizard I/O (§11). The decisions, which fix, whether a key may be
+//! Setup-wizard I/O. The decisions, which fix, whether a key may be
 //! generated, how to convert a remote, come from `popush_core::wizard`; this
 //! layer performs the local filesystem and `git2` operations for the checks that
 //! are local (C1 and C4) and applies previewed fixes. The remote checks (C3, C5,
 //! C6, C7) run over SSH against a live server and are exercised by the integration
-//! suite (§23.3); this module implements the parts that are verifiable without a
+//! suite; this module implements the parts that are verifiable without a
 //! server.
 
 use std::path::{Path, PathBuf};
@@ -13,7 +13,7 @@ use popush_core::git::RemoteKind;
 use popush_core::wizard::fixes::key_generation_fix;
 use popush_core::wizard::{Check, CheckStatus, Fix};
 
-/// The candidate local key paths C1 looks for, in preference order (§11.2).
+/// The candidate local key paths C1 looks for, in preference order.
 const KEY_CANDIDATES: [&str; 3] = ["id_ed25519", "id_ecdsa", "id_rsa"];
 
 /// Run a local wizard check. Remote checks return a truthful `NotApplicable` here
@@ -40,7 +40,7 @@ pub fn run_local_check(check: Check, ssh_dir: &Path, repo_path: Option<&Path>) -
 }
 
 /// Find an existing private key in `ssh_dir`, if any. Returns the path so the
-/// caller can offer to *use* it (never replace it, D13).
+/// caller can offer to *use* it (never replace it).
 pub fn find_local_key(ssh_dir: &Path) -> Option<PathBuf> {
     KEY_CANDIDATES
         .iter()
@@ -89,7 +89,7 @@ fn classify_local_remote(repo_path: &Path) -> CheckStatus {
     }
 }
 
-/// Apply a previewed fix that Popush can perform directly (D13: preview shown
+/// Apply a previewed fix that Popush can perform directly (: preview shown
 /// first by the UI). Remote conversion runs through `git2`, never a shell, so
 /// the URL is set structurally, not string-spliced.
 pub fn apply_fix(fix: &Fix, repo_path: Option<&Path>) -> Result<(), String> {
@@ -108,7 +108,7 @@ pub fn apply_fix(fix: &Fix, repo_path: Option<&Path>) -> Result<(), String> {
                 .map_err(|e| e.to_string())
         }
         // Key generation is applied by the caller via a previewed `ssh-keygen`
-        // invocation, guarded so it is unreachable when a key exists (D13). It is
+        // invocation, guarded so it is unreachable when a key exists. It is
         // not performed here because it runs a process, not a git2 call.
         Fix::GenerateLocalKey { .. } => {
             Err("key generation is applied through its previewed command".into())
@@ -154,7 +154,7 @@ mod tests {
         let dir = tmp().join("guard");
         fs::create_dir_all(&dir).unwrap();
         fs::write(dir.join("id_ed25519"), "x").unwrap();
-        // By construction, no generation fix is offered (D13).
+        // By construction, no generation fix is offered.
         assert!(local_key_fix(&dir).is_none());
     }
 }

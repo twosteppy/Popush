@@ -1,4 +1,4 @@
-//! Serde types for `config.toml` and the core domain types (§7.2, §7.3).
+//! Serde types for `config.toml` and the core domain types.
 //!
 //! These are the types that cross the IPC boundary; `ts-rs` generates their
 //! TypeScript twins into `src/types/generated.ts` (Resolved Decision: ts-rs).
@@ -13,7 +13,7 @@ use ts_rs::TS;
 use crate::ids::{ServerId, SiteId};
 
 /// The current config schema version. Bumped only when the on-disk shape changes;
-/// the loader migrates older versions forward (§7.2).
+/// the loader migrates older versions forward.
 pub const CURRENT_SCHEMA_VERSION: u32 = 1;
 
 /// The whole config file.
@@ -35,7 +35,7 @@ fn default_schema_version() -> u32 {
 }
 
 impl Default for Config {
-    /// An empty, current-version config, the starting point on first launch (D2)
+    /// An empty, current-version config, the starting point on first launch
     /// and the base the in-app "Add a server" flow builds on.
     fn default() -> Self {
         Self {
@@ -55,7 +55,7 @@ pub struct Preferences {
     /// Accent colour key. Only "violet" is defined in v1 (Resolved Decision).
     #[serde(default = "default_accent")]
     pub accent: String,
-    /// Background poll interval in seconds; 0 disables polling (§6.4).
+    /// Background poll interval in seconds; 0 disables polling.
     #[serde(default = "default_poll_interval")]
     pub poll_interval_seconds: u64,
     /// Whether destructive actions (Stop) ask for confirmation.
@@ -91,7 +91,7 @@ fn default_branch() -> String {
     "main".into()
 }
 
-/// Theme selection; follows the system by default (§14.3).
+/// Theme selection; follows the system by default.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, TS)]
 #[serde(rename_all = "lowercase")]
 pub enum Theme {
@@ -104,7 +104,7 @@ pub enum Theme {
     Light,
 }
 
-/// A configured server. `identity_file` is a **path only** (D7).
+/// A configured server. `identity_file` is a **path only**.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 pub struct ServerConfig {
     /// Stable id, referenced by sites and the UI.
@@ -118,7 +118,7 @@ pub struct ServerConfig {
     pub port: u16,
     /// SSH username.
     pub username: String,
-    /// Path to the private key. **Never the key itself** (D7).
+    /// Path to the private key. **Never the key itself**.
     pub identity_file: PathBuf,
     /// Optional jump host.
     #[serde(default)]
@@ -164,7 +164,7 @@ pub struct SiteConfig {
     /// Public URL, shown in the UI.
     #[serde(default)]
     pub live_url: Option<String>,
-    /// Optional health check URL; presence upgrades static status honesty (§9.5).
+    /// Optional health check URL; presence upgrades static status honesty.
     #[serde(default)]
     pub health_check_url: Option<String>,
 }
@@ -187,7 +187,7 @@ pub enum ServiceKind {
     Static,
 }
 
-/// The resolved service configuration, richer than [`ServiceKind`] (§7.3).
+/// The resolved service configuration, richer than [`ServiceKind`].
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum ServiceConfig {
@@ -215,7 +215,7 @@ pub enum ServiceConfig {
     },
 }
 
-/// Live status of a site (§7.3). The static adapter defaults to `Unknown` (D12).
+/// Live status of a site. The static adapter defaults to `Unknown`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(tag = "state", rename_all = "snake_case")]
 pub enum SiteStatus {
@@ -233,14 +233,14 @@ pub enum SiteStatus {
     },
     /// Genuinely unknown (server unreachable, or static without a health check).
     Unknown {
-        /// Why it is unknown, shown in the tooltip (§9.5).
+        /// Why it is unknown, shown in the tooltip.
         reason: String,
     },
     /// A check is in flight.
     Checking,
 }
 
-/// Local git status (§7.3), produced by the git subsystem, rendered by the UI.
+/// Local git status, produced by the git subsystem, rendered by the UI.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 pub struct GitStatus {
     /// Current branch name.
@@ -290,7 +290,7 @@ impl SiteConfig {
     /// Resolve the rich [`ServiceConfig`] from the flat TOML fields, applying the
     /// documented defaults (service_name defaults to id, web_root to remote_path).
     /// Returns the field name and problem if a required field is missing, so the
-    /// loader can produce a message that names the field (§7.2 gate).
+    /// loader can produce a message that names the field.
     pub fn resolve_service(&self) -> Result<ServiceConfig, (&'static str, String)> {
         match self.service_type {
             ServiceKind::Docker => Ok(ServiceConfig::Docker {

@@ -1,8 +1,8 @@
-//! Integration tests against the containerised test VPS (§23.3).
+//! Integration tests against the containerised test VPS.
 //!
 //! These are `#[ignore]` by default: they require the test VPS from `test-vps/`
 //! to be running and an `ssh-agent` holding the throwaway key. They never touch
-//! the developer's real environment (Agent Rule 6), all state lives in the
+//! the developer's real environment, all state lives in the
 //! container, reached only through env-configured coordinates.
 //!
 //! Run them with the harness up:
@@ -91,7 +91,10 @@ async fn escaping_holds_against_a_real_shell() {
         .await;
     let evil = "/nonexistent; touch /tmp/popush_pwned";
     let _ = pool
-        .exec(RemoteCommand::new("cd {} 2>/dev/null", vec![evil.to_string()]))
+        .exec(RemoteCommand::new(
+            "cd {} 2>/dev/null",
+            vec![evil.to_string()],
+        ))
         .await;
     let check = pool
         .exec(RemoteCommand::literal(
@@ -126,7 +129,7 @@ async fn exit_code_and_streams_are_captured() {
         .expect("run");
     assert_eq!(out.stderr.trim(), "oops", "stderr must be captured");
 
-    // The command log (D8) shows exactly what was sent, escaped.
+    // The command log shows exactly what was sent, escaped.
     let out = pool
         .exec(RemoteCommand::new("cd {}", vec!["/srv/a b".to_string()]))
         .await

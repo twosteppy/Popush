@@ -1,12 +1,12 @@
 //! Popush Tauri binary library. Built by twostep.
 //!
-//! This is the presentation/IPC shell (D14). It contains **no business logic**;
+//! This is the presentation/IPC shell. It contains **no business logic**;
 //! it wires [`popush_core`]'s pure logic into Tauri commands and events and adds
 //! the socket-level I/O (`russh` sessions, `git2` operations, the `notify`
 //! watcher, the system keyring). Everything worth testing lives in `popush-core`
 //! and is exercised there; this layer is glue.
 //!
-//! It links WebKitGTK and therefore only builds on the Linux target (D1). See
+//! It links WebKitGTK and therefore only builds on the Linux target. See
 //! `docs/DECISIONS.md` for why the workspace is split this way.
 
 pub mod adapters;
@@ -23,8 +23,8 @@ use tauri::Manager;
 
 /// Build and run the Tauri application. Called by `main.rs`.
 pub fn run() {
-    // Logs are local-only and never transmitted (D3), and every line is passed
-    // through the credential redactor first (§17.3) so key material and tokens
+    // Logs are local-only and never transmitted, and every line is passed
+    // through the credential redactor first so key material and tokens
     // never reach disk.
     tracing_subscriber::fmt()
         .with_env_filter(
@@ -41,7 +41,7 @@ pub fn run() {
         .manage(state::AppState::new())
         .setup(|app| {
             // Load config on startup; a missing config is not an error, first
-            // launch goes straight to the app (D2), showing the empty state.
+            // launch goes straight to the app, showing the empty state.
             let handle = app.handle().clone();
             let state = handle.state::<state::AppState>();
             state.load_config_on_startup();

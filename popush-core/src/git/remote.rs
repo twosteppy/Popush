@@ -1,10 +1,10 @@
-//! Git remote URL classification and HTTPS→SSH conversion (§10.3).
+//! Git remote URL classification and HTTPS→SSH conversion.
 //!
 //! GitHub removed password auth for git-over-HTTPS in August 2021, so any HTTPS
 //! push is a token in disguise. Popush does not collect tokens; instead it detects
 //! an HTTPS remote and offers to convert it to SSH (wizard C4/C7), which removes
 //! the whole category of problem. This module must recognise the many forms a
-//! GitHub URL takes (§23.1).
+//! GitHub URL takes.
 
 /// The transport a remote URL uses.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -51,7 +51,7 @@ fn is_scp_like(u: &str) -> bool {
 ///
 /// `https://github.com/owner/repo.git` → `git@github.com:owner/repo.git`.
 /// Returns `None` if the URL is not HTTPS or cannot be parsed into host + path,
-/// so the caller never presents a bogus conversion (D13: never destroy).
+/// so the caller never presents a bogus conversion.
 pub fn https_to_ssh(url: &str) -> Option<String> {
     let u = url.trim();
     let rest = u
@@ -80,7 +80,7 @@ pub fn https_to_ssh(url: &str) -> Option<String> {
 
 /// Build the `git remote set-url` command shown before applying (C4/C7). Returned
 /// as the display string only; the binary runs it via `git2`, not a shell, so
-/// this exists for the preview (D13: preview before apply).
+/// this exists for the preview.
 pub fn set_url_preview(remote_name: &str, new_url: &str) -> String {
     format!("git remote set-url {remote_name} {new_url}")
 }

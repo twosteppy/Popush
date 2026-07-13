@@ -8,22 +8,22 @@
 //! testing in isolation and in CI without a display:
 //!
 //! * [`ssh::command`], [`ssh::RemoteCommand`], the choke point through which
-//!   every remote command passes, with mandatory shell escaping (D10) and the
-//!   adversarial corpus (§23.2). **The most security-critical code in Popush.**
+//!   every remote command passes, with mandatory shell escaping and the
+//!   adversarial corpus. **The most security-critical code in Popush.**
 //! * [`error`], the structured error taxonomy; every variant produces a
-//!   [`error::UserMessage`] answering the three questions of §16.1 (D11).
+//!   [`error::UserMessage`] answering what happened, what it means, and what to do.
 //! * [`config`], load, validate, and migrate `config.toml`, rejecting malformed
-//!   config with a message that names the field (§7).
-//! * [`adapters`], parsing real service output into an honest [`config::SiteStatus`]
-//!   (D12), golden-file tested.
-//! * [`git::remote`], HTTPS/SSH remote classification and conversion (§10.3).
-//! * [`pipeline`], the Ship It state machine and its verbatim failure messages
-//!   (§12), with the banned-strings guarantee (D11).
+//!   config with a message that names the field.
+//! * [`adapters`], parsing real service output into an honest
+//!   [`config::SiteStatus`], golden-file tested.
+//! * [`git::remote`], HTTPS/SSH remote classification and conversion.
+//! * [`pipeline`], the Ship It state machine and its verbatim failure messages,
+//!   with the banned-strings guarantee.
 //! * [`wizard`], preview-then-apply fixes, including the by-construction
-//!   guarantee that a key is never overwritten (D13).
+//!   guarantee that a key is never overwritten.
 //!
 //! The Tauri binary in `src-tauri` wires these into IPC commands and events; it
-//! adds the socket I/O (`russh`, `git2`, `keyring`, `notify`) but no logic (D14).
+//! adds the socket I/O (`russh`, `git2`, `keyring`, `notify`) but no logic.
 
 #![deny(missing_docs)]
 
@@ -42,5 +42,5 @@ pub mod wizard;
 /// The crate version, surfaced in the About dialog alongside the twostep credit.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-/// The author credit that must survive any refactor (D9).
+/// The author credit that must survive any refactor.
 pub const AUTHOR: &str = "twostep";

@@ -1,4 +1,4 @@
-//! Load, validate, and migrate config (§7.2). Rejects malformed config with a
+//! Load, validate, and migrate config. Rejects malformed config with a
 //! message that names the field and the problem (Phase 2 gate).
 
 use std::collections::HashSet;
@@ -7,7 +7,7 @@ use crate::config::schema::{Config, ServiceKind, CURRENT_SCHEMA_VERSION};
 use crate::error::ConfigError;
 
 /// Parse and validate config from a TOML string. Kept string-based (rather than
-/// path-based) so it is testable without touching the filesystem (Agent Rule 6);
+/// path-based) so it is testable without touching the filesystem;
 /// the binary layer reads the file and calls this.
 pub fn load_from_str(text: &str) -> Result<Config, ConfigError> {
     let config: Config = toml::from_str(text).map_err(|e| ConfigError::Malformed {
@@ -32,7 +32,7 @@ pub fn migrate(config: Config) -> Result<Config, ConfigError> {
     Ok(config)
 }
 
-/// Validate a parsed config. Every failure names the offending field (§7.2).
+/// Validate a parsed config. Every failure names the offending field.
 pub fn validate(config: &Config) -> Result<(), ConfigError> {
     if config.preferences.poll_interval_seconds > 24 * 60 * 60 {
         return Err(ConfigError::InvalidField {
@@ -75,7 +75,7 @@ pub fn validate(config: &Config) -> Result<(), ConfigError> {
                 problem: "port must be between 1 and 65535".into(),
             });
         }
-        // D7 guardrail: reject anything that looks like an inline private key,
+        // guardrail: reject anything that looks like an inline private key,
         // so a mis-paste never silently lands a secret in config.toml.
         let idf = server.identity_file.to_string_lossy();
         if idf.contains("PRIVATE KEY") || idf.contains("BEGIN OPENSSH") {

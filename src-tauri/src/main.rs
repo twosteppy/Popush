@@ -1,11 +1,11 @@
 // Popush entry point. Built by twostep.
 //
 // Prevents an extra console window on non-Linux targets; harmless on Linux, where
-// Popush is the only supported platform (D1).
+// Popush is the only supported platform.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    // WebKitGTK workaround for Linux (D1 target). On many Fedora/KDE setups -
+    // WebKitGTK workaround for Linux. On many Fedora/KDE setups -
     // especially with newer WebKitGTK, Wayland, or certain GPU drivers, the
     // webview's DMABUF/GPU compositing path crashes the process the instant the
     // window would appear, exiting before anything renders. Disabling the DMABUF

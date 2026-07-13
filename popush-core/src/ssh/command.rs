@@ -1,8 +1,8 @@
-//! Remote command construction, **the most security-critical code in Popush** (D10).
+//! Remote command construction, **the most security-critical code in Popush**.
 //!
 //! A site's `remote_path`, `service_name`, `build_command` arguments, and git
 //! branch names all originate in `config.toml`, which is user-supplied and, per
-//! the threat model (§17.2), potentially malicious or corrupted. If a value like
+//! the threat model, potentially malicious or corrupted. If a value like
 //! `; rm -rf /` were spliced into a command with `format!("cd {} && git pull", p)`,
 //! a config file would become remote code execution.
 //!
@@ -19,7 +19,7 @@
 //!    placeholders left-to-right. A mismatch between placeholder count and argument
 //!    count is a programming error and panics in debug, never silently mis-renders.
 //!
-//! The adversarial corpus in the tests below (§23.2) asserts that every known
+//! The adversarial corpus in the tests below asserts that every known
 //! injection vector, fed through every argument position, produces an inert
 //! command whose displayed form shows exactly what was sent.
 
@@ -42,7 +42,7 @@ impl RemoteCommand {
     ///
     /// Each argument is shell-escaped immediately, so a `RemoteCommand` never holds
     /// a value that could break out of its intended position. The number of `{}`
-    /// placeholders in `template` must equal `args.len()`; this is checked in
+    /// placeholders in `template` must equal `args.len`; this is checked in
     /// [`RemoteCommand::render`].
     ///
     /// # Example
@@ -109,7 +109,7 @@ impl RemoteCommand {
         out
     }
 
-    /// The human-readable form shown in the command log (D8). It is exactly what
+    /// The human-readable form shown in the command log. It is exactly what
     /// was sent to the server, there is no "safe" transformation that hides the
     /// truth, because the whole point of the command log is honesty.
     pub fn display(&self) -> String {
@@ -121,11 +121,11 @@ impl RemoteCommand {
 mod tests {
     use super::*;
 
-    /// The adversarial escaping corpus from §23.2. Every entry, injected into
+    /// The adversarial escaping corpus Every entry, injected into
     /// every argument position, must be neutralised: the rendered command must
     /// treat the value as a single inert argument, never as shell syntax.
     ///
-    /// This is the highest-value test in the project (§23.1). Extend it, never
+    /// This is the highest-value test in the project. Extend it, never
     /// weaken it.
     const CORPUS: &[&str] = &[
         "; rm -rf /",
@@ -157,7 +157,7 @@ mod tests {
     /// interpreter, yields the original bytes.
     ///
     /// We do not exec a real shell in unit tests (that would risk the developer's
-    /// machine, Agent Rule 6). Instead we model the two escaping shapes that
+    /// machine). Instead we model the two escaping shapes that
     /// `shell_escape::unix` can emit and prove the round-trip.
     fn unquote_single_word(rendered: &str) -> String {
         // shell_escape::unix emits one of:

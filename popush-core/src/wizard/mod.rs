@@ -1,5 +1,5 @@
-//! The setup wizard (§11): the flow that removes the terminal. Every fix is
-//! preview-then-apply, never destructive, always reversible (D13).
+//! The setup wizard: the flow that removes the terminal. Every fix is
+//! preview-then-apply, never destructive, always reversible.
 //!
 //! The pure decision logic lives here, which check to run, what a fix would do,
 //! and the by-construction guarantee that key generation can never overwrite an
