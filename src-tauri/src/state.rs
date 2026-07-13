@@ -20,6 +20,9 @@ struct Inner {
     site_status: HashMap<SiteId, SiteStatus>,
     cancelled: HashMap<PipelineId, bool>,
     command_log: Vec<CommandLogEntry>,
+    /// Session-only SSH passwords, keyed by server. Deliberately never
+    /// persisted anywhere: closing the app forgets them.
+    ssh_passwords: HashMap<ServerId, String>,
     /// If the config file exists but failed to load, the reason, so the UI can
     /// show it instead of a silent empty state.
     config_error: Option<String>,
@@ -34,6 +37,7 @@ impl AppState {
                 site_status: HashMap::new(),
                 cancelled: HashMap::new(),
                 command_log: Vec::new(),
+                ssh_passwords: HashMap::new(),
                 config_error: None,
             }),
         }
@@ -135,6 +139,21 @@ impl AppState {
         drop(guard);
         write_config_file(&toml_out)?;
         Ok(count)
+    }
+
+    /// Remember (or forget, when empty) a server's SSH password for this
+    /// session. Memory only, by design.
+    pub fn set_ssh_password(&self, id: ServerId, password: String) {
+        let mut guard = self.inner.lock().unwrap();
+        if password.is_empty() {
+            guard.ssh_passwords.remove(&id);
+        } else {
+            guard.ssh_passwords.insert(id, password);
+        }
+    }
+
+    pub fn ssh_password(&self, id: &ServerId) -> Option<String> {
+        self.inner.lock().unwrap().ssh_passwords.get(id).cloned()
     }
 
     pub fn remove_site(&self, id: &SiteId) -> Result<bool, popush_core::error::ConfigError> {

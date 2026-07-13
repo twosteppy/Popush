@@ -58,8 +58,40 @@ pub async fn site_action(
     state: State<'_, AppState>,
     site_id: SiteId,
     action: String,
+) -> Result<(), String> {
+    crate::ops::site_action(&state, &site_id, &action)
+        .await
+        .map_err(friendly)
+}
+
+/// Keep a server's SSH password for this session only. An empty password
+/// forgets it. Nothing is ever written to disk.
+#[tauri::command]
+pub async fn set_ssh_password(
+    state: State<'_, AppState>,
+    server_id: ServerId,
+    password: String,
 ) -> Result<(), AppError> {
-    crate::ops::site_action(&state, &site_id, &action).await
+    state.set_ssh_password(server_id, password);
+    Ok(())
+}
+
+/// Render an error the way a person would say it: what happened, then the
+/// one thing to do about it.
+fn friendly(e: AppError) -> String {
+    let m = e.user_message();
+    let mut out = m.headline;
+    match m.next_action {
+        popush_core::error::NextAction::RunCommand { command } => {
+            out.push_str(&format!(" Fix: run `{command}` in a terminal."));
+        }
+        popush_core::error::NextAction::Advice { text } => {
+            out.push(' ');
+            out.push_str(&text);
+        }
+        _ => {}
+    }
+    out
 }
 
 #[tauri::command]
@@ -88,11 +120,13 @@ pub async fn start_deploy(
     server_id: ServerId,
     site_id: SiteId,
     commit_message: Option<String>,
-) -> Result<(), AppError> {
+) -> Result<(), String> {
     use tauri::Manager;
     // Connect up front so a bad connection is reported immediately rather than
     // deep inside the pipeline.
-    let (pool, site, service) = crate::ops::connect_site(&state, &site_id).await?;
+    let (pool, site, service) = crate::ops::connect_site(&state, &site_id)
+        .await
+        .map_err(friendly)?;
     let local_path = site.local_path.clone().unwrap_or_default();
     let message = commit_message.unwrap_or_default();
     let pipeline_id = PipelineId::new();

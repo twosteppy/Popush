@@ -65,9 +65,10 @@ fn find_server_and_site(state: &AppState, site_id: &SiteId) -> Option<(ServerCon
     None
 }
 
-async fn connect(server: ServerConfig) -> Result<SshPool, AppError> {
+async fn connect(state: &AppState, server: ServerConfig) -> Result<SshPool, AppError> {
     let known = read_known_hosts();
-    let (pool, new_host) = SshPool::connect_tofu(server, known)
+    let password = state.ssh_password(&server.id);
+    let (pool, new_host) = SshPool::connect_tofu(server, known, password.as_deref())
         .await
         .map_err(AppError::Ssh)?;
     if let Some(kh) = new_host {
@@ -89,7 +90,7 @@ pub async fn test_connection(state: &AppState, server_id: &ServerId) -> Result<u
             })
         })?;
     let start = std::time::Instant::now();
-    let pool = connect(server).await?;
+    let pool = connect(state, server).await?;
     pool.exec(RemoteCommand::literal("echo popush-ok"))
         .await
         .map_err(AppError::Ssh)?;
@@ -108,7 +109,7 @@ pub async fn connect_site(
             problem,
         })
     })?;
-    let pool = connect(server).await?;
+    let pool = connect(state, server).await?;
     Ok((pool, site, service))
 }
 

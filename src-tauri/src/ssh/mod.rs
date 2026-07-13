@@ -70,8 +70,11 @@ impl SshPool {
     pub async fn connect(
         server: ServerConfig,
         known_hosts: Vec<KnownHost>,
+        password: Option<&str>,
     ) -> Result<Self, SshError> {
-        Ok(Self::connect_inner(server, known_hosts, false).await?.0)
+        Ok(Self::connect_inner(server, known_hosts, false, password)
+            .await?
+            .0)
     }
 
     /// Connect with trust-on-first-use: an unknown host is accepted and returned
@@ -79,14 +82,16 @@ impl SshPool {
     pub async fn connect_tofu(
         server: ServerConfig,
         known_hosts: Vec<KnownHost>,
+        password: Option<&str>,
     ) -> Result<(Self, Option<KnownHost>), SshError> {
-        Self::connect_inner(server, known_hosts, true).await
+        Self::connect_inner(server, known_hosts, true, password).await
     }
 
     async fn connect_inner(
         server: ServerConfig,
         known_hosts: Vec<KnownHost>,
         tofu: bool,
+        password: Option<&str>,
     ) -> Result<(Self, Option<KnownHost>), SshError> {
         let config = Arc::new(client::Config {
             keepalive_interval: Some(Duration::from_secs(30)),
@@ -164,6 +169,22 @@ impl SshPool {
                 if ok {
                     authenticated = true;
                     break;
+                }
+            }
+        }
+
+        // A password the user typed into the app for this session. Held in
+        // memory only, never written anywhere.
+        if !authenticated {
+            if let Some(pw) = password {
+                authenticated = session
+                    .authenticate_password(&server.username, pw)
+                    .await
+                    .unwrap_or(false);
+                if !authenticated {
+                    return Err(SshError::AuthFailed {
+                        reason: AuthFailureReason::AllMethodsExhausted,
+                    });
                 }
             }
         }

@@ -51,7 +51,7 @@ async fn connects_and_runs_a_command() {
         eprintln!("POPUSH_TEST_VPS not set; skipping");
         return;
     };
-    let pool = SshPool::connect(server, known)
+    let pool = SshPool::connect(server, known, None)
         .await
         .expect("should connect to the test VPS");
     let out = pool
@@ -71,7 +71,7 @@ async fn escaping_holds_against_a_real_shell() {
         eprintln!("POPUSH_TEST_VPS not set; skipping");
         return;
     };
-    let pool = SshPool::connect(server, known).await.expect("connect");
+    let pool = SshPool::connect(server, known, None).await.expect("connect");
 
     // Proof 1: the whole dangerous string comes back as ONE literal word. If the
     // `;` had split the command, `echo` would print only "value" and then run a
@@ -115,7 +115,7 @@ async fn exit_code_and_streams_are_captured() {
         eprintln!("POPUSH_TEST_VPS not set; skipping");
         return;
     };
-    let pool = SshPool::connect(server, known).await.expect("connect");
+    let pool = SshPool::connect(server, known, None).await.expect("connect");
 
     let out = pool
         .exec(RemoteCommand::literal("exit 7"))
@@ -144,7 +144,7 @@ async fn docker_adapter_reports_status() {
         eprintln!("POPUSH_TEST_VPS not set; skipping");
         return;
     };
-    let pool = SshPool::connect(server, known).await.expect("connect");
+    let pool = SshPool::connect(server, known, None).await.expect("connect");
     let out = pool
         .exec(popush_core::adapters::docker::status_command(
             "/srv/docker-site",
