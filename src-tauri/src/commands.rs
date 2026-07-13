@@ -33,21 +33,33 @@ pub async fn list_sites(
 
 #[tauri::command]
 pub async fn test_connection(
-    _state: State<'_, AppState>,
-    _server_id: ServerId,
+    state: State<'_, AppState>,
+    server_id: ServerId,
 ) -> Result<ConnectionResult, AppError> {
-    Ok(ConnectionResult {
-        ok: true,
-        latency_ms: None,
-    })
+    match crate::ops::test_connection(&state, &server_id).await {
+        Ok(latency_ms) => Ok(ConnectionResult {
+            ok: true,
+            latency_ms: Some(latency_ms),
+        }),
+        Err(e) => Err(e),
+    }
 }
 
 #[tauri::command]
 pub async fn get_site_status(
-    _state: State<'_, AppState>,
-    _site_id: SiteId,
+    state: State<'_, AppState>,
+    site_id: SiteId,
 ) -> Result<SiteStatus, AppError> {
-    Ok(SiteStatus::Checking)
+    Ok(crate::ops::site_status(&state, &site_id).await)
+}
+
+#[tauri::command]
+pub async fn site_action(
+    state: State<'_, AppState>,
+    site_id: SiteId,
+    action: String,
+) -> Result<(), AppError> {
+    crate::ops::site_action(&state, &site_id, &action).await
 }
 
 #[tauri::command]
@@ -71,10 +83,37 @@ pub async fn git_status(
 
 #[tauri::command]
 pub async fn start_deploy(
-    _state: State<'_, AppState>,
-    _site_id: SiteId,
-) -> Result<PipelineId, AppError> {
-    Ok(PipelineId::new())
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    server_id: ServerId,
+    site_id: SiteId,
+    commit_message: Option<String>,
+) -> Result<(), AppError> {
+    use tauri::Manager;
+    // Connect up front so a bad connection is reported immediately rather than
+    // deep inside the pipeline.
+    let (pool, site, service) = crate::ops::connect_site(&state, &site_id).await?;
+    let local_path = site.local_path.clone().unwrap_or_default();
+    let message = commit_message.unwrap_or_default();
+    let pipeline_id = PipelineId::new();
+
+    tauri::async_runtime::spawn(async move {
+        let state = app.state::<AppState>();
+        let ctx = crate::pipeline::ship::ShipContext {
+            app: app.clone(),
+            state: &state,
+            pool: &pool,
+            server_id,
+            site,
+            service,
+            local_path,
+            files: Vec::new(),
+            message,
+            pipeline_id,
+        };
+        crate::pipeline::run_pipeline(ctx).await;
+    });
+    Ok(())
 }
 
 #[tauri::command]

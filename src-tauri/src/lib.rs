@@ -3,6 +3,7 @@ pub mod commands;
 pub mod git;
 pub mod github;
 pub mod logging;
+pub mod ops;
 pub mod pipeline;
 pub mod ssh;
 pub mod state;
@@ -45,6 +46,7 @@ pub fn run() {
             commands::test_connection,
             commands::list_sites,
             commands::get_site_status,
+            commands::site_action,
             commands::git_status,
             commands::start_deploy,
             commands::cancel_pipeline,
