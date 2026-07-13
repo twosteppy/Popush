@@ -1,5 +1,5 @@
 // Tiny class-name composer. Wraps clsx so components can compose token classes
-// conditionally without string-template noise. Presentation only (D14).
+// conditionally without string-template noise.
 
 import clsx, { type ClassValue } from 'clsx';
 

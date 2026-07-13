@@ -1,11 +1,7 @@
-// Spinner - a small themed loading indicator built on lucide's Loader2, tinted
-// with the pink accent (D15). It rotates via Tailwind's animate-spin; under
-// prefers-reduced-motion the app's global rule (styles/globals.css) stops the
-// rotation so it settles into a static ring, still paired with a text label at
-// each call site. It is decorative (aria-hidden); the surrounding label or the
-// button caption carries the accessible status.
-//
-// D14: presentation only.
+// A small loading indicator built on lucide's Loader2, tinted with the pink
+// accent. It rotates via animate-spin; under prefers-reduced-motion the global
+// rule stops the rotation. It is decorative (aria-hidden), so the surrounding
+// label or button caption carries the accessible status.
 
 import { Loader2 } from 'lucide-react';
 import { cn } from '../../lib/cn';

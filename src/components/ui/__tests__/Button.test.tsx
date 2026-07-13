@@ -1,6 +1,5 @@
-// §20 + capability rules: a disabled button carries aria-disabled and cannot be
-// clicked; an action whose capability is absent is simply NOT rendered by the
-// ActionBar (never disable-and-fail).
+// A disabled button carries aria-disabled and cannot be clicked; an action
+// whose capability is absent is not rendered by the ActionBar at all.
 
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';

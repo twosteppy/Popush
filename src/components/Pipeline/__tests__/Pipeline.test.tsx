@@ -1,6 +1,6 @@
-// A failed pipeline renders the backend's specific UserMessage (D11: always the
-// concrete failing step, never a generic phrase), auto-expands the failed step,
-// and offers rollback.
+// A failed pipeline renders the backend's specific UserMessage (the concrete
+// failing step, never a generic phrase), auto-expands the failed step, and
+// offers rollback.
 
 import { render, screen, cleanup } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';

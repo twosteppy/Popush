@@ -1,9 +1,6 @@
-// usePipelineEvents - subscribes to the backend pipeline event stream and
-// mirrors it into the pipeline store (§6.3: backend is authoritative).
-//
-// D14: this is wiring only. It translates backend events into store mutations;
-// it makes no deployment decisions. Outside Tauri (dev/test) `listen` no-ops so
-// nothing here runs.
+// Subscribes to the backend pipeline event stream and mirrors it into the
+// pipeline store. Outside Tauri (dev/test) `listen` no-ops, so nothing here
+// runs.
 
 import { useEffect } from 'react';
 import { listen } from '../lib/ipc';

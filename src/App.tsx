@@ -1,10 +1,7 @@
-// App - the app shell: a top header with the Popush wordmark + window-drag
-// region, then the three-region body (left sidebar, main panel, bottom log
-// drawer). Wires Ctrl+K (command palette), Ctrl+` (drawer toggle), the Add
-// Server dialog, and hydrates the stores from the backend on mount.
-//
-// D14: the shell holds no deployment logic. It renders state from the stores
-// and dispatches selection/navigation intents.
+// The app shell: a top header, then the three-region body (left sidebar, main
+// panel, bottom log drawer). Wires Ctrl+K (command palette), Ctrl+` (drawer
+// toggle), the Add Server dialog, and hydrates the stores from the backend on
+// mount.
 
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
@@ -53,7 +50,7 @@ export function App() {
   // Mirror the backend pipeline event stream into the pipeline store.
   usePipelineEvents();
 
-  // Hydrate the server mirror on mount (§6.3: backend is authoritative).
+  // Hydrate the server mirror on mount.
   useEffect(() => {
     void refresh();
   }, [refresh]);
@@ -72,11 +69,10 @@ export function App() {
 
   // Global keyboard shortcuts: Ctrl+K palette, Ctrl+` drawer.
   //
-  // Fix 1: only one modal is ever open at a time. Ctrl+K may close the palette
-  // if it is the open modal, but it must NOT open the palette while any other
-  // dialog (Add Server, a wizard dialog, any Radix Dialog) is open. Those
-  // dialogs register their open state in the modal store; Escape still closes
-  // the single open modal via Radix.
+  // Only one modal is open at a time. Ctrl+K may close the palette if it is the
+  // open modal, but must not open it while another dialog is open. Dialogs
+  // register their open state in the modal store; Escape still closes the open
+  // one via Radix.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.ctrlKey && e.key.toLowerCase() === 'k') {
@@ -91,8 +87,8 @@ export function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [toggleDrawer]);
 
-  // Opening the palette also respects the single-modal rule: if a dialog is
-  // already open, the palette stays closed (Fix 1).
+  // Opening the palette respects the single-modal rule: if a dialog is already
+  // open, the palette stays closed.
   const openPalette = () => {
     if (!isAnyModalOpen()) setPaletteOpen(true);
   };
@@ -207,12 +203,11 @@ export function App() {
           onAddServer={() => setAddServerOpen(true)}
           onSelectSite={() => setPanel('site')}
         />
-        {/* Fix 2: the ambient glow sits on the main viewport as a fixed layer
-         * BEHIND a nested scroll region, so it never scrolls and can never
-         * reveal a hard bottom edge on tall views (Help, Settings). The scroll
-         * container is an absolute inset-0 child with a definite height, so the
-         * inner view keeps its h-full centring while long content scrolls over
-         * the static glow. */}
+        {/* The ambient glow sits on the main viewport behind a nested scroll
+         * region, so it never scrolls and can't reveal a hard bottom edge on
+         * tall views. The scroll container is an absolute inset-0 child with a
+         * definite height, so the inner view keeps its h-full centring while
+         * long content scrolls over the static glow. */}
         <main className="relative min-w-0 flex-1 overflow-hidden">
           <PageGlow placement={glowPlacement} />
           <div className="absolute inset-0 z-10 overflow-y-auto">

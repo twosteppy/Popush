@@ -1,7 +1,7 @@
-// D11: the strings "Deploy failed" and "Something went wrong" are BANNED
-// anywhere in user-facing strings. This test recursively reads every .ts/.tsx
-// file under src/ and fails if either appears. This test file itself is
-// excluded (it necessarily names the banned strings).
+// The strings "Deploy failed" and "Something went wrong" are banned anywhere in
+// user-facing copy. This test recursively reads every .ts/.tsx file under src/
+// and fails if either appears. This test file itself is excluded (it
+// necessarily names the banned strings).
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -12,7 +12,7 @@ const SELF = resolve(__filename);
 const BANNED = ['Deploy failed', 'Something went wrong'];
 
 // Backend-owned generated types are not frontend user-facing strings; the file
-// legitimately references the banned phrase in a doc comment describing D11.
+// legitimately references the banned phrase in a doc comment.
 const EXCLUDED = new Set([resolve(SRC_DIR, 'types', 'generated.ts')]);
 
 function collectFiles(dir: string): string[] {
@@ -28,7 +28,7 @@ function collectFiles(dir: string): string[] {
   return out;
 }
 
-describe('D11: banned user-facing strings', () => {
+describe('banned user-facing strings', () => {
   const files = collectFiles(SRC_DIR).filter(
     (f) => resolve(f) !== SELF && !EXCLUDED.has(resolve(f)),
   );

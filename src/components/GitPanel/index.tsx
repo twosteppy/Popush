@@ -1,8 +1,5 @@
-// GitPanel - changed files with checkboxes + change kind, a commit message
-// textarea, and a clean-tree empty state.
-//
-// D14: renders the GitStatus it is given and reports staging/message intents
-// upward. It does not run git.
+// Changed files with checkboxes and change kind, a commit message textarea, and
+// a clean-tree empty state.
 
 import type { ChangedFile, ChangeKind, GitStatus } from '../../types/generated';
 
@@ -62,7 +59,7 @@ export function GitPanel({
       <ul className="mb-3 flex flex-col gap-1">
         {status.changed_files.map((file: ChangedFile) => (
           <li key={file.path}>
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex items-center gap-2 rounded-sm px-1.5 py-1 text-sm transition-colors hover:bg-surface-hover">
               <input
                 type="checkbox"
                 checked={selected.has(file.path)}

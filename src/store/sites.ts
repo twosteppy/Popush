@@ -1,6 +1,5 @@
-// §6.3: the backend is authoritative. This store mirrors per-server sites and
-// their statuses. Statuses arrive from the backend (polling or events); the UI
-// only renders them.
+// Mirrors per-server sites and their statuses. Statuses arrive from the backend
+// (polling or events); the UI only renders them.
 
 import { create } from 'zustand';
 import type { GitStatus, SiteConfig, SiteStatus } from '../types/generated';

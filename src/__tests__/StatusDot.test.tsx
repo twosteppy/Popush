@@ -1,5 +1,5 @@
-// §20: colour is never the only signal. A StatusDot must always render a text
-// label alongside the coloured dot.
+// Colour is never the only signal: a StatusDot must always render a text label
+// alongside the coloured dot.
 
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';

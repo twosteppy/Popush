@@ -1,8 +1,5 @@
-// Sidebar (§14.2 left region, fixed ~230px). SERVERS and SITES sections with
-// status dots + labels, an "Add server" affordance, and Help / Wizard /
-// Settings entries.
-//
-// D14: renders state and dispatches selection/navigation intents only.
+// Left sidebar: Servers and Sites sections with status dots and labels, an
+// "Add server" affordance, and the Help / Wizard / Settings entries.
 
 import { HelpCircle, Plus, Settings, Wand2 } from 'lucide-react';
 import type { Panel } from '../../App';
@@ -57,7 +54,7 @@ export function Sidebar({
               type="button"
               onClick={onAddServer}
               aria-label="Add server"
-              className="inline-flex h-5 w-5 items-center justify-center rounded-sm border border-transparent text-text-tertiary transition-colors hover:border-border-subtle hover:bg-surface-hover hover:text-text-secondary"
+              className="inline-flex h-5 w-5 items-center justify-center rounded-sm border border-transparent text-text-tertiary transition-colors hover:border-border-subtle hover:bg-surface-hover hover:text-accent"
             >
               <Plus size={13} aria-hidden="true" />
             </button>
@@ -155,7 +152,7 @@ export function Sidebar({
 
 function rowClass(active: boolean): string {
   return cn(
-    'flex w-full items-center gap-2.5 rounded-sm border px-2 py-1.5 text-left text-sm transition-colors',
+    'nav-row flex w-full items-center gap-2.5 rounded-sm border px-2 py-1.5 text-left text-sm transition-colors',
     active
       ? 'border-border-strong bg-surface-hover text-text-primary shadow-hard-sm'
       : 'border-transparent text-text-secondary hover:border-border-subtle hover:bg-surface-hover hover:text-text-primary',

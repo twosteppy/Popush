@@ -1,17 +1,13 @@
-// WizardView - a vertical checklist of the 7 checks (C1–C7) with
-// pass/fail/running/n-a icons, plain-English names, expandable failed rows
-// showing the exact command, a "Fix it" button, and a "Show me the command
-// instead" link. Preview-then-apply framing (§11.1).
-//
-// D14: renders CheckStatus values the backend produced and dispatches
-// run/fix intents. It does not know what the fixes do.
+// A vertical checklist of the seven setup checks with pass/fail/running/n-a
+// icons, plain-English names, expandable failed rows showing the exact command,
+// a "Fix it" button, and a "Show me the command instead" link.
 
 import { useState } from 'react';
 import { Check as CheckIcon, X, Loader2, MinusCircle } from 'lucide-react';
 import type { Check, CheckStatus } from '../types/generated';
 import { Button } from '../components/ui/Button';
 
-// Plain-English names for each check (C1–C7), ordered as the enum.
+// Plain-English names for each check, ordered as the enum.
 const CHECK_ORDER: Check[] = [
   'local_key_exists',
   'key_in_agent',
@@ -81,7 +77,7 @@ function WizardRow({
   const [expanded, setExpanded] = useState(failed);
 
   return (
-    <li className="rounded-sm border border-border-strong bg-surface-raised px-3 py-2 shadow-hard-sm">
+    <li className="lift-card rounded-sm border border-border-strong bg-surface-raised px-3 py-2 shadow-hard-sm">
       <div className="flex items-center gap-2">
         <RowIcon status={status} />
         <span className="text-sm text-text-primary">{CHECK_NAME[check]}</span>

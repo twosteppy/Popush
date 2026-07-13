@@ -1,4 +1,4 @@
-# Bundled fonts (D16)
+# Bundled fonts
 
 Popush bundles its fonts. They are **never** loaded from a CDN.
 
@@ -9,7 +9,7 @@ rules in `../globals.css`:
 - `Inter-Variable.woff2` - **Inter**, licensed under the SIL Open Font License (OFL).
 - `JetBrainsMono-Variable.woff2` - **JetBrains Mono**, licensed under Apache License 2.0.
 
-## Why not a CDN? (D16)
+## Why not a CDN?
 
 - Popush is an offline-capable desktop app; fonts must work with no network.
 - Loading fonts from a CDN would leak usage to a third party, contradicting the

@@ -1,13 +1,9 @@
-// PageGlow - a non-interactive ambient layer that lays one or two soft,
-// low-opacity radial glows tinted with the accent behind a page's content. It
-// gives each screen a little depth without washing out text (the tint is capped
-// at ~18% of the accent and fades to transparent well before mid-page).
+// A non-interactive ambient layer: one or two soft, low-opacity radial glows
+// tinted with the accent, sitting behind a page's content to give each screen a
+// little depth without washing out text.
 //
-// It is purely decorative: pointer-events-none, aria-hidden, and pinned behind
-// content (z-0) so it never intercepts clicks or focus. It is static, so it is
-// fine under prefers-reduced-motion.
-//
-// D14: presentation only.
+// Purely decorative: pointer-events-none, aria-hidden, and pinned behind
+// content (z-0) so it never intercepts clicks or focus.
 
 type GlowPlacement = 'top-left' | 'top-right' | 'split' | 'bottom-right';
 

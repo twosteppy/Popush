@@ -17,7 +17,7 @@
   --status-failed: #f85149;
   --status-unknown: #d29922;
   --status-working: #f49ac1;
-  /* Crisp, pixel-leaning corners: nothing pill-soft (retro-clean, D-restyle). */
+  /* Crisp, pixel-leaning corners: nothing pill-soft. */
   --radius-sm: 2px;
   --radius-md: 2px;
   --radius-lg: 3px;
@@ -29,6 +29,9 @@
   --shadow-hard-sm: 2px 2px 0 0 var(--border-strong);
   --shadow-hard: 3px 3px 0 0 var(--border-strong);
   --shadow-hard-accent: 3px 3px 0 0 var(--accent);
+  /* Deeper offsets used on hover so surfaces read as rising off the page. */
+  --shadow-hard-hover: 4px 4px 0 0 var(--border-strong);
+  --shadow-hard-accent-hover: 5px 5px 0 0 var(--accent);
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -41,7 +44,7 @@
 
 /*
  * Light theme equivalents. Applied automatically when the OS prefers light,
- * and overridable by an explicit data-theme attribute below (§ theme selector).
+ * and overridable by an explicit data-theme attribute below.
  */
 @media (prefers-color-scheme: light) {
   :root {

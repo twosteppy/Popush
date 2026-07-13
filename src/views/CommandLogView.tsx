@@ -1,9 +1,6 @@
-// CommandLogView - the D8 "what did this app do to my server" record. A
-// read-only, chronological list of every command Popush sent, with the exact
-// command text shown monospaced.
-//
-// D14: this view only reads the backend's authoritative log and renders it. It
-// runs nothing and mutates nothing.
+// The "what did this app do to my server" record: a read-only, chronological
+// list of every command Popush sent, with the exact command text shown
+// monospaced.
 
 import { useEffect, useState } from 'react';
 import type { CommandLogEntry } from '../types/generated';
@@ -59,7 +56,7 @@ export function CommandLogView() {
               {entries.map((entry, i) => (
                 <tr
                   key={`${entry.timestamp}-${i}`}
-                  className="border-b border-border-subtle last:border-0"
+                  className="border-b border-border-subtle transition-colors last:border-0 hover:bg-surface-hover"
                 >
                   <td className="whitespace-nowrap px-3 py-2 font-mono text-text-tertiary">
                     {entry.timestamp}

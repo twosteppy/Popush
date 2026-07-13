@@ -1,11 +1,7 @@
-// Skeleton - a themed placeholder block for content that is still loading (e.g.
-// the sidebar server/site list while list_servers resolves). It is a muted
-// surface tile with a soft accent-tinted shimmer that sweeps across it. The
-// shimmer is gated behind motion-safe, so under prefers-reduced-motion it is a
-// plain static block (no sweep). Hard, pixel-leaning corners match the retro
-// look (D15).
-//
-// D14: presentation only.
+// A placeholder block for content that is still loading (e.g. the sidebar list
+// while list_servers resolves). A muted surface tile with a soft accent-tinted
+// shimmer; the shimmer is gated behind motion-safe, so prefers-reduced-motion
+// leaves a plain static block.
 
 import { cn } from '../../lib/cn';
 

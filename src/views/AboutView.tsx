@@ -1,5 +1,5 @@
-// AboutView - app name, version, the privacy summary, and the twostep credit
-// (D9). States plainly: no server, no account, no telemetry.
+// App name, version, the privacy summary, and the twostep credit. No server, no
+// account, no telemetry.
 
 import { Logo } from '../components/ui/Logo';
 

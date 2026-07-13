@@ -1,9 +1,9 @@
-// §14.5 button variants. Real <button> elements, visible focus rings, and a
-// tooltip on disabled buttons explaining why they are disabled.
+// Button variants. Real <button> elements, visible focus rings, and a tooltip
+// on disabled buttons explaining why they are disabled.
 //
 // primary:     filled accent + text-inverse
 // secondary:   surface-raised + border-strong
-// destructive: subtle red-tinted outline (NOT solid red)
+// destructive: subtle red-tinted outline (not solid red)
 
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { Tooltip } from './Tooltip';
@@ -17,18 +17,18 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
 }
 
-// Chunky solid border + hard offset shadow that collapses on press (.pressable
-// nudges the element 1px into its own shadow). Mono caption, slight tracking.
+// Chunky solid border + hard offset shadow that deepens on hover and collapses
+// on press. Mono caption, slight tracking.
 const BASE =
   'pressable inline-flex h-[34px] items-center justify-center gap-2 rounded-sm border px-3.5 font-display text-xs font-medium uppercase tracking-wider focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none active:shadow-none';
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    'border-accent bg-accent text-text-inverse shadow-hard hover:bg-accent-hover disabled:hover:bg-accent',
+    'border-accent bg-accent text-text-inverse shadow-hard hover:bg-accent-hover motion-safe:hover:shadow-[var(--shadow-hard-accent-hover)] disabled:hover:bg-accent',
   secondary:
-    'border-border-strong bg-surface-raised text-text-primary shadow-hard-sm hover:bg-surface-hover',
+    'border-border-strong bg-surface-raised text-text-primary shadow-hard-sm hover:bg-surface-hover motion-safe:hover:shadow-[var(--shadow-hard-hover)]',
   destructive:
-    'border-status-failed/60 bg-transparent text-status-failed shadow-hard-sm hover:bg-status-failed/10',
+    'border-status-failed/60 bg-transparent text-status-failed shadow-hard-sm hover:bg-status-failed/10 hover:border-status-failed motion-safe:hover:shadow-[var(--shadow-hard-hover)]',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
