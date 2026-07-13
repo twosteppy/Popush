@@ -19,6 +19,7 @@ import { useSitesStore } from './store/sites';
 import { usePipelineStore } from './store/pipeline';
 import { usePipelineEvents } from './hooks/usePipelineEvents';
 import { isAnyModalOpen, nextPaletteOpen } from './store/modals';
+import { configError } from './lib/ipc';
 import type { Theme } from './types/generated';
 
 export type Panel = 'site' | 'settings' | 'about' | 'help' | 'log' | 'wizard';
@@ -33,6 +34,7 @@ export function App() {
   const [theme, setTheme] = useState<Theme>('system');
   const [pollInterval, setPollInterval] = useState(30);
   const [patDismissed, setPatDismissed] = useState(false);
+  const [cfgError, setCfgError] = useState<string | null>(null);
   const reduce = useReducedMotion();
 
   const { servers, selectedServerId, refresh } = useServersStore();
@@ -48,6 +50,7 @@ export function App() {
 
   useEffect(() => {
     void refresh();
+    void configError().then(setCfgError);
   }, [refresh]);
 
   useEffect(() => {
@@ -183,6 +186,15 @@ export function App() {
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-surface-base text-text-primary">
       <AppHeader onOpenPalette={openPalette} onHome={goHome} />
+      {cfgError ? (
+        <div className="flex shrink-0 items-start gap-2 border-b border-status-failed bg-status-failed/10 px-4 py-2 text-xs text-status-failed">
+          <span className="font-semibold">Config file error:</span>
+          <span className="min-w-0 flex-1 break-words">{cfgError}</span>
+          <span className="shrink-0 text-text-tertiary">
+            ~/.config/popush/config.toml
+          </span>
+        </div>
+      ) : null}
       <div className="flex min-h-0 flex-1">
         <Sidebar
           activePanel={panel}

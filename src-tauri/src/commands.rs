@@ -131,6 +131,11 @@ pub async fn add_site(
 }
 
 #[tauri::command]
+pub async fn config_error(state: State<'_, AppState>) -> Result<Option<String>, AppError> {
+    Ok(state.config_error())
+}
+
+#[tauri::command]
 pub async fn import_config(state: State<'_, AppState>, toml: String) -> Result<usize, String> {
     // Return a plain readable message so the UI can show exactly what is wrong
     // (a TOML syntax error names its line; a validation error names its field).

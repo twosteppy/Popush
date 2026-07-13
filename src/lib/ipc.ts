@@ -114,6 +114,12 @@ export async function importConfig(toml: string): Promise<number> {
   return invoke<number>('import_config', { toml });
 }
 
+/** The reason the config file failed to load on startup, if any. */
+export async function configError(): Promise<string | null> {
+  if (!inTauri()) return null;
+  return invoke<string | null>('config_error');
+}
+
 /** Remove a server from config.toml by id. */
 export async function removeServer(serverId: string): Promise<void> {
   return invoke<void>('remove_server', { serverId });
