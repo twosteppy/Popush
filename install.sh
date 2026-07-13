@@ -134,9 +134,21 @@ fi
 # ---------------------------------------------------------------------------
 # 3. Locate the built artifacts
 # ---------------------------------------------------------------------------
-BUNDLE_DIR="$REPO_ROOT/src-tauri/target/release/bundle"
+# In this Cargo workspace, artifacts land in <repo>/target; a non-workspace
+# layout would use src-tauri/target. Ask cargo for the real directory, and fall
+# back to probing both.
+TARGET_DIR="$(cargo metadata --format-version 1 --no-deps 2>/dev/null \
+  | grep -o '"target_directory":"[^"]*"' | head -1 | cut -d'"' -f4)"
+if [[ -z "$TARGET_DIR" || ! -d "$TARGET_DIR" ]]; then
+  if [[ -d "$REPO_ROOT/target/release" ]]; then
+    TARGET_DIR="$REPO_ROOT/target"
+  else
+    TARGET_DIR="$REPO_ROOT/src-tauri/target"
+  fi
+fi
+BUNDLE_DIR="$TARGET_DIR/release/bundle"
 APPIMAGE="$(find "$BUNDLE_DIR/appimage" -maxdepth 1 -name '*.AppImage' 2>/dev/null | head -1 || true)"
-BIN="$REPO_ROOT/src-tauri/target/release/popush"
+BIN="$TARGET_DIR/release/popush"
 RPM="$(find "$BUNDLE_DIR/rpm" -maxdepth 1 -name '*.rpm' 2>/dev/null | head -1 || true)"
 
 printf '\n'
