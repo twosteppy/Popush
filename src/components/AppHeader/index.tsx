@@ -7,15 +7,17 @@ import { Logo } from '../ui/Logo';
 
 interface AppHeaderProps {
   onOpenPalette: () => void;
+  /** Return to the home screen (clears the selected site and panel). */
+  onHome: () => void;
 }
 
-export function AppHeader({ onOpenPalette }: AppHeaderProps) {
+export function AppHeader({ onOpenPalette, onHome }: AppHeaderProps) {
   return (
     <header
       data-tauri-drag-region
       className="flex h-11 shrink-0 select-none items-center gap-3 border-b border-border-strong bg-surface-raised px-3"
     >
-      <Logo size={18} />
+      <Logo size={18} onClick={onHome} label="Go to Popush home" />
       <div className="ml-auto">
         <button
           type="button"
