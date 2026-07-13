@@ -13,11 +13,13 @@ interface SitesState {
   select: (id: string | null) => void;
   refreshSites: (serverId: string) => Promise<void>;
   refreshStatus: (serverId: string, siteId: string) => Promise<void>;
+  /** Re-check every known site across all servers. */
+  refreshAllStatuses: () => Promise<void>;
   refreshGit: (serverId: string, siteId: string) => Promise<void>;
   setStatus: (siteId: string, status: SiteStatus) => void;
 }
 
-export const useSitesStore = create<SitesState>((set) => ({
+export const useSitesStore = create<SitesState>((set, get) => ({
   sitesByServer: {},
   statusBySite: {},
   gitBySite: {},
@@ -30,12 +32,25 @@ export const useSitesStore = create<SitesState>((set) => ({
     }));
   },
   refreshStatus: async (serverId, siteId) => {
-    const status = await getSiteStatus(serverId, siteId);
+    let status: SiteStatus | null = null;
+    try {
+      status = await getSiteStatus(serverId, siteId);
+    } catch {
+      status = { state: 'stopped' };
+    }
     if (status) {
       set((state) => ({
         statusBySite: { ...state.statusBySite, [siteId]: status },
       }));
     }
+  },
+  refreshAllStatuses: async () => {
+    const { sitesByServer, refreshStatus } = get();
+    await Promise.all(
+      Object.entries(sitesByServer).flatMap(([serverId, sites]) =>
+        sites.map((site) => refreshStatus(serverId, site.id)),
+      ),
+    );
   },
   refreshGit: async (serverId, siteId) => {
     let status: GitStatus | null = null;

@@ -128,40 +128,55 @@ impl SshPool {
             }
         };
 
-        let mut agent = AgentClient::connect_env()
-            .await
-            .map_err(|_| SshError::AuthFailed {
-                reason: AuthFailureReason::NoAgentSocket,
-            })?;
-
-        let identities = agent
-            .request_identities()
-            .await
-            .map_err(|_| SshError::AuthFailed {
-                reason: AuthFailureReason::AgentRejected,
-            })?;
-
-        if identities.is_empty() {
-            return Err(SshError::KeyNotInAgent {
-                path: server.identity_file.clone(),
-            });
-        }
-
+        // Auth order: every key in the ssh-agent, then the configured identity
+        // file, then the usual default keys. The key-file fallback means a
+        // passphrase-free key works without ever running ssh-add.
         let mut authenticated = false;
-        for key in identities {
-            let (returned_agent, result) = session
-                .authenticate_future(&server.username, key, agent)
-                .await;
-            agent = returned_agent;
-            if matches!(result, Ok(true)) {
-                authenticated = true;
-                break;
+        let mut agent_had_keys = false;
+
+        if let Ok(mut agent) = AgentClient::connect_env().await {
+            if let Ok(identities) = agent.request_identities().await {
+                agent_had_keys = !identities.is_empty();
+                for key in identities {
+                    let (returned_agent, result) = session
+                        .authenticate_future(&server.username, key, agent)
+                        .await;
+                    agent = returned_agent;
+                    if matches!(result, Ok(true)) {
+                        authenticated = true;
+                        break;
+                    }
+                }
             }
         }
 
         if !authenticated {
-            return Err(SshError::AuthFailed {
-                reason: AuthFailureReason::AllMethodsExhausted,
+            for path in candidate_key_files(&server) {
+                let Ok(key) = russh_keys::load_secret_key(&path, None) else {
+                    // Unreadable or passphrase-protected; the agent is the
+                    // only way in for those, so move on.
+                    continue;
+                };
+                let ok = session
+                    .authenticate_publickey(&server.username, Arc::new(key))
+                    .await
+                    .unwrap_or(false);
+                if ok {
+                    authenticated = true;
+                    break;
+                }
+            }
+        }
+
+        if !authenticated {
+            return Err(if agent_had_keys {
+                SshError::AuthFailed {
+                    reason: AuthFailureReason::AllMethodsExhausted,
+                }
+            } else {
+                SshError::KeyNotInAgent {
+                    path: server.identity_file.clone(),
+                }
             });
         }
 
@@ -244,5 +259,35 @@ impl SshPool {
 
     pub fn server(&self) -> &ServerConfig {
         &self.server
+    }
+}
+
+/// Private keys worth trying, existing files only: the configured identity
+/// first, then the standard names in ~/.ssh.
+fn candidate_key_files(server: &ServerConfig) -> Vec<std::path::PathBuf> {
+    let home = directories::UserDirs::new().map(|d| d.home_dir().to_path_buf());
+    let mut paths = Vec::new();
+    let mut push = |p: std::path::PathBuf| {
+        if p.is_file() && !paths.contains(&p) {
+            paths.push(p);
+        }
+    };
+
+    push(expand_tilde(&server.identity_file, home.as_deref()));
+    if let Some(h) = &home {
+        for name in ["id_ed25519", "id_rsa", "id_ecdsa"] {
+            push(h.join(".ssh").join(name));
+        }
+    }
+    paths
+}
+
+fn expand_tilde(path: &std::path::Path, home: Option<&std::path::Path>) -> std::path::PathBuf {
+    let Some(home) = home else {
+        return path.to_path_buf();
+    };
+    match path.strip_prefix("~") {
+        Ok(rest) => home.join(rest),
+        Err(_) => path.to_path_buf(),
     }
 }

@@ -116,6 +116,11 @@ async fn run_step(
 }
 
 fn run_check(ctx: &ShipContext<'_>) -> Result<String, UserMessage> {
+    // Without a local copy there is nothing to commit or push; the deploy
+    // pulls whatever is already on the site's git remote.
+    if ctx.local_path.as_os_str().is_empty() {
+        return Ok("no local copy configured, deploying the server's repo".into());
+    }
     let status =
         crate::git::status(&ctx.local_path, &ctx.site.git_remote).map_err(|e| e.user_message())?;
     if status.has_conflicts {

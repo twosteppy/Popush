@@ -83,6 +83,9 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
     try {
       await siteAction(site.id, action);
       await refreshStatus(serverId, site.id);
+      // A service can take a few seconds to answer again after a restart, so
+      // check once more when the dust settles.
+      window.setTimeout(() => void refreshStatus(serverId, site.id), 5000);
     } catch (e) {
       setActionError(describeError(e));
     } finally {
