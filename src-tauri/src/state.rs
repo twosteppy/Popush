@@ -110,6 +110,22 @@ impl AppState {
         write_config_file(&toml)
     }
 
+    pub fn import_config(&self, toml: &str) -> Result<usize, popush_core::error::ConfigError> {
+        let incoming = popush_core::config::load_from_str(toml)?;
+        let mut guard = self.inner.lock().unwrap();
+        let config = guard.config.get_or_insert_with(Config::default);
+        let mut count = 0;
+        for server in incoming.servers {
+            popush_core::config::upsert_server(config, server);
+            count += 1;
+        }
+        popush_core::config::validate(config)?;
+        let toml_out = popush_core::config::to_toml(config)?;
+        drop(guard);
+        write_config_file(&toml_out)?;
+        Ok(count)
+    }
+
     pub fn remove_server(&self, id: &ServerId) -> Result<bool, popush_core::error::ConfigError> {
         let mut guard = self.inner.lock().unwrap();
         let Some(config) = guard.config.as_mut() else {
