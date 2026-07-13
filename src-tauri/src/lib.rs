@@ -47,6 +47,7 @@ pub fn run() {
             commands::list_sites,
             commands::get_site_status,
             commands::site_action,
+            commands::set_ssh_password,
             commands::git_status,
             commands::start_deploy,
             commands::cancel_pipeline,

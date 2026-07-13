@@ -88,6 +88,17 @@ export async function cancelPipeline(pipelineId: string): Promise<void> {
   return invoke<void>('cancel_pipeline', { pipelineId });
 }
 
+/**
+ * Remember a server's SSH password for this session. Kept in the backend's
+ * memory only; an empty string forgets it. Never written to disk.
+ */
+export async function setSshPassword(
+  serverId: string,
+  password: string,
+): Promise<void> {
+  return invoke<void>('set_ssh_password', { serverId, password });
+}
+
 /** Run start/stop/restart for a site over SSH. */
 export async function siteAction(
   siteId: string,

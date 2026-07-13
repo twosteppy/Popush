@@ -7,7 +7,12 @@ import { ActionBar } from '../components/ActionBar';
 import { GitPanel } from '../components/GitPanel';
 import { Pipeline } from '../components/Pipeline';
 import { Button } from '../components/ui/Button';
-import { startDeploy, cancelPipeline, siteAction } from '../lib/ipc';
+import {
+  startDeploy,
+  cancelPipeline,
+  siteAction,
+  setSshPassword,
+} from '../lib/ipc';
 
 function defaultCapabilities(kind: ServiceKind): Capabilities {
   switch (kind) {
@@ -42,6 +47,15 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
 
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionBusy, setActionBusy] = useState(false);
+  const [password, setPassword] = useState('');
+  const [lastAction, setLastAction] = useState<
+    'start' | 'stop' | 'restart' | null
+  >(null);
+
+  // Offer the password box whenever the failure smells like SSH auth.
+  const needsAuth = actionError
+    ? /passphrase|agent|authentication|refused/i.test(actionError)
+    : false;
 
   const pipelineId = usePipelineStore((s) => s.pipelineId);
   const steps = usePipelineStore((s) => s.steps);
@@ -77,7 +91,23 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
     return 'Action failed.';
   }
 
+  async function submitPassword() {
+    if (!password) return;
+    setActionBusy(true);
+    try {
+      await setSshPassword(serverId, password);
+      setPassword('');
+      setActionError(null);
+    } catch (e) {
+      setActionError(describeError(e));
+    } finally {
+      setActionBusy(false);
+    }
+    if (lastAction) await runAction(lastAction);
+  }
+
   async function runAction(action: 'start' | 'stop' | 'restart') {
+    setLastAction(action);
     setActionBusy(true);
     setActionError(null);
     try {
@@ -103,9 +133,14 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
   }
 
   async function shipIt() {
+    setActionError(null);
     begin(site.id);
     setDrawerOpen(true);
-    await startDeploy(serverId, site.id, message.trim() || null);
+    try {
+      await startDeploy(serverId, site.id, message.trim() || null);
+    } catch (e) {
+      setActionError(describeError(e));
+    }
   }
 
   return (
@@ -121,9 +156,37 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
         onLogs={() => setDrawerOpen(true)}
       />
       {actionError ? (
-        <p className="rounded-sm border border-status-failed bg-status-failed/10 px-3 py-2 text-sm text-status-failed">
-          {actionError}
-        </p>
+        <div className="flex flex-col gap-2 rounded-sm border border-status-failed bg-status-failed/10 px-3 py-2">
+          <p className="text-sm text-status-failed">{actionError}</p>
+          {needsAuth ? (
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-2">
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') void submitPassword();
+                  }}
+                  placeholder="SSH password for this server"
+                  aria-label="SSH password"
+                  className="h-8 min-w-0 flex-1 rounded-sm border-2 border-border-strong bg-surface-base px-2 font-mono text-sm text-text-primary outline-none focus:border-accent"
+                />
+                <Button
+                  variant="secondary"
+                  onClick={() => void submitPassword()}
+                  disabled={actionBusy || !password}
+                  className="h-8 shrink-0 px-3 text-xs"
+                >
+                  Connect
+                </Button>
+              </div>
+              <p className="text-xs text-text-tertiary">
+                Kept in memory for this session only. Never saved to disk.
+              </p>
+            </div>
+          ) : null}
+        </div>
       ) : null}
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
