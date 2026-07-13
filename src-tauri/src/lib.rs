@@ -53,6 +53,7 @@ pub fn run() {
             commands::add_server,
             commands::add_site,
             commands::import_config,
+            commands::config_error,
             commands::remove_server,
             commands::get_config,
             commands::config_file_path,

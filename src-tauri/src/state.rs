@@ -20,6 +20,9 @@ struct Inner {
     site_status: HashMap<SiteId, SiteStatus>,
     cancelled: HashMap<PipelineId, bool>,
     command_log: Vec<CommandLogEntry>,
+    /// If the config file exists but failed to load, the reason, so the UI can
+    /// show it instead of a silent empty state.
+    config_error: Option<String>,
 }
 
 impl AppState {
@@ -31,6 +34,7 @@ impl AppState {
                 site_status: HashMap::new(),
                 cancelled: HashMap::new(),
                 command_log: Vec::new(),
+                config_error: None,
             }),
         }
     }
@@ -44,12 +48,19 @@ impl AppState {
         };
         match popush_core::config::load_from_str(&text) {
             Ok(cfg) => {
-                self.inner.lock().unwrap().config = Some(cfg);
+                let mut guard = self.inner.lock().unwrap();
+                guard.config = Some(cfg);
+                guard.config_error = None;
             }
             Err(e) => {
                 tracing::warn!(error = %e, "config failed to load");
+                self.inner.lock().unwrap().config_error = Some(e.to_string());
             }
         }
+    }
+
+    pub fn config_error(&self) -> Option<String> {
+        self.inner.lock().unwrap().config_error.clone()
     }
 
     pub fn servers(&self) -> Vec<popush_core::config::ServerConfig> {
