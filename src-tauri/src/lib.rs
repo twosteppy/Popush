@@ -45,11 +45,19 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(state::AppState::new())
         .setup(|app| {
-            // Load config on startup; a missing config is not an error, first
-            // launch goes straight to the app, showing the empty state.
             let handle = app.handle().clone();
             let state = handle.state::<state::AppState>();
             state.load_config_on_startup();
+
+            // Set the window icon at runtime so the taskbar shows the Popush mark
+            // even when running unpackaged (no installed .desktop entry).
+            if let Some(window) = handle.get_webview_window("main") {
+                if let Ok(icon) = tauri::image::Image::from_bytes(include_bytes!(
+                    "../../packaging/desktop/icons/dev.popush.Popush-256.png"
+                )) {
+                    let _ = window.set_icon(icon);
+                }
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

@@ -2,12 +2,11 @@
 // (data-tauri-drag-region) so the frameless window can be moved. It also hosts
 // the command palette hint.
 
-import { Command } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Logo } from '../ui/Logo';
 
 interface AppHeaderProps {
   onOpenPalette: () => void;
-  /** Return to the home screen (clears the selected site and panel). */
   onHome: () => void;
 }
 
@@ -22,11 +21,12 @@ export function AppHeader({ onOpenPalette, onHome }: AppHeaderProps) {
         <button
           type="button"
           onClick={onOpenPalette}
-          className="pressable inline-flex h-7 items-center gap-2 rounded-sm border border-border-strong px-2.5 text-xs text-text-tertiary shadow-hard-sm hover:bg-surface-hover hover:text-text-secondary"
+          aria-label="Search sites and actions"
+          className="pressable inline-flex h-7 items-center gap-2 rounded-sm border border-border-strong bg-surface-base px-2.5 text-xs text-text-secondary shadow-hard-sm hover:border-accent hover:bg-surface-hover hover:text-text-primary"
         >
-          <Command size={12} aria-hidden="true" />
-          Search
-          <kbd className="rounded-sm border border-border-strong bg-surface-base px-1 font-mono text-[10px] text-text-tertiary">
+          <Search size={13} aria-hidden="true" />
+          <span>Search</span>
+          <kbd className="ml-1 rounded-sm border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-mono text-[10px] text-text-tertiary">
             Ctrl K
           </kbd>
         </button>
