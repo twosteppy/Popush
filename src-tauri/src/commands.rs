@@ -131,6 +131,11 @@ pub async fn add_site(
 }
 
 #[tauri::command]
+pub async fn import_config(state: State<'_, AppState>, toml: String) -> Result<usize, AppError> {
+    state.import_config(&toml).map_err(AppError::Config)
+}
+
+#[tauri::command]
 pub async fn remove_server(
     state: State<'_, AppState>,
     server_id: ServerId,

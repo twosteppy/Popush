@@ -109,6 +109,11 @@ export async function addSite(
   return invoke<void>('add_site', { serverId, site });
 }
 
+/** Import servers from a pasted TOML config. Returns how many were added. */
+export async function importConfig(toml: string): Promise<number> {
+  return invoke<number>('import_config', { toml });
+}
+
 /** Remove a server from config.toml by id. */
 export async function removeServer(serverId: string): Promise<void> {
   return invoke<void>('remove_server', { serverId });

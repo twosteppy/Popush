@@ -176,13 +176,7 @@ function EmptyLine({ children }: { children: React.ReactNode }) {
   return <p className="px-2 py-1 text-xs text-text-tertiary">{children}</p>;
 }
 
-function AddButton({
-  label,
-  onClick,
-}: {
-  label: string;
-  onClick: () => void;
-}) {
+function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <button
       type="button"

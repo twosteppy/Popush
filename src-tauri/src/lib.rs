@@ -52,6 +52,7 @@ pub fn run() {
             commands::apply_wizard_fix,
             commands::add_server,
             commands::add_site,
+            commands::import_config,
             commands::remove_server,
             commands::get_config,
             commands::config_file_path,

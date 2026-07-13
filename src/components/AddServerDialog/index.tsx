@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Server, Globe } from 'lucide-react';
+import { Server, Globe, ClipboardPaste } from 'lucide-react';
 import type {
   ServerConfig,
   SiteConfig,
@@ -8,6 +8,7 @@ import type {
 } from '../../types/generated';
 import { useServersStore } from '../../store/servers';
 import { isSafeHttpUrl } from '../../lib/url';
+import { importConfig } from '../../lib/ipc';
 import { Dialog } from '../ui/Dialog';
 import { Button } from '../ui/Button';
 import { Spinner } from '../ui/Spinner';
@@ -67,6 +68,22 @@ const EMPTY_SITE: SiteForm = {
 
 const SERVICE_TYPES: ServiceKind[] = ['docker', 'systemd', 'pm2', 'static'];
 
+const PASTE_PLACEHOLDER = `[[server]]
+id = "vps"
+label = "My VPS"
+host = "203.0.113.10"
+port = 22
+username = "deploy"
+identity_file = "~/.ssh/id_ed25519"
+
+  [[server.site]]
+  id = "site-one"
+  label = "Site One"
+  remote_path = "/srv/site-one"
+  service_type = "docker"
+  service_name = "site-one"
+  live_url = "https://example.com"`;
+
 type ServerErrors = Partial<Record<keyof ServerForm, string>>;
 type SiteErrors = Partial<Record<keyof SiteForm, string>>;
 
@@ -100,8 +117,12 @@ function nullable(v: string): string | null {
 
 export function AddServerDialog({ open, onOpenChange }: AddServerDialogProps) {
   const add = useServersStore((s) => s.add);
+  const refresh = useServersStore((s) => s.refresh);
   const reduce = useReducedMotion();
 
+  const [mode, setMode] = useState<'form' | 'paste'>('form');
+  const [paste, setPaste] = useState('');
+  const [importing, setImporting] = useState(false);
   const [step, setStep] = useState<0 | 1>(0);
   const [server, setServer] = useState<ServerForm>(EMPTY_SERVER);
   const [site, setSite] = useState<SiteForm>(EMPTY_SITE);
@@ -112,6 +133,9 @@ export function AddServerDialog({ open, onOpenChange }: AddServerDialogProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   function reset() {
+    setMode('form');
+    setPaste('');
+    setImporting(false);
     setStep(0);
     setServer(EMPTY_SERVER);
     setSite(EMPTY_SITE);
@@ -120,6 +144,25 @@ export function AddServerDialog({ open, onOpenChange }: AddServerDialogProps) {
     setSiteErrors({});
     setSubmitting(false);
     setSubmitError(null);
+  }
+
+  async function importPaste() {
+    if (!paste.trim()) {
+      setSubmitError('Paste your config first.');
+      return;
+    }
+    setImporting(true);
+    setSubmitError(null);
+    try {
+      await importConfig(paste);
+      await refresh();
+      close(false);
+    } catch {
+      setSubmitError(
+        'That config could not be imported. Check it is valid TOML with at least one [[server]] block.',
+      );
+      setImporting(false);
+    }
   }
 
   function close(next: boolean) {
@@ -200,7 +243,33 @@ export function AddServerDialog({ open, onOpenChange }: AddServerDialogProps) {
   const transition = { duration: reduce ? 0 : 0.18, ease: 'easeOut' as const };
 
   const footer =
-    step === 0 ? (
+    mode === 'paste' ? (
+      <>
+        <Button
+          variant="secondary"
+          onClick={() => {
+            setMode('form');
+            setSubmitError(null);
+          }}
+        >
+          Back
+        </Button>
+        <Button
+          variant="primary"
+          onClick={() => void importPaste()}
+          disabled={importing}
+        >
+          {importing ? (
+            <>
+              <Spinner size={14} className="text-text-inverse" />
+              Importing…
+            </>
+          ) : (
+            'Import config'
+          )}
+        </Button>
+      </>
+    ) : step === 0 ? (
       <>
         <Button variant="secondary" onClick={() => close(false)}>
           Cancel
@@ -232,6 +301,35 @@ export function AddServerDialog({ open, onOpenChange }: AddServerDialogProps) {
       </>
     );
 
+  if (mode === 'paste') {
+    return (
+      <Dialog
+        open={open}
+        onOpenChange={close}
+        title="Add a config"
+        size="lg"
+        footer={footer}
+      >
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-text-secondary">
+            Paste a Popush config (TOML) to add every server and site at once.
+            It is saved only to ~/.config/popush/config.toml on this machine.
+          </p>
+          <textarea
+            value={paste}
+            onChange={(e) => setPaste(e.target.value)}
+            spellCheck={false}
+            className="h-72 w-full resize-none rounded-sm border border-border-strong bg-surface-base px-3 py-2 font-mono text-xs text-text-primary transition-colors placeholder:text-text-tertiary focus:border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+            placeholder={PASTE_PLACEHOLDER}
+          />
+          {submitError ? (
+            <p className="text-sm text-status-failed">{submitError}</p>
+          ) : null}
+        </div>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog
       open={open}
@@ -240,19 +338,32 @@ export function AddServerDialog({ open, onOpenChange }: AddServerDialogProps) {
       size="lg"
       footer={footer}
     >
-      {/* Step indicator */}
-      <div className="label-mono mb-4 flex items-center gap-2 text-[10px] text-text-tertiary">
-        <StepPip
-          active={step === 0}
-          done={step > 0}
-          icon={<Server size={12} />}
+      <div className="mb-4 flex items-center justify-between gap-2">
+        {/* Step indicator */}
+        <div className="label-mono flex items-center gap-2 text-[10px] text-text-tertiary">
+          <StepPip
+            active={step === 0}
+            done={step > 0}
+            icon={<Server size={12} />}
+          >
+            Connection
+          </StepPip>
+          <span className="h-px w-4 bg-border-strong" aria-hidden="true" />
+          <StepPip active={step === 1} done={false} icon={<Globe size={12} />}>
+            First site
+          </StepPip>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setMode('paste');
+            setSubmitError(null);
+          }}
+          className="pressable inline-flex items-center gap-1.5 rounded-sm border border-border-strong bg-surface-raised px-2.5 py-1 text-xs text-text-secondary shadow-hard-sm hover:border-accent hover:text-text-primary"
         >
-          Connection
-        </StepPip>
-        <span className="h-px w-4 bg-border-strong" aria-hidden="true" />
-        <StepPip active={step === 1} done={false} icon={<Globe size={12} />}>
-          First site
-        </StepPip>
+          <ClipboardPaste size={13} aria-hidden="true" />
+          Add a config
+        </button>
       </div>
 
       <AnimatePresence mode="wait" initial={false}>
