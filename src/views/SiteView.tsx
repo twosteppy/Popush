@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Pencil } from 'lucide-react';
 import type { Capabilities, SiteConfig, ServiceKind } from '../types/generated';
 import { useSitesStore } from '../store/sites';
 import { usePipelineStore } from '../store/pipeline';
@@ -39,9 +40,16 @@ interface SiteViewProps {
   serverId: string;
   site: SiteConfig;
   capabilities?: Capabilities;
+  /** Open the edit dialog for this site. */
+  onEdit?: () => void;
 }
 
-export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
+export function SiteView({
+  serverId,
+  site,
+  capabilities,
+  onEdit,
+}: SiteViewProps) {
   const status = useSitesStore((s) => s.statusBySite[site.id]);
   const gitStatus = useSitesStore((s) => s.gitBySite[site.id]);
   const refreshGit = useSitesStore((s) => s.refreshGit);
@@ -172,17 +180,30 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
     <div className="mx-auto flex max-w-4xl flex-col gap-5 p-6">
       <SiteCard site={site} status={status} selected />
 
-      <ActionBar
-        capabilities={caps}
-        busy={busy || actionBusy}
-        online={isOnline}
-        logsBusy={logsBusy}
-        onShipIt={() => void shipIt()}
-        onRestart={() => void runAction('restart')}
-        onStop={() => void runAction('stop')}
-        onStart={() => void runAction('start')}
-        onLogs={() => void showLogs()}
-      />
+      <div className="flex items-center justify-between gap-2">
+        <ActionBar
+          capabilities={caps}
+          busy={busy || actionBusy}
+          online={isOnline}
+          logsBusy={logsBusy}
+          onShipIt={() => void shipIt()}
+          onRestart={() => void runAction('restart')}
+          onStop={() => void runAction('stop')}
+          onStart={() => void runAction('start')}
+          onLogs={() => void showLogs()}
+        />
+        {onEdit ? (
+          <Button
+            variant="secondary"
+            onClick={onEdit}
+            className="shrink-0"
+            title="Edit this site's path and settings"
+          >
+            <Pencil size={14} aria-hidden="true" />
+            Edit
+          </Button>
+        ) : null}
+      </div>
       {actionError ? (
         <div className="flex flex-col gap-2 rounded-sm border border-status-failed bg-status-failed/10 px-3 py-2">
           <p className="text-sm text-status-failed">{actionError}</p>

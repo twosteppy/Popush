@@ -45,6 +45,18 @@ pub async fn run_action(
     };
     let out = pool.exec(cmd).await.map_err(AdapterError::Ssh)?;
     if out.exit_code != 0 {
+        // The most common real-world cause: the site's remote path does not
+        // point at the folder that holds the compose file. Say so plainly.
+        if out.stderr.contains("no configuration file provided") {
+            return Err(AdapterError::Unparseable {
+                tool: action.to_string(),
+                detail: format!(
+                    "No docker-compose file was found in {remote_path}. \
+                     Check this site's remote path points at the folder that \
+                     contains docker-compose.yml (for example /srv/app/app, not /srv/app)."
+                ),
+            });
+        }
         return Err(AdapterError::Unparseable {
             tool: action.to_string(),
             detail: if out.stderr.trim().is_empty() {

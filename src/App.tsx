@@ -20,7 +20,7 @@ import { usePipelineStore } from './store/pipeline';
 import { usePipelineEvents } from './hooks/usePipelineEvents';
 import { isAnyModalOpen, nextPaletteOpen } from './store/modals';
 import { configError } from './lib/ipc';
-import type { Theme } from './types/generated';
+import type { SiteConfig, Theme } from './types/generated';
 
 export type Panel = 'site' | 'settings' | 'about' | 'help' | 'log' | 'wizard';
 
@@ -31,6 +31,7 @@ export function App() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [addServerOpen, setAddServerOpen] = useState(false);
   const [addSiteOpen, setAddSiteOpen] = useState(false);
+  const [editSite, setEditSite] = useState<SiteConfig | null>(null);
   const [theme, setTheme] = useState<Theme>('system');
   const [pollInterval, setPollInterval] = useState(30);
   const [patDismissed, setPatDismissed] = useState(false);
@@ -197,7 +198,11 @@ export function App() {
     ) : panel === 'wizard' ? (
       <WizardContainer serverId={selectedServerId} siteId={selectedSiteId} />
     ) : selectedSite && selectedServerId ? (
-      <SiteView serverId={selectedServerId} site={selectedSite} />
+      <SiteView
+        serverId={selectedServerId}
+        site={selectedSite}
+        onEdit={() => setEditSite(selectedSite)}
+      />
     ) : (
       <EmptyState
         hasServers={servers.length > 0}
@@ -281,6 +286,15 @@ export function App() {
         open={addSiteOpen}
         onOpenChange={setAddSiteOpen}
         serverId={selectedServerId}
+      />
+
+      <AddSiteDialog
+        open={editSite !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditSite(null);
+        }}
+        serverId={selectedServerId}
+        editSite={editSite}
       />
 
       <CommandPalette
