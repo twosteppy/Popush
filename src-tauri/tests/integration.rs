@@ -72,14 +72,66 @@ async fn escaping_holds_against_a_real_shell() {
         return;
     };
     let pool = SshPool::connect(server, known).await.expect("connect");
-    // If escaping failed, the `; echo pwned` would run as a second command.
-    let payload = "value; echo pwned";
+
+    // Proof 1: the whole dangerous string comes back as ONE literal word. If the
+    // `;` had split the command, `echo` would print only "value" and then run a
+    // second command, so stdout would not equal the payload verbatim.
+    let payload = "value; echo second";
     let out = pool
         .exec(RemoteCommand::new("echo {}", vec![payload.to_string()]))
         .await
         .expect("run");
     assert_eq!(out.stdout.trim(), payload, "argument must survive verbatim");
-    assert!(!out.stdout.contains("pwned"), "no injected command ran");
+    assert!(!out.stdout.contains("second\n"), "no injected command ran");
+
+    // Proof 2 (unambiguous): an injection attempt through a path argument must not
+    // create a file. `; touch` would fire if escaping failed.
+    let _ = pool
+        .exec(RemoteCommand::literal("rm -f /tmp/popush_pwned"))
+        .await;
+    let evil = "/nonexistent; touch /tmp/popush_pwned";
+    let _ = pool
+        .exec(RemoteCommand::new("cd {} 2>/dev/null", vec![evil.to_string()]))
+        .await;
+    let check = pool
+        .exec(RemoteCommand::literal(
+            "test -f /tmp/popush_pwned && echo EXISTS || echo SAFE",
+        ))
+        .await
+        .expect("run");
+    assert_eq!(check.stdout.trim(), "SAFE", "injection created a file");
+}
+
+#[tokio::test]
+#[ignore = "requires the test VPS (§23.3)"]
+async fn exit_code_and_streams_are_captured() {
+    // Regression guard: the exec loop must drain the channel to completion so a
+    // trailing `ExitStatus` (which some servers send after `Eof`) is not lost.
+    // Verified against a live sshd where `exit 7` previously reported 0.
+    let Some((server, known)) = test_server() else {
+        eprintln!("POPUSH_TEST_VPS not set; skipping");
+        return;
+    };
+    let pool = SshPool::connect(server, known).await.expect("connect");
+
+    let out = pool
+        .exec(RemoteCommand::literal("exit 7"))
+        .await
+        .expect("run");
+    assert_eq!(out.exit_code, 7, "non-zero exit code must be captured");
+
+    let out = pool
+        .exec(RemoteCommand::literal("echo oops 1>&2"))
+        .await
+        .expect("run");
+    assert_eq!(out.stderr.trim(), "oops", "stderr must be captured");
+
+    // The command log (D8) shows exactly what was sent, escaped.
+    let out = pool
+        .exec(RemoteCommand::new("cd {}", vec!["/srv/a b".to_string()]))
+        .await
+        .expect("run");
+    assert_eq!(out.command_display, "cd '/srv/a b'");
 }
 
 #[tokio::test]
