@@ -1,4 +1,4 @@
-// usePipelineEvents — subscribes to the backend pipeline event stream and
+// usePipelineEvents - subscribes to the backend pipeline event stream and
 // mirrors it into the pipeline store (§6.3: backend is authoritative).
 //
 // D14: this is wiring only. It translates backend events into store mutations;

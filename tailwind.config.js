@@ -45,6 +45,16 @@ export default {
         md: 'var(--radius-md)',
         lg: 'var(--radius-lg)',
       },
+      // 8-bit signature: hard, offset, un-blurred shadows (no soft glow).
+      boxShadow: {
+        'hard-sm': 'var(--shadow-hard-sm)',
+        hard: 'var(--shadow-hard)',
+        'hard-accent': 'var(--shadow-hard-accent)',
+      },
+      borderWidth: {
+        DEFAULT: 'var(--border-width)',
+        2: 'var(--border-width-strong)',
+      },
       spacing: {
         1: 'var(--space-1)',
         2: 'var(--space-2)',

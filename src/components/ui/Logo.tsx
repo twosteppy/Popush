@@ -17,7 +17,7 @@ export function Logo({ size = 22, markOnly = false, className }: LogoProps) {
     <span className={cn('inline-flex items-center gap-2.5', className)}>
       <span
         aria-hidden="true"
-        className="relative inline-flex shrink-0 items-center justify-center rounded-[28%] bg-accent text-text-inverse"
+        className="relative inline-flex shrink-0 items-center justify-center rounded-sm border border-accent bg-accent text-text-inverse shadow-hard-sm"
         style={{ width: size, height: size }}
       >
         <svg
@@ -37,7 +37,7 @@ export function Logo({ size = 22, markOnly = false, className }: LogoProps) {
       </span>
       {markOnly ? null : (
         <span
-          className="font-semibold tracking-tight text-text-primary"
+          className="font-display font-semibold tracking-tight text-text-primary"
           style={{ fontSize: size * 0.82 }}
         >
           Popush

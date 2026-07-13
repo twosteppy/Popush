@@ -1,4 +1,4 @@
-// WizardView — a vertical checklist of the 7 checks (C1–C7) with
+// WizardView - a vertical checklist of the 7 checks (C1–C7) with
 // pass/fail/running/n-a icons, plain-English names, expandable failed rows
 // showing the exact command, a "Fix it" button, and a "Show me the command
 // instead" link. Preview-then-apply framing (§11.1).
@@ -48,7 +48,7 @@ export function WizardView({
 }: WizardViewProps) {
   return (
     <div className="flex flex-col gap-2 p-6">
-      <h1 className="mb-2 text-lg font-semibold text-text-primary">
+      <h1 className="mb-2 font-display text-lg font-semibold text-text-primary">
         Setup checks
       </h1>
       <ol className="flex flex-col gap-1">
@@ -81,7 +81,7 @@ function WizardRow({
   const [expanded, setExpanded] = useState(failed);
 
   return (
-    <li className="rounded-md border border-border-subtle bg-surface-raised px-3 py-2">
+    <li className="rounded-sm border border-border-strong bg-surface-raised px-3 py-2 shadow-hard-sm">
       <div className="flex items-center gap-2">
         <RowIcon status={status} />
         <span className="text-sm text-text-primary">{CHECK_NAME[check]}</span>

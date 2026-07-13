@@ -19,7 +19,7 @@ describe('AddServerDialog validation', () => {
 
     expect(screen.getByText('Host is required.')).toBeInTheDocument();
     expect(screen.getByText('Username is required.')).toBeInTheDocument();
-    // Still on step 1 — the site step has not appeared.
+    // Still on step 1 - the site step has not appeared.
     expect(screen.queryByText('Add a site to deploy now')).toBeNull();
   });
 

@@ -1,4 +1,4 @@
-// WizardContainer — wires the presentational WizardView to the backend check
+// WizardContainer - wires the presentational WizardView to the backend check
 // runners for the currently selected server + site. It holds the per-check
 // status mirror and dispatches run/fix intents through src/lib/ipc.ts.
 //
@@ -56,12 +56,12 @@ export function WizardContainer({ serverId, siteId }: WizardContainerProps) {
       <div className="flex h-full items-center justify-center p-8 text-center">
         <div className="max-w-sm">
           <Logo size={32} markOnly />
-          <h1 className="mt-4 text-lg font-semibold text-text-primary">
+          <h1 className="mt-4 font-display text-lg font-semibold text-text-primary">
             Setup wizard
           </h1>
           <p className="mt-2 text-sm text-text-secondary">
             Select a site first. The wizard checks the SSH and git path between
-            your machine, GitHub, and that site&rsquo;s server.
+            your machine, GitHub, and the server for that site.
           </p>
         </div>
       </div>

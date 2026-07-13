@@ -25,6 +25,22 @@ describe('EmptyState onboarding', () => {
     expect(onAddServer).toHaveBeenCalledTimes(1);
   });
 
+  it('links to the "how it works" explainer when a handler is provided', () => {
+    const onOpenHelp = vi.fn();
+    render(
+      <EmptyState
+        hasServers={false}
+        onAddServer={() => {}}
+        onRunWizard={() => {}}
+        onOpenHelp={onOpenHelp}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: /See how Popush works/i }),
+    );
+    expect(onOpenHelp).toHaveBeenCalledTimes(1);
+  });
+
   it('offers the setup-wizard secondary action', () => {
     const onRunWizard = vi.fn();
     render(

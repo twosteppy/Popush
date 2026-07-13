@@ -17,9 +17,18 @@
   --status-failed: #f85149;
   --status-unknown: #d29922;
   --status-working: #7c6bf2;
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
+  /* Crisp, pixel-leaning corners: nothing pill-soft (retro-clean, D-restyle). */
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 3px;
+  /* Structural borders are solid and chunky. */
+  --border-width: 1px;
+  --border-width-strong: 2px;
+  /* Signature 8-bit move: hard, offset, un-blurred shadows (no glow). These
+   * reference the themed border/accent vars, so they re-tint per theme. */
+  --shadow-hard-sm: 2px 2px 0 0 var(--border-strong);
+  --shadow-hard: 3px 3px 0 0 var(--border-strong);
+  --shadow-hard-accent: 3px 3px 0 0 var(--accent);
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;

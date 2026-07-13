@@ -40,7 +40,7 @@ export function Dialog({
       <RadixDialog.Portal>
         <RadixDialog.Overlay asChild>
           <motion.div
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-black/70"
             initial={reduce ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
@@ -48,12 +48,17 @@ export function Dialog({
         </RadixDialog.Overlay>
         <RadixDialog.Content asChild>
           <motion.div
-            initial={reduce ? false : { opacity: 0, y: 8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
+            initial={reduce ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.16, ease: 'easeOut' }}
+            /* Capped so it can never overflow the fixed 1080x720 window: width
+             * min(cap, viewport - 64px), height viewport - 64px with the body
+             * scrolling internally. Centred on both axes, hard offset shadow. */
             className={cn(
-              'fixed left-1/2 top-[12vh] z-50 flex max-h-[80vh] w-[calc(100vw-2rem)] -translate-x-1/2 flex-col overflow-hidden rounded-lg border border-border-strong bg-surface-overlay shadow-2xl focus:outline-none',
-              size === 'lg' ? 'max-w-xl' : 'max-w-md',
+              'fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100vh-4rem)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg border-2 border-border-strong bg-surface-overlay shadow-hard focus:outline-none',
+              size === 'lg'
+                ? 'w-[min(560px,calc(100vw-4rem))]'
+                : 'w-[min(460px,calc(100vw-4rem))]',
             )}
           >
             <div className="flex-1 overflow-y-auto p-5">
@@ -61,7 +66,7 @@ export function Dialog({
                 className={
                   hideTitle
                     ? 'sr-only'
-                    : 'text-base font-semibold text-text-primary'
+                    : 'font-display text-sm font-semibold uppercase tracking-wide text-text-primary'
                 }
               >
                 {title}
@@ -74,7 +79,7 @@ export function Dialog({
               <div className={hideTitle ? '' : 'mt-4'}>{children}</div>
             </div>
             {footer ? (
-              <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border-subtle bg-surface-raised/60 px-5 py-3">
+              <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border-strong bg-surface-raised px-5 py-3">
                 {footer}
               </div>
             ) : null}

@@ -1,4 +1,4 @@
-// StatusDot — an 8px dot coloured from a SiteStatus, ALWAYS paired with a text
+// StatusDot - an 8px dot coloured from a SiteStatus, ALWAYS paired with a text
 // label (§20: colour is never the only signal). The in-progress ("working")
 // state pulses ~1.5s; the pulse is disabled by prefers-reduced-motion via the
 // global stylesheet rule, and we also gate the animation class defensively.

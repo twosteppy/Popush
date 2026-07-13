@@ -1,10 +1,10 @@
-// Sidebar (§14.2 left region, ~240px). SERVERS and SITES sections with status
-// dots + labels, an "Add server" affordance, Wizard and Settings entries, and a
-// footer that credits twostep (D9).
+// Sidebar (§14.2 left region, fixed ~230px). SERVERS and SITES sections with
+// status dots + labels, an "Add server" affordance, and Help / Wizard /
+// Settings entries.
 //
 // D14: renders state and dispatches selection/navigation intents only.
 
-import { Plus, Settings, Wand2 } from 'lucide-react';
+import { HelpCircle, Plus, Settings, Wand2 } from 'lucide-react';
 import type { Panel } from '../../App';
 import { useServersStore } from '../../store/servers';
 import { useSitesStore } from '../../store/sites';
@@ -15,6 +15,7 @@ interface SidebarProps {
   activePanel: Panel;
   onOpenSettings: () => void;
   onOpenWizard: () => void;
+  onOpenHelp: () => void;
   onAddServer: () => void;
   onSelectSite: () => void;
 }
@@ -23,6 +24,7 @@ export function Sidebar({
   activePanel,
   onOpenSettings,
   onOpenWizard,
+  onOpenHelp,
   onAddServer,
   onSelectSite,
 }: SidebarProps) {
@@ -39,7 +41,7 @@ export function Sidebar({
   return (
     <nav
       aria-label="Servers and sites"
-      className="flex h-full w-60 shrink-0 flex-col border-r border-border-subtle bg-surface-raised"
+      className="flex h-full w-[230px] shrink-0 flex-col border-r border-border-strong bg-surface-raised"
     >
       <div className="flex-1 overflow-y-auto px-2.5 py-3">
         <Section
@@ -49,7 +51,7 @@ export function Sidebar({
               type="button"
               onClick={onAddServer}
               aria-label="Add server"
-              className="inline-flex h-5 w-5 items-center justify-center rounded text-text-tertiary transition-colors hover:bg-surface-hover hover:text-text-secondary"
+              className="inline-flex h-5 w-5 items-center justify-center rounded-sm border border-transparent text-text-tertiary transition-colors hover:border-border-subtle hover:bg-surface-hover hover:text-text-secondary"
             >
               <Plus size={13} aria-hidden="true" />
             </button>
@@ -108,7 +110,16 @@ export function Sidebar({
         </Section>
       </div>
 
-      <div className="flex flex-col gap-0.5 border-t border-border-subtle px-2.5 py-2">
+      <div className="flex flex-col gap-0.5 border-t border-border-strong px-2.5 py-2">
+        <button
+          type="button"
+          onClick={onOpenHelp}
+          aria-current={activePanel === 'help' || undefined}
+          className={rowClass(activePanel === 'help')}
+        >
+          <HelpCircle size={14} aria-hidden="true" className="shrink-0" />
+          How it works
+        </button>
         <button
           type="button"
           onClick={onOpenWizard}
@@ -128,21 +139,16 @@ export function Sidebar({
           Settings
         </button>
       </div>
-
-      {/* Footer / status bar — credits twostep (D9). */}
-      <footer className="border-t border-border-subtle px-3 py-2 text-[11px] text-text-tertiary">
-        Built by <span className="text-text-secondary">twostep</span>
-      </footer>
     </nav>
   );
 }
 
 function rowClass(active: boolean): string {
   return cn(
-    'flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+    'flex w-full items-center gap-2.5 rounded-sm border px-2 py-1.5 text-left text-sm transition-colors',
     active
-      ? 'bg-surface-hover text-text-primary'
-      : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary',
+      ? 'border-border-strong bg-surface-hover text-text-primary shadow-hard-sm'
+      : 'border-transparent text-text-secondary hover:border-border-subtle hover:bg-surface-hover hover:text-text-primary',
   );
 }
 
@@ -158,7 +164,7 @@ function Section({
   return (
     <section className="mb-4">
       <div className="mb-1 flex items-center justify-between px-2">
-        <h2 className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
+        <h2 className="label-mono text-[10px] font-semibold text-text-tertiary">
           {title}
         </h2>
         {action}

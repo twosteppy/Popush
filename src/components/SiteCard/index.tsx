@@ -1,4 +1,4 @@
-// SiteCard — the header card for a site. Title (20px/600), live URL, a status
+// SiteCard - the header card for a site. Title (20px/600), live URL, a status
 // pill (colour + word, §20), and a "Deployed … · branch · sha" metadata line.
 // surface-raised, border-subtle, radius-lg; a selected site gets a 2px accent
 // left edge.
@@ -32,13 +32,15 @@ export function SiteCard({
 
   return (
     <article
-      className={`rounded-lg border border-border-subtle bg-surface-raised p-5 ${
-        selected ? 'border-l-2 border-l-accent' : ''
+      className={`rounded-lg border-2 bg-surface-raised p-5 shadow-hard ${
+        selected
+          ? 'border-border-strong border-l-4 border-l-accent'
+          : 'border-border-strong'
       }`}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="truncate text-xl font-semibold tracking-tight text-text-primary">
+          <h1 className="truncate font-display text-xl font-semibold tracking-tight text-text-primary">
             {site.label}
           </h1>
           {site.live_url ? (

@@ -17,16 +17,18 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
 }
 
+// Chunky solid border + hard offset shadow that collapses on press (.pressable
+// nudges the element 1px into its own shadow). Mono caption, slight tracking.
 const BASE =
-  'inline-flex h-[34px] items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50';
+  'pressable inline-flex h-[34px] items-center justify-center gap-2 rounded-sm border px-3.5 font-display text-xs font-medium uppercase tracking-wider focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none active:shadow-none';
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    'bg-accent text-text-inverse hover:bg-accent-hover disabled:hover:bg-accent',
+    'border-accent bg-accent text-text-inverse shadow-hard hover:bg-accent-hover disabled:hover:bg-accent',
   secondary:
-    'bg-surface-raised text-text-primary border border-border-strong hover:bg-surface-hover',
+    'border-border-strong bg-surface-raised text-text-primary shadow-hard-sm hover:bg-surface-hover',
   destructive:
-    'bg-transparent text-status-failed border border-status-failed/40 hover:bg-status-failed/10',
+    'border-status-failed/60 bg-transparent text-status-failed shadow-hard-sm hover:bg-status-failed/10',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

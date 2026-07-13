@@ -1,4 +1,4 @@
-// GitPanel — changed files with checkboxes + change kind, a commit message
+// GitPanel - changed files with checkboxes + change kind, a commit message
 // textarea, and a clean-tree empty state.
 //
 // D14: renders the GitStatus it is given and reports staging/message intents
@@ -35,7 +35,7 @@ export function GitPanel({
 }: GitPanelProps) {
   if (!status || status.changed_files.length === 0) {
     return (
-      <div className="rounded-lg border border-border-subtle bg-surface-raised p-4">
+      <div className="rounded-lg border-2 border-border-strong bg-surface-raised p-4 shadow-hard-sm">
         <p className="text-sm text-text-secondary">
           Nothing to commit. Working tree is clean.
         </p>
@@ -48,7 +48,7 @@ export function GitPanel({
   }
 
   return (
-    <div className="rounded-lg border border-border-subtle bg-surface-raised p-4">
+    <div className="rounded-lg border-2 border-border-strong bg-surface-raised p-4 shadow-hard-sm">
       <div className="mb-3 flex items-center gap-2 font-mono text-xs text-text-secondary">
         <span className="text-text-primary">{status.branch}</span>
         {status.ahead > 0 ? (
@@ -86,7 +86,7 @@ export function GitPanel({
         ))}
       </ul>
 
-      <label className="mb-1 block text-xs font-medium text-text-secondary">
+      <label className="label-mono mb-1.5 block text-[11px] font-medium text-text-secondary">
         Commit message
       </label>
       <textarea
@@ -94,7 +94,7 @@ export function GitPanel({
         onChange={(e) => onMessageChange(e.target.value)}
         rows={3}
         placeholder="Describe this change"
-        className="w-full resize-y rounded-md border border-border-strong bg-surface-base p-2 font-mono text-xs text-text-primary placeholder:text-text-tertiary focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+        className="w-full resize-y rounded-sm border border-border-strong bg-surface-base p-2 font-mono text-xs text-text-primary placeholder:text-text-tertiary focus:border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
       />
     </div>
   );

@@ -1,4 +1,4 @@
-// App — the app shell: a top header with the Popush wordmark + window-drag
+// App - the app shell: a top header with the Popush wordmark + window-drag
 // region, then the three-region body (left sidebar, main panel, bottom log
 // drawer). Wires Ctrl+K (command palette), Ctrl+` (drawer toggle), the Add
 // Server dialog, and hydrates the stores from the backend on mount.
@@ -17,6 +17,7 @@ import { CommandPalette, type PaletteItem } from './components/CommandPalette';
 import { SiteView } from './views/SiteView';
 import { SettingsView } from './views/SettingsView';
 import { AboutView } from './views/AboutView';
+import { HelpView } from './views/HelpView';
 import { CommandLogView } from './views/CommandLogView';
 import { WizardContainer } from './views/WizardContainer';
 import { useServersStore } from './store/servers';
@@ -25,7 +26,7 @@ import { usePipelineStore } from './store/pipeline';
 import { usePipelineEvents } from './hooks/usePipelineEvents';
 import type { Theme } from './types/generated';
 
-export type Panel = 'site' | 'settings' | 'about' | 'log' | 'wizard';
+export type Panel = 'site' | 'settings' | 'about' | 'help' | 'log' | 'wizard';
 
 const APP_VERSION = '0.1.0';
 
@@ -125,6 +126,12 @@ export function App() {
       onSelect: () => setPanel('log'),
     });
     items.push({
+      id: 'action:help',
+      label: 'What is Popush?',
+      kind: 'Action',
+      onSelect: () => setPanel('help'),
+    });
+    items.push({
       id: 'action:about',
       label: 'About Popush',
       kind: 'Action',
@@ -145,6 +152,8 @@ export function App() {
       />
     ) : panel === 'about' ? (
       <AboutView version={APP_VERSION} />
+    ) : panel === 'help' ? (
+      <HelpView onAddServer={() => setAddServerOpen(true)} />
     ) : panel === 'log' ? (
       <CommandLogView />
     ) : panel === 'wizard' ? (
@@ -156,19 +165,21 @@ export function App() {
         hasServers={servers.length > 0}
         onAddServer={() => setAddServerOpen(true)}
         onRunWizard={() => setPanel('wizard')}
+        onOpenHelp={() => setPanel('help')}
       />
     );
 
   const contentKey = `${panel}:${selectedSite?.id ?? 'none'}`;
 
   return (
-    <div className="flex h-screen w-screen flex-col bg-surface-base text-text-primary">
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-surface-base text-text-primary">
       <AppHeader onOpenPalette={() => setPaletteOpen(true)} />
       <div className="flex min-h-0 flex-1">
         <Sidebar
           activePanel={panel}
           onOpenSettings={() => setPanel('settings')}
           onOpenWizard={() => setPanel('wizard')}
+          onOpenHelp={() => setPanel('help')}
           onAddServer={() => setAddServerOpen(true)}
           onSelectSite={() => setPanel('site')}
         />

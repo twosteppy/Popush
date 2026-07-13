@@ -1,4 +1,4 @@
-// AddServerDialog — makes Popush usable without hand-editing TOML. A two-step
+// AddServerDialog - makes Popush usable without hand-editing TOML. A two-step
 // Radix form: (1) the SSH connection, (2) an optional first site. On submit it
 // assembles a typed ServerConfig (with slug ids derived from labels) and
 // dispatches add() to the servers store, which persists via the backend and
@@ -238,7 +238,7 @@ export function AddServerDialog({ open, onOpenChange }: AddServerDialogProps) {
       footer={footer}
     >
       {/* Step indicator */}
-      <div className="mb-4 flex items-center gap-2 text-xs text-text-tertiary">
+      <div className="label-mono mb-4 flex items-center gap-2 text-[10px] text-text-tertiary">
         <StepPip
           active={step === 0}
           done={step > 0}
@@ -337,7 +337,7 @@ export function AddServerDialog({ open, onOpenChange }: AddServerDialogProps) {
               <Field
                 label="Identity file"
                 htmlFor="srv-key"
-                hint="Path to your SSH key — never the key itself."
+                hint="Path to your SSH key, never the key itself."
                 optional
               >
                 <TextInput
@@ -380,14 +380,14 @@ export function AddServerDialog({ open, onOpenChange }: AddServerDialogProps) {
                 ) : null}
               </div>
 
-              <p className="rounded-md border border-border-subtle bg-surface-raised px-3 py-2 text-xs text-text-tertiary">
-                Saved to ~/.config/popush/config.toml. No secrets are stored —
+              <p className="rounded-sm border border-border-strong bg-surface-raised px-3 py-2 text-xs text-text-tertiary">
+                Saved to ~/.config/popush/config.toml. No secrets are stored,
                 only the path to your key.
               </p>
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              <label className="flex items-center gap-2.5 rounded-md border border-border-subtle bg-surface-raised px-3 py-2.5 text-sm text-text-primary">
+              <label className="flex items-center gap-2.5 rounded-sm border border-border-strong bg-surface-raised px-3 py-2.5 text-sm text-text-primary">
                 <input
                   type="checkbox"
                   checked={site.enabled}
@@ -548,7 +548,7 @@ export function AddServerDialog({ open, onOpenChange }: AddServerDialogProps) {
                 </>
               ) : (
                 <p className="text-sm text-text-secondary">
-                  No problem — you can add sites to this server at any time.
+                  No problem. You can add sites to this server at any time.
                 </p>
               )}
             </div>

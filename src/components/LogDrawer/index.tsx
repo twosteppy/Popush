@@ -1,4 +1,4 @@
-// LogDrawer — the bottom drawer (§14.2). Collapsed to a thin bar showing the
+// LogDrawer - the bottom drawer (§14.2). Collapsed to a thin bar showing the
 // last line cleanly (monospaced, muted, truncated); expandable. Ctrl+` toggles
 // it (wired in App). Height is remembered in the pipeline store.
 //
@@ -92,7 +92,7 @@ export function LogDrawer() {
         fitRef.current = fit;
         writtenRef.current = 0;
       } catch {
-        // xterm unavailable (e.g. under test) — the DOM fallback stays.
+        // xterm unavailable (e.g. under test) - the DOM fallback stays.
       }
     })();
 
@@ -134,7 +134,7 @@ export function LogDrawer() {
   return (
     <section
       aria-label="Log output"
-      className="flex flex-col border-t border-border-subtle bg-surface-raised"
+      className="flex flex-col border-t border-border-strong bg-surface-raised"
       style={{ height: drawerOpen ? drawerHeight : 34 }}
     >
       <button
@@ -148,7 +148,9 @@ export function LogDrawer() {
         ) : (
           <ChevronUp size={14} aria-hidden="true" className="shrink-0" />
         )}
-        <span className="shrink-0 font-medium">Logs</span>
+        <span className="label-mono shrink-0 text-[11px] font-medium">
+          Logs
+        </span>
         {lastLine ? (
           <span className="truncate font-mono text-text-tertiary">
             {lastLine}

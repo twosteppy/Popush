@@ -1,4 +1,4 @@
-// Pipeline — the seven-step vertical list, rendered entirely from the pipeline
+// Pipeline - the seven-step vertical list, rendered entirely from the pipeline
 // store (D14: the frontend does not know the steps' meaning; it renders state).
 //
 //   pending  ○
@@ -173,7 +173,7 @@ function StepIcon({ state }: { state: StepState }) {
 /** The backend's specific failure explanation (never a generic message). */
 function FailureMessage({ message }: { message: UserMessage }) {
   return (
-    <div className="mt-3 rounded-md border border-border-subtle bg-surface-base p-3">
+    <div className="mt-3 rounded-sm border-2 border-status-failed/50 bg-surface-base p-3 shadow-hard-sm">
       <p className="text-sm font-semibold text-status-failed">
         {message.headline}
       </p>
@@ -199,7 +199,7 @@ function NextActionView({ action }: { action: NextAction }) {
 /** The rollback offer surfaced when a deploy failed mid-flight (§12.5). */
 function RollbackOffer({ message }: { message: UserMessage }) {
   return (
-    <div className="mt-2 rounded-md border border-border-subtle bg-surface-raised p-3">
+    <div className="mt-2 rounded-sm border border-border-strong bg-surface-raised p-3 shadow-hard-sm">
       <p className="text-sm font-medium text-text-primary">
         {message.headline}
       </p>
@@ -225,13 +225,13 @@ function CopyableCommand({ command }: { command: string }) {
 
   return (
     <div className="mt-2 flex items-center gap-2">
-      <code className="min-w-0 flex-1 truncate rounded bg-surface-base px-2 py-1 font-mono text-xs text-text-primary">
+      <code className="min-w-0 flex-1 truncate rounded-sm border border-border-strong bg-surface-base px-2 py-1 font-mono text-xs text-text-primary">
         {command}
       </code>
       <button
         type="button"
         onClick={() => void copy()}
-        className="shrink-0 rounded border border-border-strong px-2 py-1 text-xs text-text-secondary hover:bg-surface-hover"
+        className="pressable label-mono shrink-0 rounded-sm border border-border-strong px-2 py-1 text-[11px] text-text-secondary shadow-hard-sm hover:bg-surface-hover"
       >
         {copied ? 'Copied' : 'Copy'}
       </button>
