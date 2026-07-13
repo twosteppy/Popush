@@ -23,7 +23,7 @@ describe('Button', () => {
 describe('ActionBar capability gating', () => {
   const noop = () => {};
 
-  it('hides Restart, Stop, and Logs when the adapter lacks them', () => {
+  it('hides Restart, Stop/Start, and Logs when the adapter lacks them', () => {
     const caps: Capabilities = {
       can_start_stop: false,
       can_restart: false,
@@ -36,16 +36,18 @@ describe('ActionBar capability gating', () => {
         onShipIt={noop}
         onRestart={noop}
         onStop={noop}
+        onStart={noop}
         onLogs={noop}
       />,
     );
     expect(screen.getByRole('button', { name: /Ship It/ })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Restart/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /Stop/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Start/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /Logs/ })).toBeNull();
   });
 
-  it('renders supported actions', () => {
+  it('shows Stop when the site is online', () => {
     const caps: Capabilities = {
       can_start_stop: true,
       can_restart: true,
@@ -55,14 +57,39 @@ describe('ActionBar capability gating', () => {
     render(
       <ActionBar
         capabilities={caps}
+        online
         onShipIt={noop}
         onRestart={noop}
         onStop={noop}
+        onStart={noop}
         onLogs={noop}
       />,
     );
     expect(screen.getByRole('button', { name: /Restart/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Stop/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Start/ })).toBeNull();
     expect(screen.getByRole('button', { name: /Logs/ })).toBeInTheDocument();
+  });
+
+  it('shows Start when the site is offline', () => {
+    const caps: Capabilities = {
+      can_start_stop: true,
+      can_restart: true,
+      has_logs: true,
+      status_is_reliable: true,
+    };
+    render(
+      <ActionBar
+        capabilities={caps}
+        online={false}
+        onShipIt={noop}
+        onRestart={noop}
+        onStop={noop}
+        onStart={noop}
+        onLogs={noop}
+      />,
+    );
+    expect(screen.getByRole('button', { name: /Start/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Stop/ })).toBeNull();
   });
 });

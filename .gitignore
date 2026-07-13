@@ -27,3 +27,7 @@ node_modules
 # Never commit a local Popush config (real server details live here).
 /config.toml
 config.local.toml
+
+# Saved SSH passwords (opt-in, plain text, per-machine). Never commit.
+secrets.json
+/secrets.json

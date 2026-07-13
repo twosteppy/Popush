@@ -49,6 +49,15 @@ pub fn logs_command(remote_path: &str) -> RemoteCommand {
     )
 }
 
+/// A one-shot log tail that returns instead of following, for fetching the
+/// recent logs into the drawer on demand.
+pub fn logs_snapshot_command(remote_path: &str) -> RemoteCommand {
+    RemoteCommand::new(
+        "cd -- {} && docker compose logs --no-color --tail=200",
+        vec![remote_path.to_string()],
+    )
+}
+
 #[derive(Debug, Deserialize)]
 struct ContainerRow {
     #[serde(rename = "Name", default)]

@@ -34,6 +34,11 @@ pub fn logs_command(app: &str) -> RemoteCommand {
     RemoteCommand::new("pm2 logs {} --lines 200", vec![app.to_string()])
 }
 
+/// A one-shot log tail that returns instead of following.
+pub fn logs_snapshot_command(app: &str) -> RemoteCommand {
+    RemoteCommand::new("pm2 logs {} --lines 200 --nostream", vec![app.to_string()])
+}
+
 #[derive(Debug, Deserialize)]
 struct Pm2Entry {
     name: String,

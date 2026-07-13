@@ -12,6 +12,8 @@ import {
   cancelPipeline,
   siteAction,
   setSshPassword,
+  sshPasswordSaved,
+  getSiteLogs,
 } from '../lib/ipc';
 
 function defaultCapabilities(kind: ServiceKind): Capabilities {
@@ -48,6 +50,7 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionBusy, setActionBusy] = useState(false);
   const [password, setPassword] = useState('');
+  const [savePassword, setSavePassword] = useState(false);
   const [lastAction, setLastAction] = useState<
     'start' | 'stop' | 'restart' | null
   >(null);
@@ -57,11 +60,15 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
     ? /passphrase|agent|authentication|refused/i.test(actionError)
     : false;
 
+  // The site is online when its last check said so; drives Stop vs Start.
+  const isOnline = status?.state === 'running';
+
   const pipelineId = usePipelineStore((s) => s.pipelineId);
   const steps = usePipelineStore((s) => s.steps);
   const finished = usePipelineStore((s) => s.finished);
   const begin = usePipelineStore((s) => s.begin);
   const setDrawerOpen = usePipelineStore((s) => s.setDrawerOpen);
+  const setDirectLog = usePipelineStore((s) => s.setDirectLog);
 
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [message, setMessage] = useState('');
@@ -72,9 +79,13 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
     [steps.length, finished],
   );
 
+  const [logsBusy, setLogsBusy] = useState(false);
+
   useEffect(() => {
     void refreshGit(serverId, site.id);
     void refreshStatus(serverId, site.id);
+    // Pre-tick the save box if a password is already remembered on disk.
+    void sshPasswordSaved(serverId).then(setSavePassword);
   }, [serverId, site.id, refreshGit, refreshStatus]);
 
   function describeError(e: unknown): string {
@@ -95,7 +106,7 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
     if (!password) return;
     setActionBusy(true);
     try {
-      await setSshPassword(serverId, password);
+      await setSshPassword(serverId, password, savePassword);
       setPassword('');
       setActionError(null);
     } catch (e) {
@@ -104,6 +115,20 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
       setActionBusy(false);
     }
     if (lastAction) await runAction(lastAction);
+  }
+
+  async function showLogs() {
+    setDrawerOpen(true);
+    setLogsBusy(true);
+    setActionError(null);
+    try {
+      const text = await getSiteLogs(site.id);
+      setDirectLog(text);
+    } catch (e) {
+      setActionError(describeError(e));
+    } finally {
+      setLogsBusy(false);
+    }
   }
 
   async function runAction(action: 'start' | 'stop' | 'restart') {
@@ -150,10 +175,13 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
       <ActionBar
         capabilities={caps}
         busy={busy || actionBusy}
+        online={isOnline}
+        logsBusy={logsBusy}
         onShipIt={() => void shipIt()}
         onRestart={() => void runAction('restart')}
         onStop={() => void runAction('stop')}
-        onLogs={() => setDrawerOpen(true)}
+        onStart={() => void runAction('start')}
+        onLogs={() => void showLogs()}
       />
       {actionError ? (
         <div className="flex flex-col gap-2 rounded-sm border border-status-failed bg-status-failed/10 px-3 py-2">
@@ -181,8 +209,19 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
                   Connect
                 </Button>
               </div>
+              <label className="flex items-center gap-2 text-xs text-text-secondary">
+                <input
+                  type="checkbox"
+                  checked={savePassword}
+                  onChange={(e) => setSavePassword(e.target.checked)}
+                  className="h-3.5 w-3.5 accent-accent"
+                />
+                Save on this machine so I do not have to type it again
+              </label>
               <p className="text-xs text-text-tertiary">
-                Kept in memory for this session only. Never saved to disk.
+                {savePassword
+                  ? 'Warning: saved as plain text in a private file on this computer only. Anyone with access to your user account could read it. It never leaves this machine and is never committed.'
+                  : 'Kept in memory for this session only, then forgotten when you close Popush.'}
               </p>
             </div>
           ) : null}

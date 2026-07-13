@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { HelpCircle, Plus, Settings, Trash2, Wand2 } from 'lucide-react';
 import type { Panel } from '../../App';
 import type { SiteConfig, SiteStatus } from '../../types/generated';
@@ -8,7 +8,13 @@ import { useSitesStore } from '../../store/sites';
 import { removeSite } from '../../lib/ipc';
 import { StatusDot } from '../StatusDot';
 import { Skeleton } from '../ui/Skeleton';
+import { ConfirmDeleteDialog } from '../ConfirmDeleteDialog';
 import { cn } from '../../lib/cn';
+
+/** What the confirm dialog is currently targeting. */
+type DeleteTarget =
+  | { kind: 'server'; id: string; name: string; siteCount: number }
+  | { kind: 'site'; id: string; serverId: string; name: string };
 
 interface SidebarProps {
   activePanel: Panel;
@@ -44,42 +50,18 @@ export function Sidebar({
     refreshSites,
   } = useSitesStore();
 
-  // Two-step remove: the first click arms the row, the second deletes it.
-  const [armedId, setArmedId] = useState<string | null>(null);
-  const disarmTimer = useRef<number | null>(null);
+  // A typed-name confirmation guards every delete, so nothing goes on a slip.
+  const [target, setTarget] = useState<DeleteTarget | null>(null);
 
-  useEffect(
-    () => () => {
-      if (disarmTimer.current !== null)
-        window.clearTimeout(disarmTimer.current);
-    },
-    [],
-  );
-
-  function arm(id: string) {
-    setArmedId(id);
-    if (disarmTimer.current !== null) window.clearTimeout(disarmTimer.current);
-    disarmTimer.current = window.setTimeout(() => setArmedId(null), 3500);
-  }
-
-  async function handleRemoveServer(serverId: string) {
-    if (armedId !== `server:${serverId}`) {
-      arm(`server:${serverId}`);
-      return;
+  async function confirmDelete() {
+    if (!target) return;
+    if (target.kind === 'server') {
+      await removeServer(target.id);
+    } else {
+      await removeSite(target.id);
+      if (selectedSiteId === target.id) selectSite(null);
+      await refreshSites(target.serverId);
     }
-    setArmedId(null);
-    await removeServer(serverId);
-  }
-
-  async function handleRemoveSite(serverId: string, siteId: string) {
-    if (armedId !== `site:${siteId}`) {
-      arm(`site:${siteId}`);
-      return;
-    }
-    setArmedId(null);
-    await removeSite(siteId);
-    if (selectedSiteId === siteId) selectSite(null);
-    await refreshSites(serverId);
   }
 
   const sites = selectedServerId ? (sitesByServer[selectedServerId] ?? []) : [];
@@ -100,10 +82,16 @@ export function Sidebar({
               <Row
                 key={server.id}
                 active={server.id === selectedServerId}
-                armed={armedId === `server:${server.id}`}
                 label={server.label}
                 onSelect={() => selectServer(server.id)}
-                onRemove={() => void handleRemoveServer(server.id)}
+                onRemove={() =>
+                  setTarget({
+                    kind: 'server',
+                    id: server.id,
+                    name: server.label,
+                    siteCount: (sitesByServer[server.id] ?? []).length,
+                  })
+                }
               >
                 <StatusDot
                   descriptor={serverDescriptor(
@@ -137,14 +125,18 @@ export function Sidebar({
                 <Row
                   key={site.id}
                   active={active}
-                  armed={armedId === `site:${site.id}`}
                   label={site.label}
                   onSelect={() => {
                     selectSite(site.id);
                     onSelectSite();
                   }}
                   onRemove={() =>
-                    void handleRemoveSite(selectedServerId as string, site.id)
+                    setTarget({
+                      kind: 'site',
+                      id: site.id,
+                      serverId: selectedServerId as string,
+                      name: site.label,
+                    })
                   }
                 >
                   <StatusDot status={status} showLabel={false} />
@@ -188,6 +180,21 @@ export function Sidebar({
           Settings
         </button>
       </div>
+
+      <ConfirmDeleteDialog
+        open={target !== null}
+        onOpenChange={(open) => {
+          if (!open) setTarget(null);
+        }}
+        kind={target?.kind ?? 'site'}
+        name={target?.name ?? ''}
+        consequence={
+          target?.kind === 'server' && target.siteCount > 0
+            ? `Its ${target.siteCount} site${target.siteCount === 1 ? '' : 's'} will be removed too.`
+            : undefined
+        }
+        onConfirm={confirmDelete}
+      />
     </nav>
   );
 }
@@ -222,18 +229,16 @@ function rowClass(active: boolean): string {
 
 /**
  * A selectable row with a remove control that only appears on hover. The
- * trash needs a second click to confirm, so a slip can't delete anything.
+ * trash opens a typed-name confirmation, so a slip cannot delete anything.
  */
 function Row({
   active,
-  armed,
   label,
   onSelect,
   onRemove,
   children,
 }: {
   active: boolean;
-  armed: boolean;
   label: string;
   onSelect: () => void;
   onRemove: () => void;
@@ -259,16 +264,9 @@ function Row({
       <button
         type="button"
         onClick={onRemove}
-        aria-label={
-          armed ? `Click again to remove ${label}` : `Remove ${label}`
-        }
-        title={armed ? 'Click again to remove' : `Remove ${label}`}
-        className={cn(
-          'mr-1 shrink-0 rounded-sm p-1 transition-all',
-          armed
-            ? 'bg-status-failed/15 text-status-failed opacity-100'
-            : 'text-text-tertiary opacity-0 hover:text-status-failed focus-visible:opacity-100 group-hover:opacity-100',
-        )}
+        aria-label={`Remove ${label}`}
+        title={`Remove ${label}`}
+        className="mr-1 shrink-0 rounded-sm p-1 text-text-tertiary opacity-0 transition-all hover:text-status-failed focus-visible:opacity-100 group-hover:opacity-100"
       >
         <Trash2 size={12} aria-hidden="true" />
       </button>

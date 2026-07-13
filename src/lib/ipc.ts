@@ -89,14 +89,27 @@ export async function cancelPipeline(pipelineId: string): Promise<void> {
 }
 
 /**
- * Remember a server's SSH password for this session. Kept in the backend's
- * memory only; an empty string forgets it. Never written to disk.
+ * Remember a server's SSH password. Always held in memory for the session;
+ * when save is true it is also written to a private per-machine file. An empty
+ * string forgets it everywhere.
  */
 export async function setSshPassword(
   serverId: string,
   password: string,
+  save: boolean,
 ): Promise<void> {
-  return invoke<void>('set_ssh_password', { serverId, password });
+  return invoke<void>('set_ssh_password', { serverId, password, save });
+}
+
+/** Whether this server already has a password saved on disk. */
+export async function sshPasswordSaved(serverId: string): Promise<boolean> {
+  if (!inTauri()) return false;
+  return invoke<boolean>('ssh_password_saved', { serverId });
+}
+
+/** Fetch a recent log snapshot for a site over SSH. */
+export async function getSiteLogs(siteId: string): Promise<string> {
+  return invoke<string>('get_site_logs', { siteId });
 }
 
 /** Run start/stop/restart for a site over SSH. */

@@ -44,6 +44,13 @@ impl AppState {
     }
 
     pub fn load_config_on_startup(&self) {
+        // Load any passwords the user chose to save last time. These live in a
+        // separate 0600 file so they never touch the shareable config.
+        let saved = load_saved_passwords();
+        if !saved.is_empty() {
+            self.inner.lock().unwrap().ssh_passwords.extend(saved);
+        }
+
         let Some(path) = config_path() else {
             return;
         };
@@ -141,15 +148,32 @@ impl AppState {
         Ok(count)
     }
 
-    /// Remember (or forget, when empty) a server's SSH password for this
-    /// session. Memory only, by design.
-    pub fn set_ssh_password(&self, id: ServerId, password: String) {
-        let mut guard = self.inner.lock().unwrap();
-        if password.is_empty() {
-            guard.ssh_passwords.remove(&id);
-        } else {
-            guard.ssh_passwords.insert(id, password);
+    /// Remember (or forget, when empty) a server's SSH password. Always held
+    /// in memory for the session; when `save` is true it is also written to a
+    /// private 0600 file so it survives a restart. When `save` is false any
+    /// previously saved copy on disk is removed.
+    pub fn set_ssh_password(&self, id: ServerId, password: String, save: bool) {
+        {
+            let mut guard = self.inner.lock().unwrap();
+            if password.is_empty() {
+                guard.ssh_passwords.remove(&id);
+            } else {
+                guard.ssh_passwords.insert(id.clone(), password.clone());
+            }
         }
+        let mut disk = load_saved_passwords();
+        if save && !password.is_empty() {
+            disk.insert(id, password);
+        } else {
+            disk.remove(&id);
+        }
+        save_passwords_to_disk(&disk);
+    }
+
+    /// Whether this server has a password saved on disk (so the UI can show the
+    /// box pre-ticked).
+    pub fn ssh_password_is_saved(&self, id: &ServerId) -> bool {
+        load_saved_passwords().contains_key(id)
     }
 
     pub fn ssh_password(&self, id: &ServerId) -> Option<String> {
@@ -225,6 +249,58 @@ impl Default for AppState {
 pub fn config_path() -> Option<std::path::PathBuf> {
     directories::ProjectDirs::from("dev", "popush", "popush")
         .map(|d| d.config_dir().join("config.toml"))
+}
+
+fn secrets_path() -> Option<std::path::PathBuf> {
+    directories::ProjectDirs::from("dev", "popush", "popush")
+        .map(|d| d.config_dir().join("secrets.json"))
+}
+
+/// Read saved SSH passwords, if any. A missing or unreadable file is simply an
+/// empty set, never an error the user has to see.
+fn load_saved_passwords() -> HashMap<ServerId, String> {
+    let Some(path) = secrets_path() else {
+        return HashMap::new();
+    };
+    let Ok(text) = std::fs::read_to_string(path) else {
+        return HashMap::new();
+    };
+    serde_json::from_str::<HashMap<String, String>>(&text)
+        .map(|m| m.into_iter().map(|(k, v)| (ServerId(k), v)).collect())
+        .unwrap_or_default()
+}
+
+/// Write saved passwords to a 0600 file, or delete it when none remain.
+fn save_passwords_to_disk(map: &HashMap<ServerId, String>) {
+    let Some(path) = secrets_path() else {
+        return;
+    };
+    if map.is_empty() {
+        let _ = std::fs::remove_file(&path);
+        return;
+    }
+    let plain: HashMap<&str, &str> = map
+        .iter()
+        .map(|(k, v)| (k.0.as_str(), v.as_str()))
+        .collect();
+    let Ok(json) = serde_json::to_string_pretty(&plain) else {
+        return;
+    };
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let _ = std::fs::set_permissions(parent, std::fs::Permissions::from_mode(0o700));
+        }
+    }
+    if std::fs::write(&path, json).is_ok() {
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let _ = std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600));
+        }
+    }
 }
 
 pub fn ensure_config_file() -> Result<std::path::PathBuf, popush_core::error::ConfigError> {

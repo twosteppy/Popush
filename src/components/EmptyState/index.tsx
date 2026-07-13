@@ -1,7 +1,17 @@
 import { motion, useReducedMotion } from 'framer-motion';
-import { Wand2, Plus, HelpCircle } from 'lucide-react';
+import { Wand2, Plus, HelpCircle, ChevronRight } from 'lucide-react';
+import type { SiteStatus } from '../../types/generated';
 import { Logo } from '../ui/Logo';
 import { Button } from '../ui/Button';
+import { StatusPill } from '../ui/StatusPill';
+
+/** One site summarised for the overview grid. */
+export interface OverviewSite {
+  id: string;
+  label: string;
+  serverLabel: string;
+  status?: SiteStatus;
+}
 
 interface EmptyStateProps {
   /** True when servers exist but none/no site is selected. */
@@ -10,6 +20,10 @@ interface EmptyStateProps {
   onRunWizard: () => void;
   /** Opens the "What is Popush?" explainer. Optional so callers can omit it. */
   onOpenHelp?: () => void;
+  /** Every known site, shown as an at-a-glance overview when nothing is picked. */
+  overview?: OverviewSite[];
+  /** Open a site from the overview. */
+  onSelectSite?: (id: string) => void;
 }
 
 export function EmptyState({
@@ -17,18 +31,60 @@ export function EmptyState({
   onAddServer,
   onRunWizard,
   onOpenHelp,
+  overview,
+  onSelectSite,
 }: EmptyStateProps) {
   const reduce = useReducedMotion();
 
   if (hasServers) {
+    const sites = overview ?? [];
+    const online = sites.filter((s) => s.status?.state === 'running').length;
     return (
-      <div className="flex h-full items-center justify-center p-8 text-center">
-        <div className="max-w-sm">
-          <p className="text-sm text-text-secondary">
-            Select a site from the sidebar to see its status, git changes, and
-            the Ship It pipeline.
-          </p>
+      <div className="mx-auto flex max-w-3xl flex-col gap-5 p-6">
+        <div className="flex items-baseline justify-between">
+          <h1 className="font-display text-xl font-semibold tracking-tight text-text-primary">
+            Your sites
+          </h1>
+          {sites.length > 0 ? (
+            <span className="label-mono text-[11px] text-text-tertiary">
+              {online} of {sites.length} online
+            </span>
+          ) : null}
         </div>
+
+        {sites.length === 0 ? (
+          <p className="text-sm text-text-secondary">
+            Pick a server in the sidebar, then add a site to deploy it.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            {sites.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => onSelectSite?.(s.id)}
+                className="lift-card group flex items-center justify-between gap-3 rounded-lg border-2 border-border-strong bg-surface-raised p-4 text-left shadow-hard-sm transition-colors hover:border-accent"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-display font-semibold text-text-primary">
+                    {s.label}
+                  </p>
+                  <p className="truncate text-xs text-text-tertiary">
+                    {s.serverLabel}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <StatusPill status={s.status} />
+                  <ChevronRight
+                    size={15}
+                    aria-hidden="true"
+                    className="text-text-tertiary transition-transform group-hover:translate-x-0.5"
+                  />
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     );
   }

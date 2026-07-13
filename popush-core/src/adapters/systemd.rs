@@ -35,6 +35,11 @@ pub fn logs_command(unit: &str) -> RemoteCommand {
     RemoteCommand::new("journalctl -u {} -f -n 200", vec![unit.to_string()])
 }
 
+/// A one-shot log tail that returns instead of following.
+pub fn logs_snapshot_command(unit: &str) -> RemoteCommand {
+    RemoteCommand::new("journalctl -u {} -n 200 --no-pager", vec![unit.to_string()])
+}
+
 pub fn parse_status(output: &str) -> Result<SiteStatus, AdapterError> {
     let mut active_state = None;
     let mut sub_state = None;
