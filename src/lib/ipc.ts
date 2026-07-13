@@ -101,6 +101,14 @@ export async function addServer(server: ServerConfig): Promise<void> {
   return invoke<void>('add_server', { server });
 }
 
+/** Add a site to an existing server in config.toml. */
+export async function addSite(
+  serverId: string,
+  site: SiteConfig,
+): Promise<void> {
+  return invoke<void>('add_site', { serverId, site });
+}
+
 /** Remove a server from config.toml by id. */
 export async function removeServer(serverId: string): Promise<void> {
   return invoke<void>('remove_server', { serverId });

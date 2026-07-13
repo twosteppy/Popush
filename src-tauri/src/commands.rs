@@ -122,6 +122,15 @@ pub async fn add_server(state: State<'_, AppState>, server: ServerConfig) -> Res
 }
 
 #[tauri::command]
+pub async fn add_site(
+    state: State<'_, AppState>,
+    server_id: ServerId,
+    site: SiteConfig,
+) -> Result<(), AppError> {
+    state.add_site(&server_id, site).map_err(AppError::Config)
+}
+
+#[tauri::command]
 pub async fn remove_server(
     state: State<'_, AppState>,
     server_id: ServerId,

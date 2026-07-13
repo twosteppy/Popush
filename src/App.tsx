@@ -5,6 +5,7 @@ import { Sidebar } from './components/Sidebar';
 import { LogDrawer } from './components/LogDrawer';
 import { EmptyState } from './components/EmptyState';
 import { AddServerDialog } from './components/AddServerDialog';
+import { AddSiteDialog } from './components/AddSiteDialog';
 import { CommandPalette, type PaletteItem } from './components/CommandPalette';
 import { PageGlow } from './components/ui/PageGlow';
 import { SiteView } from './views/SiteView';
@@ -28,6 +29,7 @@ export function App() {
   const [panel, setPanel] = useState<Panel>('site');
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [addServerOpen, setAddServerOpen] = useState(false);
+  const [addSiteOpen, setAddSiteOpen] = useState(false);
   const [theme, setTheme] = useState<Theme>('system');
   const [pollInterval, setPollInterval] = useState(30);
   const [patDismissed, setPatDismissed] = useState(false);
@@ -188,6 +190,7 @@ export function App() {
           onOpenWizard={() => setPanel('wizard')}
           onOpenHelp={() => setPanel('help')}
           onAddServer={() => setAddServerOpen(true)}
+          onAddSite={() => setAddSiteOpen(true)}
           onSelectSite={() => setPanel('site')}
         />
         {/* The ambient glow sits on the main viewport behind a nested scroll
@@ -217,6 +220,12 @@ export function App() {
       <LogDrawer />
 
       <AddServerDialog open={addServerOpen} onOpenChange={setAddServerOpen} />
+
+      <AddSiteDialog
+        open={addSiteOpen}
+        onOpenChange={setAddSiteOpen}
+        serverId={selectedServerId}
+      />
 
       <CommandPalette
         open={paletteOpen}

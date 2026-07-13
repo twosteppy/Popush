@@ -42,17 +42,17 @@ nested under the server:
 
 ```toml
   [[server.site]]
-  id = "sterling-defence"
-  label = "Sterling Defence"
-  remote_path = "/srv/sterling-defence"
+  id = "acme-store"
+  label = "Acme Store"
+  remote_path = "/srv/acme-store"
   service_type = "docker"                  # docker | systemd | pm2 | static
-  service_name = "sterling-defence"        # compose project, unit, or pm2 app name
+  service_name = "acme-store"        # compose project, unit, or pm2 app name
   build_command = "pnpm install --frozen-lockfile && pnpm build"
   git_remote = "origin"
   git_branch = "main"
-  local_path = "~/dev/sterling-defence"    # local clone, for the git panel
-  live_url = "https://sterlingdefence.co.uk"
-  health_check_url = "https://sterlingdefence.co.uk/api/health"  # optional
+  local_path = "~/dev/acme-store"    # local clone, for the git panel
+  live_url = "https://acme.example.com"
+  health_check_url = "https://acme.example.com/api/health"  # optional
 ```
 
 ## What each field means

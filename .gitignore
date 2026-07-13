@@ -23,3 +23,7 @@ node_modules
 # Local env
 .env
 .env.local
+
+# Never commit a local Popush config (real server details live here).
+/config.toml
+config.local.toml
