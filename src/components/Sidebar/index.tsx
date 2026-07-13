@@ -1,9 +1,11 @@
-import { HelpCircle, Plus, Settings, Wand2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { HelpCircle, Plus, Settings, Trash2, Wand2 } from 'lucide-react';
 import type { Panel } from '../../App';
 import type { SiteConfig, SiteStatus } from '../../types/generated';
 import type { StatusDescriptor } from '../ui/StatusLabel';
 import { useServersStore } from '../../store/servers';
 import { useSitesStore } from '../../store/sites';
+import { removeSite } from '../../lib/ipc';
 import { StatusDot } from '../StatusDot';
 import { Skeleton } from '../ui/Skeleton';
 import { cn } from '../../lib/cn';
@@ -32,13 +34,53 @@ export function Sidebar({
     selectedServerId,
     loading,
     select: selectServer,
+    remove: removeServer,
   } = useServersStore();
   const {
     sitesByServer,
     statusBySite,
     selectedSiteId,
     select: selectSite,
+    refreshSites,
   } = useSitesStore();
+
+  // Two-step remove: the first click arms the row, the second deletes it.
+  const [armedId, setArmedId] = useState<string | null>(null);
+  const disarmTimer = useRef<number | null>(null);
+
+  useEffect(
+    () => () => {
+      if (disarmTimer.current !== null)
+        window.clearTimeout(disarmTimer.current);
+    },
+    [],
+  );
+
+  function arm(id: string) {
+    setArmedId(id);
+    if (disarmTimer.current !== null) window.clearTimeout(disarmTimer.current);
+    disarmTimer.current = window.setTimeout(() => setArmedId(null), 3500);
+  }
+
+  async function handleRemoveServer(serverId: string) {
+    if (armedId !== `server:${serverId}`) {
+      arm(`server:${serverId}`);
+      return;
+    }
+    setArmedId(null);
+    await removeServer(serverId);
+  }
+
+  async function handleRemoveSite(serverId: string, siteId: string) {
+    if (armedId !== `site:${siteId}`) {
+      arm(`site:${siteId}`);
+      return;
+    }
+    setArmedId(null);
+    await removeSite(siteId);
+    if (selectedSiteId === siteId) selectSite(null);
+    await refreshSites(serverId);
+  }
 
   const sites = selectedServerId ? (sitesByServer[selectedServerId] ?? []) : [];
 
@@ -55,12 +97,13 @@ export function Sidebar({
             <EmptyLine>No servers yet</EmptyLine>
           ) : (
             servers.map((server) => (
-              <button
+              <Row
                 key={server.id}
-                type="button"
-                onClick={() => selectServer(server.id)}
-                aria-current={server.id === selectedServerId || undefined}
-                className={rowClass(server.id === selectedServerId)}
+                active={server.id === selectedServerId}
+                armed={armedId === `server:${server.id}`}
+                label={server.label}
+                onSelect={() => selectServer(server.id)}
+                onRemove={() => void handleRemoveServer(server.id)}
               >
                 <StatusDot
                   descriptor={serverDescriptor(
@@ -70,7 +113,7 @@ export function Sidebar({
                   showLabel={false}
                 />
                 <span className="truncate">{server.label}</span>
-              </button>
+              </Row>
             ))
           )}
           <AddButton label="Add server" onClick={onAddServer} />
@@ -91,19 +134,22 @@ export function Sidebar({
               const active =
                 site.id === selectedSiteId && activePanel === 'site';
               return (
-                <button
+                <Row
                   key={site.id}
-                  type="button"
-                  onClick={() => {
+                  active={active}
+                  armed={armedId === `site:${site.id}`}
+                  label={site.label}
+                  onSelect={() => {
                     selectSite(site.id);
                     onSelectSite();
                   }}
-                  aria-current={active || undefined}
-                  className={rowClass(active)}
+                  onRemove={() =>
+                    void handleRemoveSite(selectedServerId as string, site.id)
+                  }
                 >
                   <StatusDot status={status} showLabel={false} />
                   <span className="truncate">{site.label}</span>
-                </button>
+                </Row>
               );
             })
           )}
@@ -171,6 +217,62 @@ function rowClass(active: boolean): string {
     active
       ? 'border-border-strong bg-surface-hover text-text-primary shadow-hard-sm'
       : 'border-transparent text-text-secondary hover:border-border-subtle hover:bg-surface-hover hover:text-text-primary',
+  );
+}
+
+/**
+ * A selectable row with a remove control that only appears on hover. The
+ * trash needs a second click to confirm, so a slip can't delete anything.
+ */
+function Row({
+  active,
+  armed,
+  label,
+  onSelect,
+  onRemove,
+  children,
+}: {
+  active: boolean;
+  armed: boolean;
+  label: string;
+  onSelect: () => void;
+  onRemove: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        'nav-row group flex w-full items-center rounded-sm border text-sm transition-colors',
+        active
+          ? 'border-border-strong bg-surface-hover text-text-primary shadow-hard-sm'
+          : 'border-transparent text-text-secondary hover:border-border-subtle hover:bg-surface-hover hover:text-text-primary',
+      )}
+    >
+      <button
+        type="button"
+        onClick={onSelect}
+        aria-current={active || undefined}
+        className="flex min-w-0 flex-1 items-center gap-2.5 px-2 py-1.5 text-left"
+      >
+        {children}
+      </button>
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={
+          armed ? `Click again to remove ${label}` : `Remove ${label}`
+        }
+        title={armed ? 'Click again to remove' : `Remove ${label}`}
+        className={cn(
+          'mr-1 shrink-0 rounded-sm p-1 transition-all',
+          armed
+            ? 'bg-status-failed/15 text-status-failed opacity-100'
+            : 'text-text-tertiary opacity-0 hover:text-status-failed focus-visible:opacity-100 group-hover:opacity-100',
+        )}
+      >
+        <Trash2 size={12} aria-hidden="true" />
+      </button>
+    </div>
   );
 }
 
