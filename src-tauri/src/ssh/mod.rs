@@ -159,6 +159,12 @@ impl SshPool {
         let mut stderr = Vec::new();
         let mut exit_code = 0i32;
 
+        // Drain the channel to completion. We do NOT break on `Eof`/`Close`: SSH
+        // servers may send `ExitStatus` *after* `Eof` (and sometimes after
+        // `Close`), so breaking early loses the real exit code and reports 0. The
+        // loop ends naturally when `wait()` returns `None`, by which point every
+        // message, including a trailing exit status, has been seen. Verified
+        // against a live sshd: `exit 7` now reports 7, not 0.
         while let Some(msg) = channel.wait().await {
             match msg {
                 ChannelMsg::Data { ref data } => stdout.extend_from_slice(&data[..]),
@@ -167,7 +173,6 @@ impl SshPool {
                     stderr.extend_from_slice(&data[..])
                 }
                 ChannelMsg::ExitStatus { exit_status } => exit_code = exit_status as i32,
-                ChannelMsg::Eof | ChannelMsg::Close => break,
                 _ => {}
             }
         }
