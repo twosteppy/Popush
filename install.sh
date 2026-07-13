@@ -39,11 +39,13 @@ APP_ID="dev.popush.Popush"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DO_DEPS=1
 DO_DESKTOP=1
+DO_BUNDLE=0
 
 for arg in "$@"; do
   case "$arg" in
     --no-deps)    DO_DEPS=0 ;;
     --no-desktop) DO_DESKTOP=0 ;;
+    --bundle)     DO_BUNDLE=1 ;;
     --help|-h)
       cat <<'HELP'
 Popush installer, one command from a fresh clone to a launchable Popush icon.
@@ -56,6 +58,7 @@ application launcher and Desktop. It never touches ~/.ssh or your servers.
 Flags:
   --no-deps     Skip installing system packages (assume they are present).
   --no-desktop  Build only; do not create launcher/desktop entries.
+  --bundle      Also build the AppImage and RPM (needs linuxdeploy and FUSE).
   --help        Show this help.
 HELP
       exit 0 ;;
@@ -120,13 +123,14 @@ cargo run -q -p popush-core --example generate_types >/dev/null || die "Type gen
 ok "Types generated"
 
 step "Building Popush (this takes a few minutes the first time)"
-# A full build also bundles an AppImage and RPM, which needs extra tooling that
-# is not always present. For a desktop icon the binary alone is enough, so if the
-# full bundle fails, fall back to building just the binary and launch that.
-if pnpm tauri build; then
+# A local desktop install only needs the app binary. Skip the AppImage/RPM
+# bundling, which needs extra tooling (linuxdeploy, FUSE) that is not always
+# available. Pass --bundle to also build those. Distribution packages are built
+# by CI, not here.
+if [[ "$DO_BUNDLE" -eq 1 ]]; then
+  pnpm tauri build || die "Build failed. If it is a Rust error, copy it and open an issue."
   ok "Build complete"
 else
-  warn "Bundle step failed; building just the app binary instead."
   pnpm tauri build --no-bundle || die "Build failed. If it is a Rust error, copy it and open an issue."
   ok "Binary built"
 fi
