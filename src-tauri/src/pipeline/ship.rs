@@ -184,7 +184,7 @@ fn run_push(ctx: &ShipContext<'_>) -> Result<String, UserMessage> {
 
 async fn run_pull(ctx: &ShipContext<'_>, remote_path: &str) -> Result<String, UserMessage> {
     let cmd = popush_core::ssh::RemoteCommand::new(
-        "cd {} && git pull --ff-only",
+        "cd -- {} && git pull --ff-only",
         vec![remote_path.to_string()],
     );
     let out = exec_streaming(ctx, Step::Pull, cmd).await?;
@@ -213,7 +213,7 @@ async fn run_build(ctx: &ShipContext<'_>, remote_path: &str) -> Result<String, U
     // command with the path escaped. The build text itself is intentionally
     // executed as the user asked (see the honest weakness note).
     let cmd = popush_core::ssh::RemoteCommand::new(
-        "cd {} && sh -c {}",
+        "cd -- {} && sh -c {}",
         vec![remote_path.to_string(), build],
     );
     let out = exec_streaming(ctx, Step::Build, cmd).await?;
@@ -302,7 +302,7 @@ async fn exec_streaming(
 
 async fn capture_remote_sha(ctx: &ShipContext<'_>, remote_path: &str) -> Option<String> {
     let cmd = popush_core::ssh::RemoteCommand::new(
-        "cd {} && git rev-parse --short HEAD",
+        "cd -- {} && git rev-parse --short HEAD",
         vec![remote_path.to_string()],
     );
     let out = ctx.pool.exec(cmd).await.ok()?;
@@ -317,9 +317,17 @@ fn rollback_offer_for(remote_path: &str, sha: &Option<String>) -> Option<UserMes
     sha.as_ref().map(|s| rollback_offer(remote_path, s))
 }
 
-/// An HTTP `HEAD` to the health check URL, returning the status code.
+/// An HTTP `HEAD` to the health check URL, returning the status code. The URL
+/// comes from user config and can point anywhere, so the client caps connect and
+/// total time to stop a slow or stalling endpoint from hanging the pipeline, and
+/// carries no credentials.
 async fn http_head_status(url: &str) -> Option<u16> {
-    let resp = reqwest::Client::new().head(url).send().await.ok()?;
+    let client = reqwest::Client::builder()
+        .connect_timeout(std::time::Duration::from_secs(10))
+        .timeout(std::time::Duration::from_secs(15))
+        .build()
+        .ok()?;
+    let resp = client.head(url).send().await.ok()?;
     Some(resp.status().as_u16())
 }
 

@@ -11,6 +11,10 @@
         { "path": "$CONFIG/popush/**" },
         { "path": "$HOME/.config/popush/**" }
       ]
+    },
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [{ "url": "https://*" }, { "url": "http://*" }]
     }
   ]
 }

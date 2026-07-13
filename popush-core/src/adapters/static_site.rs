@@ -27,7 +27,7 @@ pub fn capabilities(has_health_check: bool) -> Capabilities {
 /// and is non-empty. This alone never earns green.
 pub fn presence_command(web_root: &str) -> RemoteCommand {
     RemoteCommand::new(
-        "test -d {} && ls -1 {} | head -1",
+        "test -d {} && ls -1 -- {} | head -1",
         vec![web_root.to_string(), web_root.to_string()],
     )
 }

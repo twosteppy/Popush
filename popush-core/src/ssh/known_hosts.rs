@@ -57,6 +57,19 @@ pub fn parse(contents: &str) -> Vec<KnownHost> {
     out
 }
 
+/// The `known_hosts` lookup key for a connection, matching OpenSSH exactly: the
+/// bare host on the default port 22, and the bracketed `[host]:port` form on any
+/// other port. Callers must verify with this key (not the bare host) so a pin
+/// made for one port is never reused to trust a *different* service on another
+/// port of the same host.
+pub fn lookup_key(host: &str, port: u16) -> String {
+    if port == 22 {
+        host.to_string()
+    } else {
+        format!("[{host}]:{port}")
+    }
+}
+
 /// Normalise a host pattern to the form the verifier compares against. OpenSSH
 /// writes a non-default port as `[host]:port`; the verifier is given the bare host
 /// for the default port and the bracketed form otherwise, so we keep the string as
@@ -138,5 +151,21 @@ mod tests {
         let entries = parse("brokenline\ngood ssh-ed25519 AAAA");
         assert_eq!(entries.len(), 1);
         assert_eq!(entries[0].host, "good");
+    }
+
+    #[test]
+    fn lookup_key_matches_openssh_port_form() {
+        assert_eq!(lookup_key("example.com", 22), "example.com");
+        assert_eq!(lookup_key("example.com", 2222), "[example.com]:2222");
+        assert_eq!(lookup_key("203.0.113.10", 22), "203.0.113.10");
+    }
+
+    #[test]
+    fn a_port_22_pin_does_not_match_another_port() {
+        // Entry stored for the default port must not verify a connection to a
+        // different port of the same host.
+        let entries = parse("example.com ssh-ed25519 AAAA");
+        let key_for_2222 = lookup_key("example.com", 2222);
+        assert!(!entries.iter().any(|e| e.host == key_for_2222));
     }
 }

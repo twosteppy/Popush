@@ -34,9 +34,14 @@ pub fn run() {
         .with_writer(logging::RedactingMakeWriter)
         .init();
 
+    // The default panic hook writes straight to raw stderr, bypassing the log
+    // redactor. Route panic messages through the same redactor so a panic can
+    // never print key material or a token.
+    std::panic::set_hook(Box::new(|info| {
+        eprintln!("{}", popush_core::redact::redact_line(&info.to_string()));
+    }));
+
     tauri::Builder::default()
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_opener::init())
         .manage(state::AppState::new())
         .setup(|app| {

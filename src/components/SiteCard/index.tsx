@@ -5,6 +5,8 @@
 import { ExternalLink, GitBranch } from 'lucide-react';
 import type { SiteConfig, SiteStatus } from '../../types/generated';
 import { StatusPill } from '../ui/StatusPill';
+import { isSafeHttpUrl } from '../../lib/url';
+import { openUrl } from '../../lib/ipc';
 
 interface SiteCardProps {
   site: SiteConfig;
@@ -40,16 +42,18 @@ export function SiteCard({
           <h1 className="truncate font-display text-xl font-semibold tracking-tight text-text-primary">
             {site.label}
           </h1>
-          {site.live_url ? (
-            <a
-              href={site.live_url}
-              className="mt-1 inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent-hover"
-              target="_blank"
-              rel="noreferrer"
+          {isSafeHttpUrl(site.live_url) ? (
+            // Open in the system browser via the opener plugin, never by
+            // navigating the app webview. Only http(s) URLs are rendered as a
+            // link; anything else falls through to "No public URL".
+            <button
+              type="button"
+              onClick={() => void openUrl(site.live_url as string)}
+              className="mt-1 inline-flex max-w-full items-center gap-1.5 truncate text-sm text-accent hover:text-accent-hover"
             >
-              {site.live_url}
-              <ExternalLink size={13} aria-hidden="true" />
-            </a>
+              <span className="truncate">{site.live_url}</span>
+              <ExternalLink size={13} aria-hidden="true" className="shrink-0" />
+            </button>
           ) : (
             <span className="mt-1 block text-sm text-text-tertiary">
               No public URL

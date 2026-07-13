@@ -94,17 +94,25 @@ fn classify_local_remote(repo_path: &Path) -> CheckStatus {
 /// the URL is set structurally, not string-spliced.
 pub fn apply_fix(fix: &Fix, repo_path: Option<&Path>) -> Result<(), String> {
     match fix {
-        Fix::ConvertRemote { preview } => {
+        Fix::ConvertRemote { .. } => {
             let repo_path = repo_path.ok_or("no local repository for remote conversion")?;
-            // The preview command is `git remote set-url <name> <new-url>`; take the
-            // final token as the new URL and set it via git2.
-            let new_url = preview
-                .command
-                .split_whitespace()
-                .last()
-                .ok_or("malformed conversion preview")?;
             let repo = git2::Repository::open(repo_path).map_err(|e| e.to_string())?;
-            repo.remote_set_url("origin", new_url)
+            // Recompute the new URL from the repository's OWN current `origin`,
+            // ignoring any URL carried in the (frontend-supplied) preview. This
+            // prevents a caller from repointing `origin` at an arbitrary host via
+            // a crafted fix payload: we only ever convert this repo's real HTTPS
+            // origin to its SSH equivalent, and refuse anything else.
+            let current = repo
+                .find_remote("origin")
+                .ok()
+                .and_then(|r| r.url().map(str::to_string))
+                .ok_or("repository has no origin remote to convert")?;
+            if classify_remote(&current) != RemoteKind::Https {
+                return Err("origin is not an HTTPS remote; nothing to convert".into());
+            }
+            let new_url = popush_core::git::remote::https_to_ssh(&current)
+                .ok_or("could not convert the origin URL to SSH")?;
+            repo.remote_set_url("origin", &new_url)
                 .map_err(|e| e.to_string())
         }
         // Key generation is applied by the caller via a previewed `ssh-keygen`

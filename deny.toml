@@ -5,6 +5,12 @@
 [advisories]
 version = 2
 yanked = "deny"
+# RUSTSEC-2023-0071: the Marvin timing side-channel in the `rsa` crate. It is
+# pulled in transitively by russh-keys and there is no fixed release of `rsa`
+# 0.9.x. Popush is an SSH *client* doing signatures/KEX, not an oracle-exposed
+# RSA decryption service, so the practical exposure is minimal; tracked here
+# until russh-keys drops the dependency or a patched `rsa` ships.
+ignore = ["RUSTSEC-2023-0071"]
 
 [bans]
 multiple-versions = "warn"

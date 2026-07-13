@@ -360,6 +360,10 @@ branch: string, } | { "code": "https_remote",
 /**
  * The HTTPS remote URL.
  */
+url: string, } | { "code": "non_ssh_remote", 
+/**
+ * The rejected remote URL.
+ */
 url: string, } | { "code": "push_rejected_non_fast_forward" } | { "code": "push_rejected_permission" } | { "code": "operation", 
 /**
  * The underlying libgit2 detail.

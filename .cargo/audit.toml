@@ -1,0 +1,10 @@
+# cargo-audit configuration (also read by rustsec/audit-check in CI).
+#
+# RUSTSEC-2023-0071 (the "Marvin" timing side-channel in the `rsa` crate) is
+# pulled in transitively by russh-keys, and there is no fixed release of `rsa`
+# 0.9.x. Popush is an SSH client performing signatures/KEX, not an
+# oracle-exposed RSA decryption service, so practical exposure is minimal. This
+# ignore is mirrored in deny.toml and should be removed once russh-keys drops
+# the dependency or a patched `rsa` ships.
+[advisories]
+ignore = ["RUSTSEC-2023-0071"]
