@@ -35,20 +35,29 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Build AppImage and RPM via Tauri
         run: pnpm tauri build
+      - name: Collect packages and publish checksums
+        run: |
+          mkdir -p dist
+          cp src-tauri/target/release/bundle/appimage/*.AppImage dist/ 2>/dev/null || true
+          cp src-tauri/target/release/bundle/rpm/*.rpm dist/ 2>/dev/null || true
+          cd dist
+          # SHA256SUMS lists bare filenames so the one-command installer can
+          # verify the AppImage it downloads.
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: popush-linux-packages
-          path: |
-            src-tauri/target/release/bundle/appimage/*.AppImage
-            src-tauri/target/release/bundle/rpm/*.rpm
+          path: dist/*
       - name: Attach packages to the GitHub Release (on tag)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            src-tauri/target/release/bundle/appimage/*.AppImage
-            src-tauri/target/release/bundle/rpm/*.rpm
+            dist/*.AppImage
+            dist/*.rpm
+            dist/SHA256SUMS
           body: |
             Popush — Your VPS, one click away. Built by twostep.
 

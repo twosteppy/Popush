@@ -4,10 +4,9 @@
 // config.toml or run the setup wizard.
 
 import { motion, useReducedMotion } from 'framer-motion';
-import { FolderOpen, Wand2, Plus, HelpCircle } from 'lucide-react';
+import { Wand2, Plus, HelpCircle } from 'lucide-react';
 import { Logo } from '../ui/Logo';
 import { Button } from '../ui/Button';
-import { configFilePath, openPath } from '../../lib/ipc';
 
 interface EmptyStateProps {
   /** True when servers exist but none/no site is selected. */
@@ -25,11 +24,6 @@ export function EmptyState({
   onOpenHelp,
 }: EmptyStateProps) {
   const reduce = useReducedMotion();
-
-  async function openConfig() {
-    const path = await configFilePath();
-    if (path) await openPath(path);
-  }
 
   if (hasServers) {
     return (
@@ -82,14 +76,6 @@ export function EmptyState({
         ) : null}
 
         <div className="mt-6 flex flex-col items-center gap-2 text-xs text-text-tertiary">
-          <button
-            type="button"
-            onClick={() => void openConfig()}
-            className="inline-flex items-center gap-1.5 rounded-sm px-2 py-1 hover:text-text-secondary"
-          >
-            <FolderOpen size={13} aria-hidden="true" />
-            Prefer TOML? Open your config file
-          </button>
           <button
             type="button"
             onClick={onRunWizard}
