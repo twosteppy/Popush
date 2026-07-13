@@ -93,6 +93,13 @@ export function App() {
     if (!isAnyModalOpen()) setPaletteOpen(true);
   };
 
+  // The header logo returns to the home screen: clear any selected site and drop
+  // back to the default panel, which renders the EmptyState hero.
+  const goHome = () => {
+    selectSite(null);
+    setPanel('site');
+  };
+
   const sites = selectedServerId ? (sitesByServer[selectedServerId] ?? []) : [];
   const selectedSite = sites.find((s) => s.id === selectedSiteId) ?? null;
 
@@ -193,7 +200,7 @@ export function App() {
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-surface-base text-text-primary">
-      <AppHeader onOpenPalette={openPalette} />
+      <AppHeader onOpenPalette={openPalette} onHome={goHome} />
       <div className="flex min-h-0 flex-1">
         <Sidebar
           activePanel={panel}

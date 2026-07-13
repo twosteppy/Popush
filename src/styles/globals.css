@@ -121,6 +121,33 @@ body {
 }
 
 /*
+ * The clickable home logo. On hover the mark lifts a pixel and gains a soft pink
+ * glow while the wordmark warms toward the accent; pressing it drops the mark
+ * back down so the motion stays tactile. Reduced-motion keeps the colour warmth
+ * and glow but drops the movement (handled by the global reduce block).
+ */
+.logo-button .logo-mark {
+  transition:
+    transform 150ms ease-out,
+    filter 150ms ease-out;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .logo-button:hover .logo-mark {
+    transform: translateY(-1px);
+  }
+  .logo-button:active .logo-mark {
+    transform: translateY(1px);
+    transition-duration: 0ms;
+  }
+}
+.logo-button:hover .logo-mark {
+  filter: drop-shadow(0 0 6px var(--accent-muted));
+}
+.logo-button:hover .logo-word {
+  color: var(--accent);
+}
+
+/*
  * List rows (sidebar entries) get a pink accent bar on the left edge on hover,
  * and a persistent one when selected.
  */
