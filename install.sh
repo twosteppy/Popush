@@ -120,8 +120,16 @@ cargo run -q -p popush-core --example generate_types >/dev/null || die "Type gen
 ok "Types generated"
 
 step "Building Popush (this takes a few minutes the first time)"
-pnpm tauri build || die "Build failed. If it is a Rust error, copy it and open an issue."
-ok "Build complete"
+# A full build also bundles an AppImage and RPM, which needs extra tooling that
+# is not always present. For a desktop icon the binary alone is enough, so if the
+# full bundle fails, fall back to building just the binary and launch that.
+if pnpm tauri build; then
+  ok "Build complete"
+else
+  warn "Bundle step failed; building just the app binary instead."
+  pnpm tauri build --no-bundle || die "Build failed. If it is a Rust error, copy it and open an issue."
+  ok "Binary built"
+fi
 
 # ---------------------------------------------------------------------------
 # 3. Locate the built artifacts
@@ -204,10 +212,13 @@ have gtk-update-icon-cache && gtk-update-icon-cache -f -t "$HOME/.local/share/ic
 # A double-clickable shortcut on the Desktop (KDE/Freedesktop).
 DESKTOP_HOME="$(xdg-user-dir DESKTOP 2>/dev/null || echo "$HOME/Desktop")"
 if [[ -d "$DESKTOP_HOME" ]]; then
-  install -m 0755 "$DESKTOP_FILE" "$DESKTOP_HOME/${APP_ID}.desktop"
-  # KDE Plasma shows the icon (not a script warning) once the file is trusted.
-  if have kioclient5; then kioclient5 exec "$DESKTOP_HOME/${APP_ID}.desktop" >/dev/null 2>&1 || true; fi
-  if have gio; then gio set "$DESKTOP_HOME/${APP_ID}.desktop" metadata::trusted true >/dev/null 2>&1 || true; fi
+  DESKTOP_SHORTCUT="$DESKTOP_HOME/${APP_ID}.desktop"
+  install -m 0755 "$DESKTOP_FILE" "$DESKTOP_SHORTCUT"
+  chmod +x "$DESKTOP_SHORTCUT"
+  # Mark it trusted so the desktop shows the Popush icon instead of a script
+  # warning. On KDE Plasma you may still need to right-click the icon once and
+  # choose "Allow Launching" the first time.
+  have gio && gio set "$DESKTOP_SHORTCUT" metadata::trusted true >/dev/null 2>&1 || true
   ok "Placed a Popush shortcut on your Desktop"
 else
   info "No Desktop folder found; skipped the desktop shortcut (it is still in your app launcher)."
