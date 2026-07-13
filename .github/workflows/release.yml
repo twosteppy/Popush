@@ -38,8 +38,10 @@ jobs:
       - name: Collect packages and publish checksums
         run: |
           mkdir -p dist
-          cp src-tauri/target/release/bundle/appimage/*.AppImage dist/ 2>/dev/null || true
-          cp src-tauri/target/release/bundle/rpm/*.rpm dist/ 2>/dev/null || true
+          # Cargo places workspace artifacts under <repo>/target; probe both
+          # that and the non-workspace src-tauri/target layout.
+          find target/release/bundle src-tauri/target/release/bundle \
+            \( -name '*.AppImage' -o -name '*.rpm' \) -exec cp {} dist/ \; 2>/dev/null || true
           cd dist
           # SHA256SUMS lists bare filenames so the one-command installer can
           # verify the AppImage it downloads.
