@@ -20,7 +20,7 @@ pub fn capabilities() -> Capabilities {
 /// `docker compose ps --format json` in the site directory.
 pub fn status_command(remote_path: &str) -> RemoteCommand {
     RemoteCommand::new(
-        "cd {} && docker compose ps --format json",
+        "cd -- {} && docker compose ps --format json",
         vec![remote_path.to_string()],
     )
 }
@@ -28,7 +28,7 @@ pub fn status_command(remote_path: &str) -> RemoteCommand {
 /// `docker compose up -d`.
 pub fn start_command(remote_path: &str) -> RemoteCommand {
     RemoteCommand::new(
-        "cd {} && docker compose up -d",
+        "cd -- {} && docker compose up -d",
         vec![remote_path.to_string()],
     )
 }
@@ -36,7 +36,7 @@ pub fn start_command(remote_path: &str) -> RemoteCommand {
 /// `docker compose down`.
 pub fn stop_command(remote_path: &str) -> RemoteCommand {
     RemoteCommand::new(
-        "cd {} && docker compose down",
+        "cd -- {} && docker compose down",
         vec![remote_path.to_string()],
     )
 }
@@ -44,7 +44,7 @@ pub fn stop_command(remote_path: &str) -> RemoteCommand {
 /// `docker compose restart`.
 pub fn restart_command(remote_path: &str) -> RemoteCommand {
     RemoteCommand::new(
-        "cd {} && docker compose restart",
+        "cd -- {} && docker compose restart",
         vec![remote_path.to_string()],
     )
 }
@@ -52,7 +52,7 @@ pub fn restart_command(remote_path: &str) -> RemoteCommand {
 /// `docker compose logs -f --tail=200`.
 pub fn logs_command(remote_path: &str) -> RemoteCommand {
     RemoteCommand::new(
-        "cd {} && docker compose logs -f --tail=200",
+        "cd -- {} && docker compose logs -f --tail=200",
         vec![remote_path.to_string()],
     )
 }
@@ -243,6 +243,6 @@ mod tests {
     fn commands_escape_the_path() {
         let c = status_command("/srv/a b; rm -rf /");
         // The dangerous path is a single quoted word; `rm` never runs.
-        assert!(c.render().starts_with("cd '/srv/a b; rm -rf /'"));
+        assert!(c.render().starts_with("cd -- '/srv/a b; rm -rf /'"));
     }
 }

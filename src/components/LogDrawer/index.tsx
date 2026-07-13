@@ -14,6 +14,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { ChevronUp, ChevronDown, TerminalSquare } from 'lucide-react';
 import 'xterm/css/xterm.css';
 import { usePipelineStore } from '../../store/pipeline';
+import { sanitizeTerminalOutput } from '../../lib/ansi';
 import { Spinner } from '../ui/Spinner';
 
 /** Read a design token value from the document root. */
@@ -107,7 +108,7 @@ export function LogDrawer() {
     const term = instanceRef.current;
     if (!term) return;
     for (let i = writtenRef.current; i < lines.length; i++) {
-      term.write(`${lines[i]}\r\n`);
+      term.write(`${sanitizeTerminalOutput(lines[i] ?? '')}\r\n`);
     }
     writtenRef.current = lines.length;
     fitRef.current?.fit();

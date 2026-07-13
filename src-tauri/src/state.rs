@@ -10,6 +10,10 @@ use popush_core::ids::{PipelineId, ServerId, SiteId};
 
 use crate::ssh::SshPool;
 
+/// Upper bound on retained command-log entries. The log is in-memory only, but a
+/// long-lived session doing many deploys should not grow it without limit.
+const MAX_COMMAND_LOG: usize = 5000;
+
 /// The single source of truth for the running app, guarded for concurrent access.
 pub struct AppState {
     inner: Mutex<Inner>,
@@ -117,9 +121,16 @@ impl AppState {
         Ok(removed)
     }
 
-    /// Append an entry to the command log.
+    /// Append an entry to the command log, keeping only the most recent
+    /// [`MAX_COMMAND_LOG`] entries so a long-lived session cannot grow it without
+    /// bound.
     pub fn record_command(&self, entry: CommandLogEntry) {
-        self.inner.lock().unwrap().command_log.push(entry);
+        let mut guard = self.inner.lock().unwrap();
+        guard.command_log.push(entry);
+        let len = guard.command_log.len();
+        if len > MAX_COMMAND_LOG {
+            guard.command_log.drain(..len - MAX_COMMAND_LOG);
+        }
     }
 
     /// The full command log, newest last.
@@ -200,9 +211,24 @@ fn write_config_file(toml: &str) -> Result<(), popush_core::error::ConfigError> 
                 detail: e.to_string(),
             }
         })?;
+        // Restrict the config directory to the owner. The file holds no secrets,
+        // but host addresses, usernames, and paths are nobody else's business on
+        // a shared machine.
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let _ = std::fs::set_permissions(parent, std::fs::Permissions::from_mode(0o700));
+        }
     }
     std::fs::write(&path, toml).map_err(|e| popush_core::error::ConfigError::Unreadable {
-        path,
+        path: path.clone(),
         detail: e.to_string(),
-    })
+    })?;
+    // Owner-only permissions on the file itself.
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600));
+    }
+    Ok(())
 }

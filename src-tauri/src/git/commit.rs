@@ -69,9 +69,15 @@ pub fn push(repo_path: &Path, remote_name: &str, branch: &str) -> Result<(), Git
     let repo = open(repo_path)?;
     let mut remote = repo.find_remote(remote_name).map_err(op)?;
 
+    // Push over SSH only. An HTTPS remote routes to the wizard; anything else
+    // (git://, file://, a bare local path, an ext:: helper) is refused outright
+    // rather than pushed to. This is an allow-list, not a single HTTPS block, so
+    // the "SSH only" invariant actually holds.
     let url = remote.url().unwrap_or_default().to_string();
-    if classify_remote(&url) == RemoteKind::Https {
-        return Err(GitError::HttpsRemote { url });
+    match classify_remote(&url) {
+        RemoteKind::Ssh => {}
+        RemoteKind::Https => return Err(GitError::HttpsRemote { url }),
+        RemoteKind::Other => return Err(GitError::NonSshRemote { url }),
     }
 
     // The server's per-reference rejection message arrives in a callback that

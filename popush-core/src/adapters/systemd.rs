@@ -21,25 +21,28 @@ pub fn capabilities() -> Capabilities {
 /// `systemctl show <unit> --property=...`. `show` is chosen over `status` because
 /// its `key=value` output is stable and machine-parseable.
 pub fn status_command(unit: &str) -> RemoteCommand {
+    // `--` ends options so a unit name can never be read as a flag (in addition
+    // to config validation rejecting a leading `-`). Popush's own `--property`
+    // flag stays before the separator.
     RemoteCommand::new(
-        "systemctl show {} --property=ActiveState,SubState,ActiveEnterTimestamp",
+        "systemctl show --property=ActiveState,SubState,ActiveEnterTimestamp -- {}",
         vec![unit.to_string()],
     )
 }
 
-/// `sudo systemctl start <unit>`.
+/// `sudo systemctl start -- <unit>`.
 pub fn start_command(unit: &str) -> RemoteCommand {
-    RemoteCommand::new("sudo systemctl start {}", vec![unit.to_string()])
+    RemoteCommand::new("sudo systemctl start -- {}", vec![unit.to_string()])
 }
 
-/// `sudo systemctl stop <unit>`.
+/// `sudo systemctl stop -- <unit>`.
 pub fn stop_command(unit: &str) -> RemoteCommand {
-    RemoteCommand::new("sudo systemctl stop {}", vec![unit.to_string()])
+    RemoteCommand::new("sudo systemctl stop -- {}", vec![unit.to_string()])
 }
 
-/// `sudo systemctl restart <unit>`.
+/// `sudo systemctl restart -- <unit>`.
 pub fn restart_command(unit: &str) -> RemoteCommand {
-    RemoteCommand::new("sudo systemctl restart {}", vec![unit.to_string()])
+    RemoteCommand::new("sudo systemctl restart -- {}", vec![unit.to_string()])
 }
 
 /// `journalctl -u <unit> -f -n 200`.
@@ -147,6 +150,6 @@ mod tests {
     #[test]
     fn start_command_escapes_unit() {
         let c = start_command("web; rm -rf /");
-        assert_eq!(c.render(), "sudo systemctl start 'web; rm -rf /'");
+        assert_eq!(c.render(), "sudo systemctl start -- 'web; rm -rf /'");
     }
 }

@@ -186,6 +186,14 @@ pub enum GitError {
         /// The HTTPS remote URL.
         url: String,
     },
+    /// The remote is neither SSH nor HTTPS (e.g. `git://`, a local path, or an
+    /// `ext::` helper). Popush only ever pushes over SSH, so anything else is
+    /// refused rather than trusted.
+    #[error("remote {url} is not an SSH remote")]
+    NonSshRemote {
+        /// The rejected remote URL.
+        url: String,
+    },
     /// A push was rejected as non-fast-forward.
     #[error("push rejected: non-fast-forward")]
     PushRejectedNonFastForward,
@@ -409,6 +417,13 @@ impl GitError {
                 next_action: NextAction::OpenFlow {
                     flow: "wizard".into(),
                     label: format!("Convert {url} to SSH in the wizard"),
+                },
+            },
+            GitError::NonSshRemote { url } => UserMessage {
+                headline: format!("The remote `{url}` is not an SSH remote."),
+                consequence: "Popush only pushes over SSH, so it will not push to this remote.".into(),
+                next_action: NextAction::Advice {
+                    text: "Point origin at an SSH remote (git@host:owner/repo.git), then try again.".into(),
                 },
             },
             GitError::PushRejectedNonFastForward => UserMessage {

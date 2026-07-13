@@ -15,6 +15,7 @@ import type {
   ServiceKind,
 } from '../../types/generated';
 import { useServersStore } from '../../store/servers';
+import { isSafeHttpUrl } from '../../lib/url';
 import { Dialog } from '../ui/Dialog';
 import { Button } from '../ui/Button';
 import { Spinner } from '../ui/Spinner';
@@ -93,6 +94,10 @@ function validateSite(f: SiteForm): SiteErrors {
   const e: SiteErrors = {};
   if (!f.label.trim()) e.label = 'Give this site a name.';
   if (!f.remotePath.trim()) e.remotePath = 'Remote path is required.';
+  if (f.liveUrl.trim() && !isSafeHttpUrl(f.liveUrl.trim()))
+    e.liveUrl = 'Must be an http:// or https:// URL.';
+  if (f.healthCheckUrl.trim() && !isSafeHttpUrl(f.healthCheckUrl.trim()))
+    e.healthCheckUrl = 'Must be an http:// or https:// URL.';
   return e;
 }
 
@@ -523,13 +528,20 @@ export function AddServerDialog({ open, onOpenChange }: AddServerDialogProps) {
                   </Field>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <Field label="Live URL" htmlFor="site-url" optional>
+                    <Field
+                      label="Live URL"
+                      htmlFor="site-url"
+                      optional
+                      error={siteErrors.liveUrl}
+                    >
                       <TextInput
                         id="site-url"
                         value={site.liveUrl}
+                        invalid={Boolean(siteErrors.liveUrl)}
                         onChange={(e) =>
                           setSite({ ...site, liveUrl: e.target.value })
                         }
+                        onBlur={() => blurSite('liveUrl')}
                         placeholder="https://example.com"
                       />
                     </Field>
@@ -537,13 +549,16 @@ export function AddServerDialog({ open, onOpenChange }: AddServerDialogProps) {
                       label="Health check URL"
                       htmlFor="site-health"
                       optional
+                      error={siteErrors.healthCheckUrl}
                     >
                       <TextInput
                         id="site-health"
                         value={site.healthCheckUrl}
+                        invalid={Boolean(siteErrors.healthCheckUrl)}
                         onChange={(e) =>
                           setSite({ ...site, healthCheckUrl: e.target.value })
                         }
+                        onBlur={() => blurSite('healthCheckUrl')}
                         placeholder="https://example.com/health"
                       />
                     </Field>

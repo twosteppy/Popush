@@ -131,6 +131,16 @@ export async function openPath(path: string): Promise<void> {
   return invoke<void>('plugin:opener|open_path', { path });
 }
 
+/**
+ * Open an external URL in the system browser (never in the app webview) via the
+ * tauri-opener plugin. The backend capability only permits http(s), and callers
+ * should pre-validate with isSafeHttpUrl. No-ops outside Tauri.
+ */
+export async function openUrl(url: string): Promise<void> {
+  if (!inTauri()) return;
+  return invoke<void>('plugin:opener|open_url', { url });
+}
+
 export async function runWizardCheck(
   serverId: string,
   siteId: string,
