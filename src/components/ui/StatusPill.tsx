@@ -24,7 +24,7 @@ export function StatusPill({
     descriptor ??
     (status
       ? describeSiteStatus(status)
-      : { token: 'unknown', label: 'Unknown' });
+      : { token: 'working', label: 'Checking' });
   const color = statusColor(desc.token);
   const isWorking = desc.token === 'working';
 

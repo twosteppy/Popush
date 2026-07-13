@@ -1,5 +1,7 @@
 import { HelpCircle, Plus, Settings, Wand2 } from 'lucide-react';
 import type { Panel } from '../../App';
+import type { SiteConfig, SiteStatus } from '../../types/generated';
+import type { StatusDescriptor } from '../ui/StatusLabel';
 import { useServersStore } from '../../store/servers';
 import { useSitesStore } from '../../store/sites';
 import { StatusDot } from '../StatusDot';
@@ -61,7 +63,10 @@ export function Sidebar({
                 className={rowClass(server.id === selectedServerId)}
               >
                 <StatusDot
-                  descriptor={{ token: 'unknown', label: server.label }}
+                  descriptor={serverDescriptor(
+                    sitesByServer[server.id] ?? [],
+                    statusBySite,
+                  )}
                   showLabel={false}
                 />
                 <span className="truncate">{server.label}</span>
@@ -139,6 +144,25 @@ export function Sidebar({
       </div>
     </nav>
   );
+}
+
+/**
+ * A server's dot follows its sites: green while anything on it is online,
+ * red when everything is down, pulsing until the first check lands.
+ */
+function serverDescriptor(
+  sites: SiteConfig[],
+  statusBySite: Record<string, SiteStatus>,
+): StatusDescriptor {
+  const known = sites
+    .map((site) => statusBySite[site.id])
+    .filter((s): s is SiteStatus => Boolean(s));
+  if (sites.length === 0 || known.length === 0) {
+    return { token: 'working', label: 'Checking' };
+  }
+  return known.some((s) => s.state === 'running')
+    ? { token: 'running', label: 'Online' }
+    : { token: 'failed', label: 'Offline' };
 }
 
 function rowClass(active: boolean): string {

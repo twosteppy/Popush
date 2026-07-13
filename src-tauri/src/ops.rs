@@ -112,22 +112,44 @@ pub async fn connect_site(
     Ok((pool, site, service))
 }
 
-/// Live status for a site. Any failure degrades to Unknown with the reason, so
-/// the UI shows an amber dot and a message rather than erroring out.
+/// Live status for a site, reduced to online or offline.
+///
+/// The public URL is the source of truth: if the site answers over HTTP it is
+/// online, otherwise it is offline. A broken certificate counts as offline,
+/// because that is what a visitor sees. Sites without a URL fall back to
+/// asking the service manager over SSH.
 pub async fn site_status(state: &AppState, site_id: &SiteId) -> SiteStatus {
-    let (pool, site, service) = match connect_site(state, site_id).await {
-        Ok(v) => v,
-        Err(e) => {
-            return SiteStatus::Unknown {
-                reason: e.to_string(),
-            }
+    let Some((_, site)) = find_server_and_site(state, site_id) else {
+        return SiteStatus::Stopped;
+    };
+    if let Some(url) = site.live_url.as_deref() {
+        if url.starts_with("https://") || url.starts_with("http://") {
+            return http_status(url).await;
         }
+    }
+    let Ok((pool, site, service)) = connect_site(state, site_id).await else {
+        return SiteStatus::Stopped;
     };
     match crate::adapters::status(&pool, &service, &site.remote_path.to_string_lossy()).await {
-        Ok(s) => s,
-        Err(e) => SiteStatus::Unknown {
-            reason: e.to_string(),
-        },
+        Ok(SiteStatus::Running { since }) => SiteStatus::Running { since },
+        _ => SiteStatus::Stopped,
+    }
+}
+
+async fn http_status(url: &str) -> SiteStatus {
+    let Ok(client) = reqwest::Client::builder()
+        .connect_timeout(std::time::Duration::from_secs(6))
+        .timeout(std::time::Duration::from_secs(10))
+        .user_agent(concat!("Popush/", env!("CARGO_PKG_VERSION")))
+        .build()
+    else {
+        return SiteStatus::Stopped;
+    };
+    match client.get(url).send().await {
+        // Any answer below 500 means the site is up and serving; a 5xx means
+        // it is reachable but broken, which a visitor experiences as down.
+        Ok(resp) if resp.status().as_u16() < 500 => SiteStatus::Running { since: None },
+        _ => SiteStatus::Stopped,
     }
 }
 

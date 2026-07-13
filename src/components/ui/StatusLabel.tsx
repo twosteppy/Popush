@@ -23,18 +23,18 @@ export function statusColor(token: StatusToken): string {
   return COLOR_VAR[token];
 }
 
-/** Describe a SiteStatus for rendering. */
+/**
+ * Describe a SiteStatus for rendering. Sites resolve to exactly two resting
+ * states: green Online or red Offline. The pulsing Checking state only shows
+ * while the first check is in flight.
+ */
 export function describeSiteStatus(status: SiteStatus): StatusDescriptor {
   switch (status.state) {
     case 'running':
-      return { token: 'running', label: 'Running' };
-    case 'stopped':
-      return { token: 'stopped', label: 'Stopped' };
-    case 'failed':
-      return { token: 'failed', label: 'Failed' };
+      return { token: 'running', label: 'Online' };
     case 'checking':
       return { token: 'working', label: 'Checking' };
-    case 'unknown':
-      return { token: 'unknown', label: 'Unknown' };
+    default:
+      return { token: 'failed', label: 'Offline' };
   }
 }

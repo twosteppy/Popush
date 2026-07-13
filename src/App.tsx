@@ -42,6 +42,7 @@ export function App() {
     sitesByServer,
     selectedSiteId,
     refreshSites,
+    refreshAllStatuses,
     select: selectSite,
   } = useSitesStore();
   const { toggleDrawer } = usePipelineStore();
@@ -54,8 +55,19 @@ export function App() {
   }, [refresh]);
 
   useEffect(() => {
-    if (selectedServerId) void refreshSites(selectedServerId);
-  }, [selectedServerId, refreshSites]);
+    for (const server of servers) void refreshSites(server.id);
+  }, [servers, refreshSites]);
+
+  // Keep every dot live: check all sites now and on the poll interval.
+  useEffect(() => {
+    void refreshAllStatuses();
+    const seconds = Math.max(10, pollInterval);
+    const id = window.setInterval(
+      () => void refreshAllStatuses(),
+      seconds * 1000,
+    );
+    return () => window.clearInterval(id);
+  }, [sitesByServer, pollInterval, refreshAllStatuses]);
 
   useEffect(() => {
     const el = document.documentElement;

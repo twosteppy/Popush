@@ -24,7 +24,7 @@ export function StatusDot({
     descriptor ??
     (status
       ? describeSiteStatus(status)
-      : { token: 'unknown', label: 'Unknown' });
+      : { token: 'working', label: 'Checking' });
 
   const isWorking = desc.token === 'working';
 
