@@ -25,6 +25,7 @@ import { useServersStore } from './store/servers';
 import { useSitesStore } from './store/sites';
 import { usePipelineStore } from './store/pipeline';
 import { usePipelineEvents } from './hooks/usePipelineEvents';
+import { isAnyModalOpen, nextPaletteOpen } from './store/modals';
 import type { Theme } from './types/generated';
 
 export type Panel = 'site' | 'settings' | 'about' | 'help' | 'log' | 'wizard';
@@ -70,11 +71,17 @@ export function App() {
   }, [theme]);
 
   // Global keyboard shortcuts: Ctrl+K palette, Ctrl+` drawer.
+  //
+  // Fix 1: only one modal is ever open at a time. Ctrl+K may close the palette
+  // if it is the open modal, but it must NOT open the palette while any other
+  // dialog (Add Server, a wizard dialog, any Radix Dialog) is open. Those
+  // dialogs register their open state in the modal store; Escape still closes
+  // the single open modal via Radix.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.ctrlKey && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        setPaletteOpen((o) => !o);
+        setPaletteOpen((open) => nextPaletteOpen(open, isAnyModalOpen()));
       } else if (e.ctrlKey && e.key === '`') {
         e.preventDefault();
         toggleDrawer();
@@ -83,6 +90,12 @@ export function App() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [toggleDrawer]);
+
+  // Opening the palette also respects the single-modal rule: if a dialog is
+  // already open, the palette stays closed (Fix 1).
+  const openPalette = () => {
+    if (!isAnyModalOpen()) setPaletteOpen(true);
+  };
 
   const sites = selectedServerId ? (sitesByServer[selectedServerId] ?? []) : [];
   const selectedSite = sites.find((s) => s.id === selectedSiteId) ?? null;
@@ -184,7 +197,7 @@ export function App() {
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-surface-base text-text-primary">
-      <AppHeader onOpenPalette={() => setPaletteOpen(true)} />
+      <AppHeader onOpenPalette={openPalette} />
       <div className="flex min-h-0 flex-1">
         <Sidebar
           activePanel={panel}
@@ -194,20 +207,28 @@ export function App() {
           onAddServer={() => setAddServerOpen(true)}
           onSelectSite={() => setPanel('site')}
         />
-        <main className="min-w-0 flex-1 overflow-y-auto">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={contentKey}
-              initial={reduce ? false : { opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={reduce ? undefined : { opacity: 0, y: -4 }}
-              transition={{ duration: 0.16, ease: 'easeOut' }}
-              className="relative isolate h-full"
-            >
-              <PageGlow placement={glowPlacement} />
-              <div className="relative z-10 h-full">{content}</div>
-            </motion.div>
-          </AnimatePresence>
+        {/* Fix 2: the ambient glow sits on the main viewport as a fixed layer
+         * BEHIND a nested scroll region, so it never scrolls and can never
+         * reveal a hard bottom edge on tall views (Help, Settings). The scroll
+         * container is an absolute inset-0 child with a definite height, so the
+         * inner view keeps its h-full centring while long content scrolls over
+         * the static glow. */}
+        <main className="relative min-w-0 flex-1 overflow-hidden">
+          <PageGlow placement={glowPlacement} />
+          <div className="absolute inset-0 z-10 overflow-y-auto">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={contentKey}
+                initial={reduce ? false : { opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={reduce ? undefined : { opacity: 0, y: -4 }}
+                transition={{ duration: 0.16, ease: 'easeOut' }}
+                className="h-full"
+              >
+                {content}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </main>
       </div>
 

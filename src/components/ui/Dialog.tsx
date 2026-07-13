@@ -11,8 +11,10 @@
 
 import * as RadixDialog from '@radix-ui/react-dialog';
 import { motion, useReducedMotion } from 'framer-motion';
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
+import { X } from 'lucide-react';
 import { cn } from '../../lib/cn';
+import { useModalStore } from '../../store/modals';
 
 interface DialogProps {
   open: boolean;
@@ -41,6 +43,16 @@ export function Dialog({
 }: DialogProps) {
   const reduce = useReducedMotion();
 
+  // Fix 1: register this dialog as an open modal while it is open, so global
+  // shortcuts (Ctrl+K) can enforce a single modal at a time. Decrements on
+  // close or unmount.
+  useEffect(() => {
+    if (!open) return;
+    const { register, unregister } = useModalStore.getState();
+    register();
+    return unregister;
+  }, [open]);
+
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
       <RadixDialog.Portal>
@@ -68,14 +80,26 @@ export function Dialog({
               initial={reduce ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.16, ease: 'easeOut' }}
-              className="flex max-h-[calc(100vh-4rem)] flex-col overflow-hidden rounded-lg border-2 border-border-strong bg-surface-overlay shadow-hard focus:outline-none"
+              className="relative flex max-h-[calc(100vh-4rem)] flex-col overflow-hidden rounded-lg border-2 border-border-strong bg-surface-overlay shadow-hard focus:outline-none"
             >
+              {/* Themed close control (top-right). Closes via the same path as
+               * Escape. Positioned clear of the title, which reserves right
+               * padding below so text never runs under the button. */}
+              <RadixDialog.Close asChild>
+                <button
+                  type="button"
+                  aria-label="Close"
+                  className="pressable absolute right-3 top-3 z-10 inline-flex h-7 w-7 items-center justify-center rounded-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                >
+                  <X size={16} aria-hidden="true" />
+                </button>
+              </RadixDialog.Close>
               <div className="flex-1 overflow-y-auto p-5">
                 <RadixDialog.Title
                   className={
                     hideTitle
                       ? 'sr-only'
-                      : 'font-display text-sm font-semibold uppercase tracking-wide text-text-primary'
+                      : 'pr-9 font-display text-sm font-semibold uppercase tracking-wide text-text-primary'
                   }
                 >
                   {title}

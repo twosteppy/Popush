@@ -77,9 +77,14 @@ function PipelineStep({
   const { step, state, output } = entry;
   const label = STEP_LABEL[step];
   const failed = state.state === 'failed';
+  const running = state.state === 'running';
 
   return (
-    <li className="rounded-md px-2 py-1.5">
+    <li
+      className={`rounded-md px-2 py-1.5 ${
+        running ? 'bg-accent-muted/40' : ''
+      }`}
+    >
       <div className="flex items-center gap-2">
         <StepIcon state={state} />
         <span
@@ -91,6 +96,14 @@ function PipelineStep({
         >
           {label}
         </span>
+        {running ? (
+          <span
+            aria-hidden="true"
+            className="relative ml-2 h-1 flex-1 overflow-hidden rounded-full bg-surface-hover"
+          >
+            <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-accent to-transparent motion-safe:animate-shimmer" />
+          </span>
+        ) : null}
         {state.state === 'ok' ? (
           <span className="ml-auto font-mono text-xs text-text-tertiary">
             {state.summary}

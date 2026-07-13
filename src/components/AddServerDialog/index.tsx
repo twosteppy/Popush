@@ -19,6 +19,7 @@ import type {
 import { useServersStore } from '../../store/servers';
 import { Dialog } from '../ui/Dialog';
 import { Button } from '../ui/Button';
+import { Spinner } from '../ui/Spinner';
 import { Field, TextInput, SelectInput, NumberField } from '../ui/Field';
 import { slugId } from '../../lib/slug';
 
@@ -224,7 +225,14 @@ export function AddServerDialog({ open, onOpenChange }: AddServerDialogProps) {
           disabled={submitting}
           disabledReason={submitting ? 'Saving…' : undefined}
         >
-          {submitting ? 'Saving…' : 'Add server'}
+          {submitting ? (
+            <>
+              <Spinner size={14} className="text-text-inverse" />
+              Saving…
+            </>
+          ) : (
+            'Add server'
+          )}
         </Button>
       </>
     );

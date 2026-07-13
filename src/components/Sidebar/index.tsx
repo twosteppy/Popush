@@ -9,6 +9,7 @@ import type { Panel } from '../../App';
 import { useServersStore } from '../../store/servers';
 import { useSitesStore } from '../../store/sites';
 import { StatusDot } from '../StatusDot';
+import { Skeleton } from '../ui/Skeleton';
 import { cn } from '../../lib/cn';
 
 interface SidebarProps {
@@ -28,7 +29,12 @@ export function Sidebar({
   onAddServer,
   onSelectSite,
 }: SidebarProps) {
-  const { servers, selectedServerId, select: selectServer } = useServersStore();
+  const {
+    servers,
+    selectedServerId,
+    loading,
+    select: selectServer,
+  } = useServersStore();
   const {
     sitesByServer,
     statusBySite,
@@ -57,7 +63,9 @@ export function Sidebar({
             </button>
           }
         >
-          {servers.length === 0 ? (
+          {loading && servers.length === 0 ? (
+            <ListSkeleton rows={3} />
+          ) : servers.length === 0 ? (
             <EmptyLine>No servers yet</EmptyLine>
           ) : (
             servers.map((server) => (
@@ -79,7 +87,9 @@ export function Sidebar({
         </Section>
 
         <Section title="Sites">
-          {sites.length === 0 ? (
+          {loading && servers.length === 0 ? (
+            <ListSkeleton rows={2} />
+          ) : sites.length === 0 ? (
             <EmptyLine>
               {selectedServerId
                 ? 'No sites on this server'
@@ -176,4 +186,18 @@ function Section({
 
 function EmptyLine({ children }: { children: React.ReactNode }) {
   return <p className="px-2 py-1 text-xs text-text-tertiary">{children}</p>;
+}
+
+/** Placeholder rows shown while the sidebar list hydrates from the backend. */
+function ListSkeleton({ rows }: { rows: number }) {
+  return (
+    <div className="flex flex-col gap-1 px-2 py-1" aria-hidden="true">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="flex items-center gap-2.5">
+          <Skeleton className="h-2 w-2 rounded-full" />
+          <Skeleton className="h-3 flex-1" />
+        </div>
+      ))}
+    </div>
+  );
 }
