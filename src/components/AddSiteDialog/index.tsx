@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { SiteConfig, ServiceKind } from '../../types/generated';
 import { useSitesStore } from '../../store/sites';
 import { isSafeHttpUrl } from '../../lib/url';
@@ -13,6 +13,24 @@ interface AddSiteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   serverId: string | null;
+  /** When set, the dialog edits this site in place instead of adding one. */
+  editSite?: SiteConfig | null;
+}
+
+/** Fill the form from an existing site so it can be edited. */
+function formFromSite(s: SiteConfig): SiteForm {
+  return {
+    label: s.label,
+    remotePath: String(s.remote_path ?? ''),
+    serviceType: s.service_type,
+    serviceName: s.service_name ?? '',
+    buildCommand: s.build_command ?? '',
+    gitRemote: s.git_remote,
+    gitBranch: s.git_branch,
+    localPath: s.local_path ? String(s.local_path) : '',
+    liveUrl: s.live_url ?? '',
+    healthCheckUrl: s.health_check_url ?? '',
+  };
 }
 
 interface SiteForm {
@@ -66,12 +84,24 @@ export function AddSiteDialog({
   open,
   onOpenChange,
   serverId,
+  editSite,
 }: AddSiteDialogProps) {
   const refreshSites = useSitesStore((s) => s.refreshSites);
   const [site, setSite] = useState<SiteForm>(EMPTY);
   const [errors, setErrors] = useState<SiteErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const isEdit = Boolean(editSite);
+
+  // Prefill from the site being edited each time the dialog opens.
+  useEffect(() => {
+    if (open) {
+      setSite(editSite ? formFromSite(editSite) : EMPTY);
+      setErrors({});
+      setSubmitError(null);
+    }
+  }, [open, editSite]);
 
   function close(next: boolean) {
     onOpenChange(next);
@@ -95,7 +125,8 @@ export function AddSiteDialog({
 
     const isStatic = site.serviceType === 'static';
     const config: SiteConfig = {
-      id: slugId(site.label, 'site'),
+      // Keep the same id when editing so the backend updates in place.
+      id: editSite?.id ?? slugId(site.label, 'site'),
       label: site.label.trim(),
       remote_path: site.remotePath.trim(),
       service_type: site.serviceType,
@@ -140,6 +171,8 @@ export function AddSiteDialog({
             <Spinner size={14} className="text-text-inverse" />
             Saving…
           </>
+        ) : isEdit ? (
+          'Save changes'
         ) : (
           'Add site'
         )}
@@ -151,7 +184,7 @@ export function AddSiteDialog({
     <Dialog
       open={open}
       onOpenChange={close}
-      title="Add a site"
+      title={isEdit ? 'Edit site' : 'Add a site'}
       size="lg"
       footer={footer}
     >
