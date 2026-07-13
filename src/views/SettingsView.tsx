@@ -1,4 +1,4 @@
-// SettingsView — calm, titled sections/cards: Appearance (theme), Polling
+// SettingsView - calm, titled sections/cards: Appearance (theme), Polling
 // (interval), and GitHub (ONE dismissible, never-repeated suggestion about the
 // optional PAT). Generous spacing, labels above controls (§20).
 //
@@ -38,7 +38,7 @@ export function SettingsView({
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 p-6">
       <header>
-        <h1 className="text-xl font-semibold tracking-tight text-text-primary">
+        <h1 className="font-display text-xl font-semibold tracking-tight text-text-primary">
           Settings
         </h1>
         <p className="mt-1 text-sm text-text-secondary">
@@ -123,8 +123,8 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg border border-border-subtle bg-surface-raised p-5">
-      <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-text-primary">
+    <section className="rounded-lg border-2 border-border-strong bg-surface-raised p-5 shadow-hard-sm">
+      <h2 className="label-mono mb-4 flex items-center gap-2 text-xs font-semibold text-text-primary">
         <span className="text-text-tertiary">{icon}</span>
         {title}
       </h2>

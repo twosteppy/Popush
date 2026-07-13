@@ -1,4 +1,4 @@
-// StatusPill — a status shown as a coloured dot + a WORD, wrapped in a subtle
+// StatusPill - a status shown as a coloured dot + a WORD, wrapped in a subtle
 // tinted chip (§20: colour is never the only signal, so the label always
 // renders). The in-progress ("working") dot pulses, disabled under
 // prefers-reduced-motion by the global rule and the motion-safe: gate.
@@ -39,8 +39,8 @@ export function StatusPill({
     <span
       role="status"
       className={cn(
-        'inline-flex items-center gap-2 rounded-full border font-medium',
-        size === 'md' ? 'px-3 py-1 text-sm' : 'px-2.5 py-0.5 text-xs',
+        'label-mono inline-flex items-center gap-2 rounded-sm border font-medium',
+        size === 'md' ? 'px-2.5 py-1 text-[11px]' : 'px-2 py-0.5 text-[10px]',
         className,
       )}
       style={{

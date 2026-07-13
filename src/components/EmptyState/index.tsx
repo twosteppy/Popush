@@ -1,14 +1,14 @@
-// EmptyState — the first-run onboarding hero (highest-priority). When there
+// EmptyState - the first-run onboarding hero (highest-priority). When there
 // are no servers it presents the Popush mark, a tagline, one honest line about
 // what the app does, and a large primary CTA that opens the Add Server dialog.
 // Secondary muted affordances let power users open the raw config.toml or run
 // the setup wizard.
 //
-// D14: no logic here — it dispatches intents (open dialog, open the config
+// D14: no logic here - it dispatches intents (open dialog, open the config
 // file via the ipc opener wrapper).
 
 import { motion, useReducedMotion } from 'framer-motion';
-import { FolderOpen, Wand2, Plus } from 'lucide-react';
+import { FolderOpen, Wand2, Plus, HelpCircle } from 'lucide-react';
 import { Logo } from '../ui/Logo';
 import { Button } from '../ui/Button';
 import { configFilePath, openPath } from '../../lib/ipc';
@@ -18,12 +18,15 @@ interface EmptyStateProps {
   hasServers: boolean;
   onAddServer: () => void;
   onRunWizard: () => void;
+  /** Opens the "What is Popush?" explainer. Optional so callers can omit it. */
+  onOpenHelp?: () => void;
 }
 
 export function EmptyState({
   hasServers,
   onAddServer,
   onRunWizard,
+  onOpenHelp,
 }: EmptyStateProps) {
   const reduce = useReducedMotion();
 
@@ -54,11 +57,11 @@ export function EmptyState({
         className="flex w-full max-w-md flex-col items-center text-center"
       >
         <Logo size={44} />
-        <h1 className="mt-6 text-2xl font-semibold tracking-tight text-text-primary">
+        <h1 className="mt-6 font-display text-2xl font-semibold tracking-tight text-text-primary">
           Your VPS, one click away.
         </h1>
         <p className="mt-2 max-w-sm text-sm leading-relaxed text-text-secondary">
-          Popush deploys your sites straight from this machine over SSH — no
+          Popush deploys your sites straight from this machine over SSH. No
           account, no Popush server, nothing leaves your computer.
         </p>
 
@@ -71,11 +74,22 @@ export function EmptyState({
           Add your first server
         </Button>
 
+        {onOpenHelp ? (
+          <button
+            type="button"
+            onClick={onOpenHelp}
+            className="pressable mt-5 inline-flex items-center gap-1.5 rounded-sm border border-border-strong px-3 py-1.5 text-xs text-text-secondary shadow-hard-sm hover:bg-surface-hover hover:text-text-primary"
+          >
+            <HelpCircle size={13} aria-hidden="true" />
+            New here? See how Popush works
+          </button>
+        ) : null}
+
         <div className="mt-6 flex flex-col items-center gap-2 text-xs text-text-tertiary">
           <button
             type="button"
             onClick={() => void openConfig()}
-            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 hover:text-text-secondary"
+            className="inline-flex items-center gap-1.5 rounded-sm px-2 py-1 hover:text-text-secondary"
           >
             <FolderOpen size={13} aria-hidden="true" />
             Prefer TOML? Open your config file
@@ -83,7 +97,7 @@ export function EmptyState({
           <button
             type="button"
             onClick={onRunWizard}
-            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 hover:text-text-secondary"
+            className="inline-flex items-center gap-1.5 rounded-sm px-2 py-1 hover:text-text-secondary"
           >
             <Wand2 size={13} aria-hidden="true" />
             Run the setup wizard

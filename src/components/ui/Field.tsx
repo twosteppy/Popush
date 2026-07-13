@@ -14,7 +14,7 @@ import {
 import { cn } from '../../lib/cn';
 
 const CONTROL =
-  'h-[34px] w-full rounded-md border bg-surface-base px-2.5 text-sm text-text-primary placeholder:text-text-tertiary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent';
+  'h-[34px] w-full rounded-sm border bg-surface-base px-2.5 text-sm text-text-primary placeholder:text-text-tertiary transition-colors focus:border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent';
 
 interface FieldProps {
   label: string;
@@ -44,12 +44,14 @@ export function Field({
       <div className="flex items-baseline justify-between gap-2">
         <label
           htmlFor={htmlFor}
-          className="text-xs font-medium text-text-secondary"
+          className="label-mono text-[11px] font-medium text-text-secondary"
         >
           {label}
         </label>
         {optional ? (
-          <span className="text-[11px] text-text-tertiary">Optional</span>
+          <span className="label-mono text-[10px] text-text-tertiary">
+            Optional
+          </span>
         ) : null}
       </div>
       {children}

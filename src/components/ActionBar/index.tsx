@@ -1,4 +1,4 @@
-// ActionBar — Ship It (primary), Restart, Stop, Logs.
+// ActionBar - Ship It (primary), Restart, Stop, Logs.
 //
 // Capability-driven (D14 + adapter capabilities): buttons the adapter does not
 // support are NOT rendered at all (never disable-and-fail). Buttons that do

@@ -27,7 +27,7 @@
   src: url('./fonts/JetBrainsMono-Variable.woff2') format('woff2');
 }
 
-/* §20: respect the system font size — size the root in a relative-friendly way. */
+/* §20: respect the system font size - size the root in a relative-friendly way. */
 html {
   font-size: 100%;
 }
@@ -40,6 +40,53 @@ body {
   font-size: 0.875rem;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * Barely-there scanline / dither texture on the app background. Pure CSS, no
+ * asset, ~3% contrast so it reads as a subtle instrument-panel surface rather
+ * than a gimmick. It is static (not animated); prefers-reduced-motion drops it
+ * entirely below for users who want a flat surface.
+ */
+#root {
+  min-height: 100vh;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(127, 127, 140, 0.035) 0px,
+    rgba(127, 127, 140, 0.035) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/*
+ * Retro display treatment. Section labels, status pills and button captions
+ * opt in to the monospace face with a touch of tracking; body copy stays Inter.
+ */
+.font-display {
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+.label-mono {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/*
+ * Satisfying, instant button press: the element nudges into its own hard
+ * shadow so the offset visually collapses. Kept out of the eased transition so
+ * it feels crisp, not springy.
+ */
+.pressable {
+  transition:
+    background-color 150ms ease-out,
+    color 150ms ease-out,
+    border-color 150ms ease-out;
+}
+.pressable:active:not(:disabled) {
+  transform: translate(1px, 1px);
 }
 
 /* §20: visible focus rings everywhere; never outline:none without a replacement. */
@@ -58,5 +105,12 @@ body {
   *::after {
     animation: none !important;
     transition: none !important;
+  }
+  /* Drop the background texture and the press nudge entirely. */
+  #root {
+    background-image: none;
+  }
+  .pressable:active:not(:disabled) {
+    transform: none;
   }
 }

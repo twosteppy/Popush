@@ -1,4 +1,4 @@
-// CommandLogView — the D8 "what did this app do to my server" record. A
+// CommandLogView - the D8 "what did this app do to my server" record. A
 // read-only, chronological list of every command Popush sent, with the exact
 // command text shown monospaced.
 //
@@ -31,7 +31,9 @@ export function CommandLogView() {
   return (
     <div className="flex flex-col gap-4 p-6">
       <div>
-        <h1 className="text-lg font-semibold text-text-primary">Command log</h1>
+        <h1 className="font-display text-lg font-semibold text-text-primary">
+          Command log
+        </h1>
         <p className="mt-1 max-w-prose text-sm text-text-secondary">
           Every command Popush has run on your servers, exactly as sent.
         </p>
@@ -42,9 +44,9 @@ export function CommandLogView() {
           No commands have been run yet.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-raised">
+        <div className="overflow-x-auto rounded-lg border-2 border-border-strong bg-surface-raised shadow-hard-sm">
           <table className="w-full text-left text-xs">
-            <thead className="text-text-tertiary">
+            <thead className="label-mono text-[10px] text-text-tertiary">
               <tr className="border-b border-border-subtle">
                 <th className="px-3 py-2 font-medium">Time</th>
                 <th className="px-3 py-2 font-medium">Server</th>
@@ -78,7 +80,7 @@ export function CommandLogView() {
                             : 'text-status-failed'
                       }
                     >
-                      {entry.exit_code === null ? '—' : entry.exit_code}
+                      {entry.exit_code === null ? '-' : entry.exit_code}
                     </span>
                   </td>
                   <td className="whitespace-nowrap px-3 py-2 font-mono text-text-tertiary">

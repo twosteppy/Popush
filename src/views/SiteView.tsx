@@ -1,4 +1,4 @@
-// SiteView — composes SiteCard + ActionBar + GitPanel + Pipeline for the
+// SiteView - composes SiteCard + ActionBar + GitPanel + Pipeline for the
 // selected site.
 //
 // D14: this view wires stores to presentational components and dispatches
@@ -100,7 +100,7 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <section className="flex flex-col gap-2">
-          <h2 className="px-1 text-xs font-semibold uppercase tracking-wider text-text-tertiary">
+          <h2 className="label-mono px-1 text-[11px] font-semibold text-text-tertiary">
             Changes
           </h2>
           <GitPanel
@@ -113,7 +113,7 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
         </section>
         <section className="flex flex-col gap-2">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">
+            <h2 className="label-mono text-[11px] font-semibold text-text-tertiary">
               Ship It pipeline
             </h2>
             {busy && pipelineId ? (
@@ -126,11 +126,11 @@ export function SiteView({ serverId, site, capabilities }: SiteViewProps) {
               </Button>
             ) : null}
           </div>
-          <div className="rounded-lg border border-border-subtle bg-surface-raised p-4">
+          <div className="rounded-lg border-2 border-border-strong bg-surface-raised p-4 shadow-hard-sm">
             {steps.length === 0 ? (
               <p className="text-sm text-text-tertiary">
                 Press <span className="text-text-secondary">Ship It</span> to
-                commit, push, build, and restart — each step streamed live.
+                commit, push, build, and restart. Each step streams live.
               </p>
             ) : (
               <Pipeline />

@@ -21,7 +21,7 @@ export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
           <RadixTooltip.Content
             side={side}
             sideOffset={6}
-            className="z-50 max-w-xs rounded-md border border-border-strong bg-surface-overlay px-2 py-1 text-xs text-text-secondary shadow-lg"
+            className="z-50 max-w-xs rounded-sm border border-border-strong bg-surface-overlay px-2 py-1 text-xs text-text-secondary shadow-hard-sm"
           >
             {content}
             <RadixTooltip.Arrow className="fill-surface-overlay" />

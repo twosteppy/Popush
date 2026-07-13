@@ -6,8 +6,8 @@ Vendor the following `.woff2` files into this directory. They are compiled
 into the app bundle at build time and referenced by the local `@font-face`
 rules in `../globals.css`:
 
-- `Inter-Variable.woff2` — **Inter**, licensed under the SIL Open Font License (OFL).
-- `JetBrainsMono-Variable.woff2` — **JetBrains Mono**, licensed under Apache License 2.0.
+- `Inter-Variable.woff2` - **Inter**, licensed under the SIL Open Font License (OFL).
+- `JetBrainsMono-Variable.woff2` - **JetBrains Mono**, licensed under Apache License 2.0.
 
 ## Why not a CDN? (D16)
 
