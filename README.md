@@ -16,7 +16,35 @@ step.
 
 Linux only. Fedora 44 with KDE Plasma is the first-class target.
 
-## Install (one command)
+## Install
+
+Pick whichever feels easiest. All three end the same way: a **Popush** icon in
+your app launcher and on your Desktop. No account, no config files.
+
+### Easiest: one command
+
+Paste this into a terminal and press Enter:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/twosteppy/popush/main/get-popush.sh | bash
+```
+
+It downloads the ready-to-run app (nothing to compile), adds it to your launcher,
+and puts an icon on your Desktop. Then just search your launcher for "Popush" or
+double-click the Desktop icon.
+
+### Or: download and double-click
+
+1. Go to the [**Releases** page](https://github.com/twosteppy/popush/releases/latest).
+2. Download the file ending in **`.AppImage`**.
+3. Right-click it → **Properties** → tick **"Allow executing file as program"**
+   (or run `chmod +x Popush*.AppImage` in a terminal).
+4. Double-click it to run.
+
+Prefer your package manager? On Fedora you can grab the **`.rpm`** from the same
+Releases page and install it with `sudo dnf install ./Popush*.rpm`.
+
+### For developers: build from source
 
 ```sh
 git clone https://github.com/twosteppy/popush.git
@@ -24,17 +52,16 @@ cd popush
 bash install.sh
 ```
 
-That is the whole thing. `install.sh` installs the build prerequisites, builds
-Popush, and adds it to your application launcher **and** puts a double-clickable
-icon on your Desktop, so you never have to remember a command to open it again.
-Search your launcher for "Popush", or double-click the icon on your Desktop.
+`install.sh` installs the build prerequisites, compiles Popush, and does the same
+launcher + Desktop integration. To remove the desktop integration later, run
+`bash uninstall.sh` (your config is left untouched).
 
-It never touches your `~/.ssh` or your servers; it only builds and installs the
-app. To remove the desktop integration later, run `bash uninstall.sh` (your
-config is left untouched).
+---
 
-First run: if you do not have an SSH key yet, create one with
-`ssh-keygen -t ed25519`, then click **Add your first server**, no config files,
+Popush never touches your `~/.ssh` or your servers; it only installs the app.
+
+**First run:** if you do not have an SSH key yet, create one with
+`ssh-keygen -t ed25519`, then click **Add your first server**. No config files,
 no terminal.
 
 ## Screenshots
