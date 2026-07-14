@@ -3,6 +3,8 @@ import { Pencil } from 'lucide-react';
 import type { Capabilities, SiteConfig, ServiceKind } from '../types/generated';
 import { useSitesStore } from '../store/sites';
 import { usePipelineStore } from '../store/pipeline';
+import { useDeployStore } from '../store/deploys';
+import { relativeTime } from '../lib/time';
 import { SiteCard } from '../components/SiteCard';
 import { ActionBar } from '../components/ActionBar';
 import { GitPanel } from '../components/GitPanel';
@@ -82,6 +84,20 @@ export function SiteView({
   const resetPipeline = usePipelineStore((s) => s.reset);
   const begin = usePipelineStore((s) => s.begin);
   const setPipelineId = usePipelineStore((s) => s.setPipelineId);
+  const lastPushedAt = useDeployStore((s) => s.lastPushedBySite[site.id]);
+  const recordPush = useDeployStore((s) => s.recordPush);
+
+  // Re-render once a minute so the "Last pushed" label stays current.
+  const [nowTick, setNowTick] = useState(0);
+  useEffect(() => {
+    if (!lastPushedAt) return;
+    const t = window.setInterval(() => setNowTick((n) => n + 1), 60_000);
+    return () => window.clearInterval(t);
+  }, [lastPushedAt]);
+  const lastPushedLabel = useMemo(
+    () => (lastPushedAt ? relativeTime(lastPushedAt) : null),
+    [lastPushedAt, nowTick],
+  );
   const setDrawerOpen = usePipelineStore((s) => s.setDrawerOpen);
   const setDirectLog = usePipelineStore((s) => s.setDirectLog);
 
@@ -174,6 +190,7 @@ export function SiteView({
 
   async function shipIt() {
     setActionError(null);
+    recordPush(site.id);
     begin(site.id);
     setDrawerOpen(true);
     try {
@@ -187,7 +204,12 @@ export function SiteView({
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-5 p-6">
-      <SiteCard site={site} status={status} selected />
+      <SiteCard
+        site={site}
+        status={status}
+        selected
+        deployedAt={lastPushedLabel}
+      />
 
       <div className="flex items-center justify-between gap-2">
         <ActionBar

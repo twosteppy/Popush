@@ -1,4 +1,4 @@
-import { ExternalLink, GitBranch } from 'lucide-react';
+import { ExternalLink, GitBranch, Clock } from 'lucide-react';
 import type { SiteConfig, SiteStatus } from '../../types/generated';
 import { StatusPill } from '../ui/StatusPill';
 import { isSafeHttpUrl } from '../../lib/url';
@@ -20,10 +20,6 @@ export function SiteCard({
   deployedAt,
   sha,
 }: SiteCardProps) {
-  const metaParts = [
-    deployedAt ? `Deployed ${deployedAt}` : null,
-    sha ? sha.slice(0, 7) : null,
-  ].filter((p): p is string => Boolean(p));
 
   return (
     <article
@@ -65,11 +61,16 @@ export function SiteCard({
           />
           {site.git_branch}
         </span>
-        {metaParts.map((part) => (
-          <span key={part} className="text-text-tertiary">
-            · {part}
+        {deployedAt ? (
+          <span
+            className="inline-flex items-center gap-1.5 rounded-sm bg-surface-base px-1.5 py-0.5 text-text-tertiary"
+            title="When this site was last pushed from Popush"
+          >
+            <Clock size={11} aria-hidden="true" />
+            Last pushed {deployedAt}
           </span>
-        ))}
+        ) : null}
+        {sha ? <span className="text-text-tertiary">· {sha.slice(0, 7)}</span> : null}
       </div>
     </article>
   );
