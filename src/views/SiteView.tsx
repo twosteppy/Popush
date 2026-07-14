@@ -81,6 +81,7 @@ export function SiteView({
   const finished = usePipelineStore((s) => s.finished);
   const resetPipeline = usePipelineStore((s) => s.reset);
   const begin = usePipelineStore((s) => s.begin);
+  const setPipelineId = usePipelineStore((s) => s.setPipelineId);
   const setDrawerOpen = usePipelineStore((s) => s.setDrawerOpen);
   const setDirectLog = usePipelineStore((s) => s.setDirectLog);
 
@@ -176,7 +177,9 @@ export function SiteView({
     begin(site.id);
     setDrawerOpen(true);
     try {
-      await startDeploy(serverId, site.id, message.trim() || null);
+      // Adopt the real pipeline id the backend used, so Cancel targets this run.
+      const id = await startDeploy(serverId, site.id, message.trim() || null);
+      setPipelineId(id);
     } catch (e) {
       setActionError(describeError(e));
     }

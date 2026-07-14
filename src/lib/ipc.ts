@@ -76,12 +76,13 @@ export async function getSiteStatus(
   return invoke<SiteStatus>('get_site_status', { serverId, siteId });
 }
 
+/** Starts a deploy and returns the pipeline id, so the caller can cancel it. */
 export async function startDeploy(
   serverId: string,
   siteId: string,
   commitMessage: string | null,
-): Promise<void> {
-  return invoke<void>('start_deploy', { serverId, siteId, commitMessage });
+): Promise<string> {
+  return invoke<string>('start_deploy', { serverId, siteId, commitMessage });
 }
 
 export async function cancelPipeline(pipelineId: string): Promise<void> {

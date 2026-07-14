@@ -38,6 +38,8 @@ interface PipelineStore {
 
   /** Begin mirroring a fresh pipeline; clears prior state. */
   begin: (pipelineId: string) => void;
+  /** Adopt the real backend pipeline id once the deploy has started. */
+  setPipelineId: (pipelineId: string) => void;
   /** Seed the steps from an authoritative plan snapshot. */
   plan: (state: PipelineState) => void;
   /** Mark the step at `index` as running. */
@@ -78,6 +80,8 @@ export const usePipelineStore = create<PipelineStore>((set) => ({
   directLines: [],
 
   begin: (pipelineId) => set({ ...EMPTY, pipelineId, directLines: [] }),
+
+  setPipelineId: (pipelineId) => set({ pipelineId }),
 
   plan: (state) =>
     set({

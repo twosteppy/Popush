@@ -136,7 +136,7 @@ pub async fn start_deploy(
     server_id: ServerId,
     site_id: SiteId,
     commit_message: Option<String>,
-) -> Result<(), String> {
+) -> Result<String, String> {
     use tauri::Manager;
     // Connect up front so a bad connection is reported immediately rather than
     // deep inside the pipeline.
@@ -146,6 +146,9 @@ pub async fn start_deploy(
     let local_path = site.local_path.clone().unwrap_or_default();
     let message = commit_message.unwrap_or_default();
     let pipeline_id = PipelineId::new();
+    // Hand the id back to the caller so the UI cancels *this* run rather than
+    // guessing an id the backend never used.
+    let pipeline_id_out = pipeline_id.0.clone();
 
     tauri::async_runtime::spawn(async move {
         let state = app.state::<AppState>();
@@ -163,7 +166,7 @@ pub async fn start_deploy(
         };
         crate::pipeline::run_pipeline(ctx).await;
     });
-    Ok(())
+    Ok(pipeline_id_out)
 }
 
 #[tauri::command]

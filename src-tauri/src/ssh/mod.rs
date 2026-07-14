@@ -314,10 +314,16 @@ impl SshPool {
         let mut stderr_pending = String::new();
 
         loop {
-            // Wake at least every 200ms so cancellation is honoured promptly
-            // even while the remote command is producing no output. `wait` is
-            // cancel-safe (a dropped poll loses no message), so the timeout is
-            // safe to race against it.
+            // Check before every wait so cancellation is honoured immediately,
+            // even while the command is streaming a steady flow of output (a
+            // chatty build would otherwise never reach the timeout branch).
+            // Dropping the channel on return tells the remote to stop.
+            if is_cancelled() {
+                return Ok(None);
+            }
+            // Wake at least every 200ms so cancellation is still honoured while
+            // the command is silent. `wait` is cancel-safe (a dropped poll
+            // loses no message), so the timeout is safe to race against it.
             match tokio::time::timeout(Duration::from_millis(200), channel.wait()).await {
                 Ok(Some(ChannelMsg::Data { ref data })) => {
                     append_capped(&mut stdout, &mut stdout_truncated, &data[..]);
@@ -340,11 +346,8 @@ impl SshPool {
                 Ok(Some(ChannelMsg::ExitStatus { exit_status })) => exit_code = exit_status as i32,
                 Ok(Some(_)) => {}
                 Ok(None) => break,
-                Err(_elapsed) => {
-                    if is_cancelled() {
-                        return Ok(None);
-                    }
-                }
+                // Timed out with no message; loop back to re-check cancellation.
+                Err(_elapsed) => {}
             }
         }
 
