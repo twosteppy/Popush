@@ -28,6 +28,21 @@ pub fn start_command(remote_path: &str) -> RemoteCommand {
     )
 }
 
+/// Command the deploy pipeline uses to bring the stack up after a build.
+///
+/// This is `up -d`, not `restart`, on purpose: `docker compose restart` reuses
+/// the currently-running image, so after `docker compose build` a rebuilt site
+/// would keep serving the OLD code. `up -d` recreates only the containers whose
+/// image or config actually changed (typically just the app container), rolls
+/// out the freshly built image, and applies any changed compose config. It
+/// never removes volumes, so database data is preserved across a deploy.
+pub fn deploy_command(remote_path: &str) -> RemoteCommand {
+    RemoteCommand::new(
+        "cd -- {} && docker compose up -d",
+        vec![remote_path.to_string()],
+    )
+}
+
 pub fn stop_command(remote_path: &str) -> RemoteCommand {
     RemoteCommand::new(
         "cd -- {} && docker compose down",
@@ -230,5 +245,23 @@ mod tests {
     fn commands_escape_the_path() {
         let c = status_command("/srv/a b; rm -rf /");
         assert!(c.render().starts_with("cd -- '/srv/a b; rm -rf /'"));
+    }
+
+    #[test]
+    fn deploy_uses_up_not_restart() {
+        // A deploy must roll out the freshly built image, so it uses `up -d`.
+        // `restart` would keep serving the old image, and must never appear here.
+        let rendered = deploy_command("/srv/site").render();
+        assert!(rendered.contains("docker compose up -d"), "got: {rendered}");
+        assert!(!rendered.contains("restart"), "deploy must not use restart");
+    }
+
+    #[test]
+    fn deploy_never_removes_volumes() {
+        // Guardrail: a deploy must never carry `-v`/`--volumes`, which would
+        // delete database data. This is the failure mode that must never regress.
+        let rendered = deploy_command("/srv/site").render();
+        assert!(!rendered.contains(" -v"), "deploy must never pass -v");
+        assert!(!rendered.contains("--volumes"), "deploy must never pass --volumes");
     }
 }

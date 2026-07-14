@@ -233,7 +233,11 @@ async fn run_verify(ctx: &ShipContext<'_>) -> Result<String, UserMessage> {
 fn restart_command(service: &ServiceConfig, remote_path: &str) -> popush_core::ssh::RemoteCommand {
     use popush_core::adapters::{docker, pm2, systemd};
     match service {
-        ServiceConfig::Docker { .. } => docker::restart_command(remote_path),
+        // Docker deploys use `up -d`, not `restart`: restart would keep serving
+        // the pre-build image. `up -d` rolls out the freshly built image and
+        // never touches volumes, so data is preserved. (The manual restart
+        // button in the adapters layer still uses `docker compose restart`.)
+        ServiceConfig::Docker { .. } => docker::deploy_command(remote_path),
         ServiceConfig::Systemd { unit } => systemd::restart_command(unit),
         ServiceConfig::Pm2 { app_name } => pm2::restart_command(app_name),
         ServiceConfig::Static { .. } => popush_core::ssh::RemoteCommand::literal("true"),
