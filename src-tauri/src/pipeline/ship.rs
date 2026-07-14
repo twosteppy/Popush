@@ -230,14 +230,50 @@ async fn run_verify(ctx: &ShipContext<'_>) -> Result<String, UserMessage> {
     .await
     .map_err(|e| e.user_message())?;
     if let Some(url) = ctx.site.health_check_url.clone() {
-        if let Some(code) = http_head_status(&url).await {
-            if !(200..300).contains(&code) {
-                return Err(failure_message(&FailureKind::VerifyHealthCheck {
-                    code,
-                    logs: String::new(),
-                }));
+        // A just-restarted app often needs time to boot (run migrations, warm
+        // up), so a single immediate ping would report a false failure. Give it
+        // a grace period: poll until it answers healthy, and only fail if it is
+        // still erroring when the window runs out.
+        const ATTEMPTS: u32 = 15;
+        const DELAY: std::time::Duration = std::time::Duration::from_secs(3);
+        let mut last_code = None;
+        for attempt in 1..=ATTEMPTS {
+            if ctx.state.is_cancelled(&ctx.pipeline_id) {
+                return Err(cancelled_marker());
+            }
+            match http_head_status(&url).await {
+                // A response below 400 means the server is up and serving.
+                Some(code) if code < 400 => {
+                    emit_output(
+                        ctx,
+                        Step::Verify,
+                        &format!("site healthy ({code})"),
+                        OutputStream::Stdout,
+                    );
+                    return Ok(format!("healthy ({code})"));
+                }
+                other => {
+                    last_code = other;
+                    let seen = other
+                        .map(|c| c.to_string())
+                        .unwrap_or_else(|| "no response".into());
+                    emit_output(
+                        ctx,
+                        Step::Verify,
+                        &format!("waiting for the site to come up ({seen}) [{attempt}/{ATTEMPTS}]"),
+                        OutputStream::Stdout,
+                    );
+                }
+            }
+            if attempt < ATTEMPTS {
+                tokio::time::sleep(DELAY).await;
             }
         }
+        // Still not healthy after the grace period: a real failure.
+        return Err(failure_message(&FailureKind::VerifyHealthCheck {
+            code: last_code.unwrap_or(0),
+            logs: String::new(),
+        }));
     }
     Ok(format!("{status:?}"))
 }

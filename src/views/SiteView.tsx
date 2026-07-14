@@ -302,7 +302,7 @@ export function SiteView({
                 commit, push, build, and restart. Each step streams live.
               </p>
             ) : (
-              <Pipeline />
+              <Pipeline liveUrl={site.live_url} />
             )}
           </div>
         </section>

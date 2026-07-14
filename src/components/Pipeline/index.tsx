@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { Check as CheckIcon, X, Loader2, Circle, Minus } from 'lucide-react';
+import {
+  Check as CheckIcon,
+  X,
+  Loader2,
+  Circle,
+  Minus,
+  Rocket,
+  ExternalLink,
+} from 'lucide-react';
 import type {
   NextAction,
   Step,
@@ -28,9 +36,10 @@ function announce(steps: PipelineStepView[], finished: boolean): string {
   return '';
 }
 
-export function Pipeline() {
+export function Pipeline({ liveUrl }: { liveUrl?: string | null }) {
   const steps = usePipelineStore((s) => s.steps);
   const finished = usePipelineStore((s) => s.finished);
+  const outcome = usePipelineStore((s) => s.outcome);
   const failure = usePipelineStore((s) => s.failure);
   const rollback = usePipelineStore((s) => s.rollback);
 
@@ -46,8 +55,49 @@ export function Pipeline() {
         ))}
       </ol>
 
+      {finished && outcome === 'ok' ? (
+        <ShippedMessage liveUrl={liveUrl} />
+      ) : null}
       {finished && failure ? <FailureMessage message={failure} /> : null}
       {finished && rollback ? <RollbackOffer message={rollback} /> : null}
+    </div>
+  );
+}
+
+/** The celebratory confirmation shown when every step passed and the site is
+ * live. Mirrors the failure card, but in the success theme. */
+function ShippedMessage({ liveUrl }: { liveUrl?: string | null }) {
+  const safe =
+    liveUrl && /^https?:\/\//.test(liveUrl) ? liveUrl : null;
+  const host = safe ? safe.replace(/^https?:\/\//, '').replace(/\/$/, '') : null;
+  return (
+    <div
+      role="status"
+      className="mt-3 flex items-center gap-3 rounded-sm border-2 border-status-running/60 bg-status-running/10 p-3 shadow-hard-sm"
+    >
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-status-running/15 text-status-running">
+        <Rocket size={18} aria-hidden="true" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-status-running">
+          Shipped and live
+        </p>
+        <p className="mt-0.5 text-sm text-text-secondary">
+          Every step passed and the site is responding. Your changes are
+          deployed.
+        </p>
+      </div>
+      {safe && host ? (
+        <a
+          href={safe}
+          target="_blank"
+          rel="noreferrer"
+          className="pressable label-mono flex shrink-0 items-center gap-1.5 rounded-sm border border-status-running/50 px-2.5 py-1.5 text-[11px] text-status-running shadow-hard-sm hover:bg-status-running/10"
+        >
+          Visit site
+          <ExternalLink size={12} aria-hidden="true" />
+        </a>
+      ) : null}
     </div>
   );
 }
