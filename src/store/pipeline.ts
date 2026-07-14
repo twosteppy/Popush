@@ -53,6 +53,8 @@ interface PipelineStore {
     rollback: UserMessage | null,
   ) => void;
   reset: () => void;
+  /** Empty the visible log output without touching step states or the result. */
+  clearLogs: () => void;
   setDrawerHeight: (height: number) => void;
   toggleDrawer: () => void;
   setDrawerOpen: (open: boolean) => void;
@@ -112,6 +114,11 @@ export const usePipelineStore = create<PipelineStore>((set) => ({
     set({ finished: true, outcome, failure, rollback }),
 
   reset: () => set({ ...EMPTY, directLines: [] }),
+  clearLogs: () =>
+    set((s) => ({
+      directLines: [],
+      steps: s.steps.map((step) => ({ ...step, output: [] })),
+    })),
   setDrawerHeight: (height) => set({ drawerHeight: height }),
   toggleDrawer: () => set((s) => ({ drawerOpen: !s.drawerOpen })),
   setDrawerOpen: (open) => set({ drawerOpen: open }),

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { ChevronUp, ChevronDown, TerminalSquare } from 'lucide-react';
+import { ChevronUp, ChevronDown, TerminalSquare, Eraser } from 'lucide-react';
 import 'xterm/css/xterm.css';
 import { usePipelineStore } from '../../store/pipeline';
 import { sanitizeTerminalOutput } from '../../lib/ansi';
@@ -26,6 +26,7 @@ export function LogDrawer() {
   const drawerOpen = usePipelineStore((s) => s.drawerOpen);
   const drawerHeight = usePipelineStore((s) => s.drawerHeight);
   const toggleDrawer = usePipelineStore((s) => s.toggleDrawer);
+  const clearLogs = usePipelineStore((s) => s.clearLogs);
   const steps = usePipelineStore((s) => s.steps);
   const directLines = usePipelineStore((s) => s.directLines);
 
@@ -136,28 +137,41 @@ export function LogDrawer() {
       className="flex flex-col border-t border-border-strong bg-surface-raised"
       style={{ height: drawerOpen ? drawerHeight : 34 }}
     >
-      <button
-        type="button"
-        onClick={toggleDrawer}
-        aria-expanded={drawerOpen}
-        className="flex h-[34px] shrink-0 items-center gap-2 px-3 text-left text-xs text-text-secondary transition-colors hover:bg-surface-hover"
-      >
-        {drawerOpen ? (
-          <ChevronDown size={14} aria-hidden="true" className="shrink-0" />
-        ) : (
-          <ChevronUp size={14} aria-hidden="true" className="shrink-0" />
-        )}
-        <span className="label-mono shrink-0 text-[11px] font-medium">
-          Logs
-        </span>
-        {lastLine ? (
-          <span className="truncate font-mono text-text-tertiary">
-            {lastLine}
+      <div className="flex h-[34px] shrink-0 items-center">
+        <button
+          type="button"
+          onClick={toggleDrawer}
+          aria-expanded={drawerOpen}
+          className="flex h-full min-w-0 flex-1 items-center gap-2 px-3 text-left text-xs text-text-secondary transition-colors hover:bg-surface-hover"
+        >
+          {drawerOpen ? (
+            <ChevronDown size={14} aria-hidden="true" className="shrink-0" />
+          ) : (
+            <ChevronUp size={14} aria-hidden="true" className="shrink-0" />
+          )}
+          <span className="label-mono shrink-0 text-[11px] font-medium">
+            Logs
           </span>
-        ) : (
-          <span className="text-text-tertiary">No output yet</span>
-        )}
-      </button>
+          {lastLine ? (
+            <span className="truncate font-mono text-text-tertiary">
+              {lastLine}
+            </span>
+          ) : (
+            <span className="text-text-tertiary">No output yet</span>
+          )}
+        </button>
+        {hasOutput ? (
+          <button
+            type="button"
+            onClick={clearLogs}
+            title="Clear the log output"
+            className="label-mono flex h-full shrink-0 items-center gap-1.5 border-l border-border-strong px-3 text-[11px] text-text-tertiary transition-colors hover:bg-surface-hover hover:text-text-secondary"
+          >
+            <Eraser size={13} aria-hidden="true" />
+            Clear
+          </button>
+        ) : null}
+      </div>
 
       {drawerOpen ? (
         hasOutput ? (

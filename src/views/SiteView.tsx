@@ -79,6 +79,7 @@ export function SiteView({
   const pipelineId = usePipelineStore((s) => s.pipelineId);
   const steps = usePipelineStore((s) => s.steps);
   const finished = usePipelineStore((s) => s.finished);
+  const resetPipeline = usePipelineStore((s) => s.reset);
   const begin = usePipelineStore((s) => s.begin);
   const setDrawerOpen = usePipelineStore((s) => s.setDrawerOpen);
   const setDirectLog = usePipelineStore((s) => s.setDirectLog);
@@ -292,6 +293,15 @@ export function SiteView({
                 className="h-7 px-2.5 text-xs"
               >
                 Cancel
+              </Button>
+            ) : steps.length > 0 && finished ? (
+              <Button
+                variant="secondary"
+                onClick={() => resetPipeline()}
+                className="h-7 px-2.5 text-xs"
+                title="Clear this pipeline run"
+              >
+                Clear
               </Button>
             ) : null}
           </div>
