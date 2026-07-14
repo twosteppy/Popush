@@ -77,6 +77,18 @@ pub async fn run_pipeline(ctx: ShipContext<'_>) {
         match outcome {
             Ok(summary) => emit_step(&ctx, step, StepEventOutcome::Ok, None, summary),
             Err(failure) => {
+                // A step that stopped because the user cancelled reports as
+                // Cancelled, not Failed, and shows no error.
+                if ctx.state.is_cancelled(&ctx.pipeline_id) {
+                    finish(
+                        &ctx,
+                        PipelineEventOutcome::Cancelled,
+                        started,
+                        None,
+                        rollback_offer_for(&remote_path, &rollback_sha),
+                    );
+                    return;
+                }
                 emit_step(
                     &ctx,
                     step,
@@ -245,13 +257,31 @@ async fn exec_streaming(
     step: Step,
     cmd: popush_core::ssh::RemoteCommand,
 ) -> Result<popush_core::command_log::CommandOutcome, UserMessage> {
-    let out = ctx.pool.exec(cmd).await.map_err(|e| e.user_message())?;
-    for line in out.stdout.lines() {
-        emit_output(ctx, step, line, OutputStream::Stdout);
-    }
-    for line in out.stderr.lines() {
-        emit_output(ctx, step, line, OutputStream::Stderr);
-    }
+    let result = ctx
+        .pool
+        .exec_streaming(
+            cmd,
+            |line, is_stderr| {
+                emit_output(
+                    ctx,
+                    step,
+                    line,
+                    if is_stderr {
+                        OutputStream::Stderr
+                    } else {
+                        OutputStream::Stdout
+                    },
+                );
+            },
+            || ctx.state.is_cancelled(&ctx.pipeline_id),
+        )
+        .await
+        .map_err(|e| e.user_message())?;
+    // `None` means the user cancelled mid-command; run_pipeline sees the
+    // cancel flag and finishes as Cancelled rather than Failed.
+    let Some(out) = result else {
+        return Err(cancelled_marker());
+    };
     ctx.state
         .record_command(popush_core::command_log::CommandLogEntry {
             timestamp: chrono::Utc::now(),
@@ -261,6 +291,19 @@ async fn exec_streaming(
             duration_ms: out.duration_ms,
         });
     Ok(out)
+}
+
+/// A placeholder failure returned when a step is cancelled mid-run. It is never
+/// shown to the user: run_pipeline detects the cancel flag and reports the
+/// pipeline as Cancelled instead.
+fn cancelled_marker() -> UserMessage {
+    UserMessage {
+        headline: "Cancelled.".into(),
+        consequence: String::new(),
+        next_action: popush_core::error::NextAction::Advice {
+            text: String::new(),
+        },
+    }
 }
 
 async fn capture_remote_sha(ctx: &ShipContext<'_>, remote_path: &str) -> Option<String> {

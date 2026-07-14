@@ -49,7 +49,9 @@ interface SiteForm {
 const EMPTY: SiteForm = {
   label: '',
   remotePath: '',
-  serviceType: 'docker',
+  // Most sites people add are plain websites served by a web server, so start
+  // there. Docker/systemd/pm2 are a dropdown away when the site really is one.
+  serviceType: 'static',
   serviceName: '',
   buildCommand: '',
   gitRemote: 'origin',

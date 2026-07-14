@@ -102,6 +102,8 @@ pub enum GitError {
 pub enum AdapterError {
     #[error("could not parse {tool} output: {detail}")]
     Unparseable { tool: String, detail: String },
+    #[error("{action} did not complete: {detail}")]
+    ActionFailed { action: String, detail: String },
     #[error("{operation} is not supported for {service_type} sites")]
     Unsupported {
         operation: String,
@@ -296,6 +298,13 @@ impl AdapterError {
                 consequence:
                     "The site's real state is unknown, so Popush shows amber rather than guess."
                         .into(),
+                next_action: NextAction::Advice {
+                    text: detail.clone(),
+                },
+            },
+            AdapterError::ActionFailed { action, detail } => UserMessage {
+                headline: format!("Popush could not {action} this site."),
+                consequence: "The action did not complete, so the site was left as it was.".into(),
                 next_action: NextAction::Advice {
                     text: detail.clone(),
                 },

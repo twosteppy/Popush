@@ -48,8 +48,8 @@ pub async fn run_action(
         // The most common real-world cause: the site's remote path does not
         // point at the folder that holds the compose file. Say so plainly.
         if out.stderr.contains("no configuration file provided") {
-            return Err(AdapterError::Unparseable {
-                tool: action.to_string(),
+            return Err(AdapterError::ActionFailed {
+                action: action.to_string(),
                 detail: format!(
                     "No docker-compose file was found in {remote_path}. \
                      Check this site's remote path points at the folder that \
@@ -57,8 +57,8 @@ pub async fn run_action(
                 ),
             });
         }
-        return Err(AdapterError::Unparseable {
-            tool: action.to_string(),
+        return Err(AdapterError::ActionFailed {
+            action: action.to_string(),
             detail: if out.stderr.trim().is_empty() {
                 format!("command exited {}", out.exit_code)
             } else {

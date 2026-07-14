@@ -128,7 +128,9 @@ step "Building Popush (this takes a few minutes the first time)"
 # available. Pass --bundle to also build those. Distribution packages are built
 # by CI, not here.
 if [[ "$DO_BUNDLE" -eq 1 ]]; then
-  pnpm tauri build || die "Build failed. If it is a Rust error, copy it and open an issue."
+  # Machines without FUSE (many servers and CI runners) can't mount the
+  # linuxdeploy AppImage; extract-and-run instead so bundling still succeeds.
+  APPIMAGE_EXTRACT_AND_RUN=1 pnpm tauri build || die "Build failed. If it is a Rust error, copy it and open an issue."
   ok "Build complete"
 else
   pnpm tauri build --no-bundle || die "Build failed. If it is a Rust error, copy it and open an issue."

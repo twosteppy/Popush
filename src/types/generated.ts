@@ -46,7 +46,7 @@ export type SshError = { "code": "host_unreachable", host: string, detail: strin
 
 export type GitError = { "code": "merge_conflicts", count: number, files: Array<string>, } | { "code": "detached_head" } | { "code": "no_upstream", branch: string, } | { "code": "https_remote", url: string, } | { "code": "non_ssh_remote", url: string, } | { "code": "push_rejected_non_fast_forward" } | { "code": "push_rejected_permission" } | { "code": "operation", detail: string, };
 
-export type AdapterError = { "code": "unparseable", tool: string, detail: string, } | { "code": "unsupported", operation: string, service_type: string, } | { "code": "ssh" } & SshError;
+export type AdapterError = { "code": "unparseable", tool: string, detail: string, } | { "code": "action_failed", action: string, detail: string, } | { "code": "unsupported", operation: string, service_type: string, } | { "code": "ssh" } & SshError;
 
 export type ConfigError = { "code": "unreadable", path: string, detail: string, } | { "code": "malformed", detail: string, } | { "code": "invalid_field", field: string, problem: string, } | { "code": "schema_too_new", found: number, supported: number, };
 

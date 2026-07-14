@@ -10,6 +10,22 @@ use popush_core::ssh::{
 
 const MAX_STREAM_BYTES: usize = 10 * 1024 * 1024;
 
+/// Append `data` to `buf`, stopping at [`MAX_STREAM_BYTES`] and setting
+/// `truncated` if the cap is hit, so a runaway command cannot exhaust memory.
+fn append_capped(buf: &mut Vec<u8>, truncated: &mut bool, data: &[u8]) {
+    if buf.len() >= MAX_STREAM_BYTES {
+        *truncated = true;
+        return;
+    }
+    let room = MAX_STREAM_BYTES - buf.len();
+    if data.len() > room {
+        buf.extend_from_slice(&data[..room]);
+        *truncated = true;
+    } else {
+        buf.extend_from_slice(data);
+    }
+}
+
 use russh::client;
 use russh::ChannelMsg;
 use russh_keys::agent::client::AgentClient;
@@ -232,20 +248,6 @@ impl SshPool {
         let mut stderr_truncated = false;
         let mut exit_code = 0i32;
 
-        fn append_capped(buf: &mut Vec<u8>, truncated: &mut bool, data: &[u8]) {
-            if buf.len() >= MAX_STREAM_BYTES {
-                *truncated = true;
-                return;
-            }
-            let room = MAX_STREAM_BYTES - buf.len();
-            if data.len() > room {
-                buf.extend_from_slice(&data[..room]);
-                *truncated = true;
-            } else {
-                buf.extend_from_slice(data);
-            }
-        }
-
         while let Some(msg) = channel.wait().await {
             match msg {
                 ChannelMsg::Data { ref data } => {
@@ -276,6 +278,101 @@ impl SshPool {
             duration_ms: start.elapsed().as_millis() as u64,
             command_display: display,
         })
+    }
+
+    /// Like [`exec`], but calls `on_line` with each output line as it arrives
+    /// (so a long build streams live instead of appearing frozen) and polls
+    /// `is_cancelled` while waiting. Returns `Ok(None)` when cancelled
+    /// mid-command: the channel is dropped, which tells the remote to stop.
+    pub async fn exec_streaming(
+        &self,
+        command: RemoteCommand,
+        mut on_line: impl FnMut(&str, bool),
+        is_cancelled: impl Fn() -> bool,
+    ) -> Result<Option<CommandOutcome>, SshError> {
+        let rendered = command.render();
+        let display = command.display();
+        let start = Instant::now();
+
+        let mut channel = self
+            .session
+            .channel_open_session()
+            .await
+            .map_err(|_| SshError::ConnectionLost)?;
+        channel
+            .exec(true, rendered.as_bytes())
+            .await
+            .map_err(|_| SshError::ConnectionLost)?;
+
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        let mut stdout_truncated = false;
+        let mut stderr_truncated = false;
+        let mut exit_code = 0i32;
+        // Bytes seen but not yet ending in a newline, held back until they do.
+        let mut stdout_pending = String::new();
+        let mut stderr_pending = String::new();
+
+        loop {
+            // Wake at least every 200ms so cancellation is honoured promptly
+            // even while the remote command is producing no output. `wait` is
+            // cancel-safe (a dropped poll loses no message), so the timeout is
+            // safe to race against it.
+            match tokio::time::timeout(Duration::from_millis(200), channel.wait()).await {
+                Ok(Some(ChannelMsg::Data { ref data })) => {
+                    append_capped(&mut stdout, &mut stdout_truncated, &data[..]);
+                    stdout_pending.push_str(&String::from_utf8_lossy(&data[..]));
+                    while let Some(idx) = stdout_pending.find('\n') {
+                        let line = stdout_pending[..idx].trim_end_matches('\r').to_string();
+                        on_line(&line, false);
+                        stdout_pending.drain(..=idx);
+                    }
+                }
+                Ok(Some(ChannelMsg::ExtendedData { ref data, ext: 1 })) => {
+                    append_capped(&mut stderr, &mut stderr_truncated, &data[..]);
+                    stderr_pending.push_str(&String::from_utf8_lossy(&data[..]));
+                    while let Some(idx) = stderr_pending.find('\n') {
+                        let line = stderr_pending[..idx].trim_end_matches('\r').to_string();
+                        on_line(&line, true);
+                        stderr_pending.drain(..=idx);
+                    }
+                }
+                Ok(Some(ChannelMsg::ExitStatus { exit_status })) => exit_code = exit_status as i32,
+                Ok(Some(_)) => {}
+                Ok(None) => break,
+                Err(_elapsed) => {
+                    if is_cancelled() {
+                        return Ok(None);
+                    }
+                }
+            }
+        }
+
+        // Emit whatever trailing text never got its own newline.
+        if !stdout_pending.is_empty() {
+            on_line(stdout_pending.trim_end_matches('\r'), false);
+        }
+        if !stderr_pending.is_empty() {
+            on_line(stderr_pending.trim_end_matches('\r'), true);
+        }
+
+        let marker = "\n[output truncated by Popush: exceeded 10 MiB]";
+        let mut stdout = String::from_utf8_lossy(&stdout).into_owned();
+        if stdout_truncated {
+            stdout.push_str(marker);
+        }
+        let mut stderr = String::from_utf8_lossy(&stderr).into_owned();
+        if stderr_truncated {
+            stderr.push_str(marker);
+        }
+
+        Ok(Some(CommandOutcome {
+            exit_code,
+            stdout,
+            stderr,
+            duration_ms: start.elapsed().as_millis() as u64,
+            command_display: display,
+        }))
     }
 
     pub fn server(&self) -> &ServerConfig {

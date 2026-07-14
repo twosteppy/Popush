@@ -68,6 +68,11 @@ export function SiteView({
     ? /passphrase|agent|authentication|refused/i.test(actionError)
     : false;
 
+  // Any action failure that is not an SSH-auth problem is almost always a
+  // wrong service type or remote path (missing folder, missing compose file,
+  // wrong unit name). Editing the site is the fix, so always offer it inline.
+  const needsEdit = Boolean(actionError) && !needsAuth;
+
   // The site is online when its last check said so; drives Stop vs Start.
   const isOnline = status?.state === 'running';
 
@@ -207,6 +212,19 @@ export function SiteView({
       {actionError ? (
         <div className="flex flex-col gap-2 rounded-sm border border-status-failed bg-status-failed/10 px-3 py-2">
           <p className="text-sm text-status-failed">{actionError}</p>
+          {needsEdit && onEdit ? (
+            <div>
+              <Button
+                variant="secondary"
+                onClick={onEdit}
+                className="h-8 px-3 text-xs"
+                title="Fix this site's service type or remote path"
+              >
+                <Pencil size={14} aria-hidden="true" />
+                Edit this site
+              </Button>
+            </div>
+          ) : null}
           {needsAuth ? (
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center gap-2">
