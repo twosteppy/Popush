@@ -159,9 +159,20 @@ fn run_push(ctx: &ShipContext<'_>) -> Result<String, UserMessage> {
 }
 
 async fn run_pull(ctx: &ShipContext<'_>, remote_path: &str) -> Result<String, UserMessage> {
+    // Sync the server to exactly origin/<branch>. Using fetch + checkout + hard
+    // reset (instead of `git pull --ff-only`) makes a deploy deterministic: it
+    // always ships exactly what is on origin, and never gets stuck on an old
+    // commit or fails because the server checkout diverged from origin. The
+    // build + restart steps that follow rebuild from this exact code.
+    let branch = ctx.site.git_branch.clone();
     let cmd = popush_core::ssh::RemoteCommand::new(
-        "cd -- {} && git pull --ff-only",
-        vec![remote_path.to_string()],
+        "cd -- {} && git fetch origin {} && git checkout {} && git reset --hard origin/{}",
+        vec![
+            remote_path.to_string(),
+            branch.clone(),
+            branch.clone(),
+            branch,
+        ],
     );
     let out = exec_streaming(ctx, Step::Pull, cmd).await?;
     if out.exit_code != 0 {
@@ -177,7 +188,7 @@ async fn run_pull(ctx: &ShipContext<'_>, remote_path: &str) -> Result<String, Us
         }
         .user_message());
     }
-    Ok("Fast-forward".into())
+    Ok(format!("Synced to origin/{}", ctx.site.git_branch))
 }
 
 async fn run_build(ctx: &ShipContext<'_>, remote_path: &str) -> Result<String, UserMessage> {
