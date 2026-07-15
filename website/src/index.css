@@ -212,17 +212,27 @@ h3, h4 { font-family: var(--font-sans); font-weight: 600; letter-spacing: -0.01e
 .copy-btn.copied { color: var(--status-running); border-color: color-mix(in srgb, var(--status-running) 50%, var(--border-strong)); }
 
 /* ---- Terminal (hero centrepiece) ---- */
+.term-wrap { position: relative; }
+/* The glow is a blurred pink layer whose opacity + scale animate, which the
+   compositor handles on the GPU: smooth, with no per-frame box-shadow repaint. */
+.term-glow {
+  position: absolute; inset: 8px; z-index: 0; pointer-events: none;
+  border-radius: 24px; background: var(--accent); filter: blur(46px);
+  opacity: 0.26; will-change: opacity, transform;
+  animation: glowPulse 5s ease-in-out infinite;
+}
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.2; transform: scale(0.97); }
+  50% { opacity: 0.44; transform: scale(1.03); }
+}
 .term {
+  position: relative; z-index: 1;
   border: 2px solid var(--border-strong); border-radius: 14px;
   background: linear-gradient(180deg, var(--surface-raised), color-mix(in srgb, var(--surface-base) 55%, var(--surface-raised)));
   overflow: hidden;
-  animation: termGlow 4.5s ease-in-out infinite;
+  box-shadow: var(--shadow-hard), 0 20px 46px -32px rgba(0, 0, 0, 0.6);
 }
-@keyframes termGlow {
-  0%, 100% { box-shadow: var(--shadow-hard), 0 22px 55px -30px color-mix(in srgb, var(--accent) 45%, transparent); }
-  50% { box-shadow: var(--shadow-hard), 0 28px 72px -26px color-mix(in srgb, var(--accent) 72%, transparent); }
-}
-@media (prefers-reduced-motion: reduce) { .term { animation: none; box-shadow: var(--shadow-hard), 0 22px 55px -30px color-mix(in srgb, var(--accent) 45%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .term-glow { animation: none; opacity: 0.3; } }
 .term-bar { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--border-subtle); background: var(--surface-overlay); }
 .term-bar .dots { display: flex; gap: 7px; }
 .term-bar .dots i { width: 10px; height: 10px; border-radius: 50%; display: block; }

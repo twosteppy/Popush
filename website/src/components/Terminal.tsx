@@ -69,11 +69,13 @@ export function Terminal() {
   }, [shown]);
 
   return (
-    <div
-      className="term"
-      role="img"
-      aria-label="Popush deploying a site: check, pull, build, restart, verify, then shipped and live."
-    >
+    <div className="term-wrap">
+      <div className="term-glow" aria-hidden="true" />
+      <div
+        className="term"
+        role="img"
+        aria-label="Popush deploying a site: check, pull, build, restart, verify, then shipped and live."
+      >
       <div className="term-bar">
         <div className="dots">
           <i />
@@ -90,6 +92,7 @@ export function Terminal() {
           <RowView key={i} row={r} on={i < shown} />
         ))}
         <span className="tcaret" />
+      </div>
       </div>
     </div>
   );
