@@ -706,7 +706,7 @@ section { padding: 40px 0; }
 .mobile-menu {
   position: fixed; inset: 0; z-index: 5;
   display: flex; align-items: center; justify-content: center; padding: 84px 22px 40px;
-  background: color-mix(in srgb, var(--surface-base) 78%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 98%, transparent);
   backdrop-filter: blur(26px) saturate(1.35);
   -webkit-backdrop-filter: blur(26px) saturate(1.35);
   opacity: 0; visibility: hidden; pointer-events: none;
