@@ -1,11 +1,20 @@
+import type { MouseEvent } from 'react';
 import { SITE } from '../lib/site';
 import { Download, GitHub, Check } from './Icons';
 import { InstallCommand } from './CopyButton';
 import { Terminal } from './Terminal';
 
+function spot(e: MouseEvent<HTMLElement>) {
+  const el = e.currentTarget;
+  const r = el.getBoundingClientRect();
+  el.style.setProperty('--sx', `${e.clientX - r.left}px`);
+  el.style.setProperty('--sy', `${e.clientY - r.top}px`);
+}
+
 export function Hero() {
   return (
-    <section className="hero">
+    <section className="hero" onMouseMove={spot}>
+      <div className="hero-spot" aria-hidden="true" />
       <div className="wrap hero-grid">
         <div className="reveal">
           <h1>
