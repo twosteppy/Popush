@@ -651,38 +651,83 @@ section { padding: 40px 0; }
    Navbar glow-up, mobile menu, star-burst hover, mobile polish
    ===================================================================== */
 
-/* Cuter nav links: pill hover instead of an underline */
 .site-header { background: color-mix(in srgb, var(--surface-base) 74%, transparent); }
 .nav { height: 64px; }
 .brand span { font-size: 16px; }
-.nav-link { padding: 8px 13px; border-radius: 999px; }
-.nav-link::after { display: none; }
-.nav-link:hover { color: var(--accent); background: var(--accent-muted); }
 .nav-right { gap: 8px; }
 .icon-btn { border-radius: 11px; }
+
+/* Keep the original underline hover on the nav links (no pill, no glow) */
+.nav-link { padding: 8px 4px; border-radius: 0; }
+.nav-link::after { display: block; }
+.nav-link:hover { color: var(--text-primary); background: none; }
+
+/* Navbar Download button: glossy pink pill with a shine sweep */
+.btn-primary.btn-sm {
+  position: relative; overflow: hidden;
+  padding: 8px 18px; font-weight: 700; letter-spacing: .1px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong, #ef7fae) 100%);
+  color: #1a0d13;
+  box-shadow: 0 2px 0 var(--accent-strong, #d76a9a), 0 6px 18px -6px var(--accent);
+  transition: transform .16s var(--bounce), box-shadow .16s ease, filter .16s ease;
+}
+.btn-primary.btn-sm::before {
+  content: ''; position: absolute; top: 0; left: -60%; width: 45%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent);
+  transform: skewX(-18deg); transition: left .5s ease; pointer-events: none;
+}
+.btn-primary.btn-sm:hover {
+  transform: translateY(-2px); filter: saturate(1.08);
+  box-shadow: 0 4px 0 var(--accent-strong, #d76a9a), 0 12px 26px -8px var(--accent);
+}
+.btn-primary.btn-sm:hover::before { left: 130%; }
+.btn-primary.btn-sm:active { transform: translateY(0); box-shadow: 0 1px 0 var(--accent-strong, #d76a9a); }
 
 /* Hamburger (hidden on desktop) */
 .menu-btn {
   display: none; place-items: center; width: 38px; height: 38px;
-  border: 1px solid var(--border-strong); border-radius: 11px;
+  border: 1px solid var(--border-strong); border-radius: 12px;
   background: var(--surface-raised); color: var(--text-secondary); cursor: pointer;
-  transition: color .14s ease, border-color .14s ease, background .14s ease;
+  transition: color .14s ease, border-color .14s ease, background .14s ease, transform .16s var(--bounce);
 }
-.menu-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--surface-hover); }
+.menu-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--surface-hover); transform: rotate(-6deg) scale(1.05); }
+.menu-btn:active { transform: scale(.94); }
 
-/* Slide-down mobile menu */
+/* Glassy, cute slide-down mobile menu */
 .mobile-menu {
   overflow: hidden; max-height: 0; opacity: 0;
-  background: color-mix(in srgb, var(--surface-base) 94%, transparent);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid transparent;
-  transition: max-height .32s var(--bounce), opacity .25s ease, border-color .25s ease;
+  padding: 0 14px;
+  transition: max-height .34s var(--bounce), opacity .24s ease, padding .24s ease;
 }
-.mobile-menu.open { max-height: 360px; opacity: 1; border-bottom-color: var(--border-subtle); }
-.mobile-menu-inner { display: flex; flex-direction: column; gap: 5px; padding: 10px 24px 18px; }
-.mobile-menu-inner a { padding: 12px 14px; border-radius: 11px; font-size: 15px; font-weight: 500; color: var(--text-secondary); transition: background .14s ease, color .14s ease; }
-.mobile-menu-inner a:hover { background: var(--surface-hover); color: var(--accent); }
-.mobile-menu-inner .btn { justify-content: center; margin-top: 8px; }
+.mobile-menu.open { max-height: 420px; opacity: 1; padding: 8px 14px 16px; }
+.mobile-menu-inner {
+  display: flex; flex-direction: column; gap: 6px; padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border-subtle));
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-raised) 60%, transparent);
+  backdrop-filter: blur(18px) saturate(1.3);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  box-shadow: 0 16px 40px -14px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.mobile-menu-inner a {
+  position: relative; padding: 13px 16px; border-radius: 13px;
+  font-size: 15px; font-weight: 600; color: var(--text-secondary);
+  transition: background .16s ease, color .16s ease, transform .16s var(--bounce), padding-left .16s ease;
+}
+.mobile-menu-inner a::before {
+  content: ''; position: absolute; left: 8px; top: 50%; width: 6px; height: 6px;
+  border-radius: 999px; background: var(--accent);
+  transform: translateY(-50%) scale(0); transition: transform .18s var(--bounce);
+}
+.mobile-menu-inner a:hover {
+  background: var(--accent-muted); color: var(--accent);
+  padding-left: 24px; transform: translateX(2px);
+}
+.mobile-menu-inner a:hover::before { transform: translateY(-50%) scale(1); }
+.mobile-menu-inner .btn { justify-content: center; margin-top: 8px; padding-left: 18px; }
+.mobile-menu-inner .btn:hover { padding-left: 18px; transform: translateY(-2px); }
+.mobile-menu-inner .btn:hover::before { display: none; }
 @media (min-width: 721px) { .mobile-menu { display: none; } }
 
 /* Yellow twinkling stars on the "Star on GitHub" button */
