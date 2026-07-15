@@ -501,3 +501,48 @@ section { padding: 40px 0; }
 @media (max-width: 520px) {
   .faq-a p { padding-left: 16px; }
 }
+
+/* =====================================================================
+   Extra cute: floating flowers, sparkles, dreamy glow, pill buttons
+   ===================================================================== */
+
+/* Soft dreamy pink glow under the panels, plus a whisper of pastel tint */
+.card, .term, .configwin, .dl-box, .stat, .stepcard {
+  box-shadow: var(--shadow-hard), 0 16px 34px -20px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+.card { background: color-mix(in srgb, var(--accent) 3%, var(--surface-raised)); }
+.stat { background: color-mix(in srgb, var(--accent) 4%, var(--surface-raised)); }
+
+/* Pill buttons with a tiny happy tilt */
+.btn { border-radius: 999px; }
+.btn-primary:hover { transform: translate(-2px, -2px) scale(1.03) rotate(-1.2deg); }
+
+/* Twinkling sparkles hugging the gradient words */
+.grad { position: relative; }
+.grad::before, .grad::after {
+  content: '✦'; position: absolute; color: var(--accent);
+  -webkit-text-fill-color: var(--accent); pointer-events: none;
+  animation: twinkle 2.4s ease-in-out infinite;
+}
+.grad::before { top: -0.35em; right: -0.5em; font-size: 0.5em; }
+.grad::after { bottom: -0.05em; left: -0.55em; font-size: 0.38em; animation-delay: 0.9s; }
+@keyframes twinkle { 0%, 100% { transform: scale(.6); opacity: .25; } 50% { transform: scale(1.15); opacity: 1; } }
+
+/* Bouncier scroll-reveal */
+.reveal { transition-timing-function: var(--bounce); }
+
+/* Floating background flowers */
+.deco { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.deco b {
+  position: absolute; font-family: var(--font-sans); color: var(--accent);
+  opacity: 0.13; will-change: transform;
+  animation: floaty 13s ease-in-out infinite;
+}
+@keyframes floaty { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(14deg); } }
+
+/* A sparkle on the closing call to action */
+.cta h2::after { content: ' ✦'; color: var(--accent); font-size: 0.7em; vertical-align: 0.15em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .grad::before, .grad::after, .deco b { animation: none; }
+}

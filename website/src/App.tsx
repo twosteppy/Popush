@@ -1,4 +1,5 @@
 import { ScrollProgress } from './components/ScrollProgress';
+import { FloatingDeco } from './components/FloatingDeco';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { Stats } from './components/Stats';
@@ -16,6 +17,7 @@ export default function App() {
   return (
     <>
       <ScrollProgress />
+      <FloatingDeco />
       <Header />
       <main id="top">
         <Hero />

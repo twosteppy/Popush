@@ -28,6 +28,7 @@ const LINES: Line[] = [
   [{ t: ' ' }],
   [
     { t: '  ' },
+    { t: '♥ ', c: 'k' },
     { t: 'shipped and live', c: 's' },
     { t: '  in 2m 14s', c: 'm' },
   ],
