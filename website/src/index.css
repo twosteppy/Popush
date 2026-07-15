@@ -321,6 +321,11 @@ section { padding: 60px 0; }
   border: 2px solid var(--border-strong); border-radius: 3px; background: var(--surface-raised);
   box-shadow: var(--shadow-hard); padding: 36px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 38px; align-items: center;
 }
+/* Grid/flex children default to min-width:auto and refuse to shrink below
+   their content, blowing out the layout on narrow screens. Let them shrink
+   so inner overflow-x:auto / wrapping can actually take over. */
+.hero-grid > *, .dl-box > *, .reveal { min-width: 0; }
+.configwin, .configwin .code, .cmd, .cmd code, .term { max-width: 100%; min-width: 0; }
 .dl-box h2 { font-size: clamp(19px, 2.6vw, 26px); margin-top: 14px; line-height: 1.4; }
 .dl-box p.lead { margin-top: 14px; color: var(--text-secondary); font-size: 15px; }
 .dl-actions { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px; }
