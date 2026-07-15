@@ -213,11 +213,16 @@ h3, h4 { font-family: var(--font-sans); font-weight: 600; letter-spacing: -0.01e
 
 /* ---- Terminal (hero centrepiece) ---- */
 .term {
-  border: 2px solid var(--border-strong); border-radius: 4px;
-  background: linear-gradient(180deg, var(--surface-raised), color-mix(in srgb, var(--surface-base) 60%, var(--surface-raised)));
-  box-shadow: var(--shadow-hard), 0 26px 60px -30px color-mix(in srgb, var(--accent) 40%, transparent);
+  border: 2px solid var(--border-strong); border-radius: 14px;
+  background: linear-gradient(180deg, var(--surface-raised), color-mix(in srgb, var(--surface-base) 55%, var(--surface-raised)));
   overflow: hidden;
+  animation: termGlow 4.5s ease-in-out infinite;
 }
+@keyframes termGlow {
+  0%, 100% { box-shadow: var(--shadow-hard), 0 22px 55px -30px color-mix(in srgb, var(--accent) 45%, transparent); }
+  50% { box-shadow: var(--shadow-hard), 0 28px 72px -26px color-mix(in srgb, var(--accent) 72%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) { .term { animation: none; box-shadow: var(--shadow-hard), 0 22px 55px -30px color-mix(in srgb, var(--accent) 45%, transparent); } }
 .term-bar { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--border-subtle); background: var(--surface-overlay); }
 .term-bar .dots { display: flex; gap: 7px; }
 .term-bar .dots i { width: 10px; height: 10px; border-radius: 50%; display: block; }
@@ -233,26 +238,42 @@ h3, h4 { font-family: var(--font-sans); font-weight: 600; letter-spacing: -0.01e
 .term-bar .live i { width: 6px; height: 6px; border-radius: 50%; background: var(--status-running); box-shadow: 0 0 7px var(--status-running); animation: pulse 1.6s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: .35; } }
 .term-body {
-  font-family: var(--font-mono); font-size: 13px; line-height: 1.85;
-  padding: 18px 18px 20px; min-height: 296px;
-  background:
-    radial-gradient(500px circle at 82% 0%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 60%);
+  font-family: var(--font-mono); font-size: 13.5px; line-height: 1.7;
+  padding: 18px 20px 22px; min-height: 300px;
+  display: flex; flex-direction: column; gap: 3px;
+  background: radial-gradient(520px circle at 85% -10%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 60%);
 }
-.tline { white-space: pre; display: block; }
-.tline .g { color: var(--text-tertiary); }         /* gutter / prompt */
-.tline .cmd-t { color: var(--text-primary); }
-.tline .k { color: var(--accent); }                /* keyword / step */
-.tline .s { color: var(--status-running); }        /* success */
-.tline .u { color: #7ea6ff; }                      /* url / value */
-.tline .m { color: var(--text-tertiary); }         /* muted detail */
-.tline .warn { color: var(--status-unknown); }
-.tcursor {
-  display: inline-block; width: 8px; height: 15px; margin-left: 2px;
-  background: var(--accent); vertical-align: -2px; box-shadow: 0 0 8px var(--accent);
-  animation: blink 1s steps(1) infinite;
+.trow {
+  display: flex; align-items: center; gap: 12px;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity .34s ease, transform .34s var(--bounce, ease);
+}
+.trow.in { opacity: 1; transform: none; }
+.trow.blank { height: 0.5em; }
+.trow.cmd { gap: 9px; color: var(--text-primary); margin-bottom: 2px; }
+.trow.cmd .prompt { color: var(--accent); }
+.trow.cmd .cmd-t { color: var(--text-primary); }
+.trow .ok {
+  flex-shrink: 0; width: 18px; height: 18px; display: grid; place-items: center;
+  color: var(--status-running); border-radius: 50%;
+  background: color-mix(in srgb, var(--status-running) 15%, transparent);
+}
+.trow .ok svg { width: 12px; height: 12px; }
+.trow .nm { color: var(--accent); width: 66px; flex-shrink: 0; }
+.trow .dt { color: var(--text-secondary); }
+.trow.done { gap: 9px; margin-top: 3px; }
+.trow.done .heart { color: var(--accent); }
+.trow.done .dn { color: var(--status-running); }
+.tcaret {
+  width: 9px; height: 16px; margin-top: 5px; align-self: flex-start;
+  background: var(--accent); box-shadow: 0 0 9px var(--accent);
+  animation: blink 1.05s steps(1) infinite;
 }
 @keyframes blink { 50% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .tcursor { animation: none; } .term-bar .live i { animation: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .trow { opacity: 1; transform: none; }
+  .tcaret, .term-bar .live i { animation: none; }
+}
 
 /* ---- Section scaffolding ---- */
 section { padding: 60px 0; }
@@ -326,13 +347,6 @@ section { padding: 60px 0; }
   background: linear-gradient(90deg, var(--accent), #ffcbe4);
   box-shadow: 0 0 10px var(--accent);
 }
-
-/* Terminal ambient glow pulse */
-.term { animation: termGlow 5s ease-in-out infinite; }
-@keyframes termGlow {
-  50% { box-shadow: var(--shadow-hard), 0 26px 70px -28px color-mix(in srgb, var(--accent) 55%, transparent); }
-}
-@media (prefers-reduced-motion: reduce) { .term { animation: none; } }
 
 /* ---- Stats band ---- */
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
@@ -545,4 +559,25 @@ section { padding: 40px 0; }
 
 @media (prefers-reduced-motion: reduce) {
   .grad::before, .grad::after, .deco b { animation: none; }
+}
+
+/* =====================================================================
+   One consistent hover for every panel, and no sticky hover on touch
+   ===================================================================== */
+@media (hover: hover) and (pointer: fine) {
+  .card:hover, .stat:hover, .stepcard:hover, .faq-item:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    box-shadow: var(--shadow-hard-hover), 0 20px 42px -22px color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+  .card:hover .kico { transform: translateY(-2px) rotate(-6deg) scale(1.06); }
+}
+/* Touch devices: never leave an element stuck in its hover transform. */
+@media (hover: none), (pointer: coarse) {
+  .card:hover, .stat:hover, .stepcard:hover, .faq-item:hover,
+  .btn:hover, .btn-primary:hover, .cmd:hover, .icon-btn:hover,
+  .card:hover .kico, .brand:hover img {
+    transform: none;
+    filter: none;
+  }
 }

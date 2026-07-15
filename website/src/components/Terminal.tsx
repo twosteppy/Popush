@@ -1,126 +1,95 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Check } from './Icons';
 
-type Seg = { t: string; c?: string };
-type Line = Seg[];
+type Row =
+  | { kind: 'cmd'; text: string }
+  | { kind: 'blank' }
+  | { kind: 'step'; name: string; detail: string }
+  | { kind: 'done'; text: string };
 
-const pad = (s: string, n: number) => s + ' '.repeat(Math.max(0, n - s.length));
-
-function step(name: string, detail: string): Line {
-  return [
-    { t: '  ' },
-    { t: pad(name, 9), c: 'k' },
-    { t: pad(detail, 24), c: 'm' },
-    { t: 'ok', c: 's' },
-  ];
-}
-
-const LINES: Line[] = [
-  [
-    { t: '$ ', c: 'k' },
-    { t: 'popush ship pook-review', c: 'cmd-t' },
-  ],
-  [{ t: ' ' }],
-  step('check', 'server reachable'),
-  step('pull', 'fast-forward, 3 files'),
-  step('build', 'docker compose build'),
-  step('restart', 'docker compose up -d'),
-  step('verify', 'pookreview.com  200'),
-  [{ t: ' ' }],
-  [
-    { t: '  ' },
-    { t: '♥ ', c: 'k' },
-    { t: 'shipped and live', c: 's' },
-    { t: '  in 2m 14s', c: 'm' },
-  ],
+const ROWS: Row[] = [
+  { kind: 'cmd', text: 'popush ship pook-review' },
+  { kind: 'blank' },
+  { kind: 'step', name: 'check', detail: 'server reachable' },
+  { kind: 'step', name: 'pull', detail: 'fast-forward, 3 files' },
+  { kind: 'step', name: 'build', detail: 'docker compose build' },
+  { kind: 'step', name: 'restart', detail: 'docker compose up -d' },
+  { kind: 'step', name: 'verify', detail: 'pookreview.com  200' },
+  { kind: 'blank' },
+  { kind: 'done', text: 'shipped and live in 2m 14s' },
 ];
 
-const lineLen = (l: Line) => l.reduce((n, s) => n + s.t.length, 0);
-
-/** Render the first `upto` characters of a line, keeping per-segment colour. */
-function renderLine(line: Line, upto: number) {
-  let left = upto;
-  const out: React.ReactNode[] = [];
-  line.forEach((seg, i) => {
-    if (left <= 0) return;
-    const text = seg.t.slice(0, left);
-    left -= seg.t.length;
-    out.push(
-      seg.c ? (
-        <span key={i} className={seg.c}>
-          {text}
-        </span>
-      ) : (
-        <span key={i}>{text}</span>
-      ),
-    );
-  });
-  return out;
-}
-
-const prefersReduced = () =>
+const reduced = () =>
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+function RowView({ row, on }: { row: Row; on: boolean }) {
+  const cls = `trow ${row.kind}${on ? ' in' : ''}`;
+  if (row.kind === 'blank') return <div className={cls} />;
+  if (row.kind === 'cmd') {
+    return (
+      <div className={cls}>
+        <span className="prompt">$</span>
+        <span className="cmd-t">{row.text}</span>
+      </div>
+    );
+  }
+  if (row.kind === 'done') {
+    return (
+      <div className={cls}>
+        <span className="heart">♥</span>
+        <span className="dn">{row.text}</span>
+      </div>
+    );
+  }
+  return (
+    <div className={cls}>
+      <span className="ok">
+        <Check strokeWidth={3} />
+      </span>
+      <span className="nm">{row.name}</span>
+      <span className="dt">{row.detail}</span>
+    </div>
+  );
+}
+
 export function Terminal() {
-  const [li, setLi] = useState(0); // current line
-  const [ch, setCh] = useState(0); // chars typed on current line
-  const timer = useRef<number | undefined>(undefined);
+  const [shown, setShown] = useState(0);
 
   useEffect(() => {
-    if (prefersReduced()) {
-      setLi(LINES.length);
+    if (reduced()) {
+      setShown(ROWS.length);
       return;
     }
-    const done = li >= LINES.length;
-    const full = !done && ch >= lineLen(LINES[li]);
-
-    let delay = 16; // per character
-    if (done) delay = 2600; // hold the finished frame, then loop
-    else if (full) delay = LINES[li].length <= 1 ? 90 : 280; // pause at line end
-
-    timer.current = window.setTimeout(() => {
-      if (done) {
-        setLi(0);
-        setCh(0);
-      } else if (full) {
-        setLi((n) => n + 1);
-        setCh(0);
-      } else {
-        setCh((n) => n + 1);
-      }
-    }, delay);
-
-    return () => window.clearTimeout(timer.current);
-  }, [li, ch]);
-
-  const finished = li >= LINES.length;
+    const done = shown >= ROWS.length;
+    const cur = ROWS[shown];
+    const delay = done ? 2800 : cur && cur.kind === 'blank' ? 130 : 350;
+    const t = window.setTimeout(() => setShown((s) => (done ? 0 : s + 1)), delay);
+    return () => window.clearTimeout(t);
+  }, [shown]);
 
   return (
-    <div className="term" role="img" aria-label="Popush deploying a site: check, pull, build, restart, verify, then shipped and live.">
+    <div
+      className="term"
+      role="img"
+      aria-label="Popush deploying a site: check, pull, build, restart, verify, then shipped and live."
+    >
       <div className="term-bar">
         <div className="dots">
           <i />
           <i />
           <i />
         </div>
-        <span className="title">popush ship it</span>
+        <span className="title">pook-review · ship it</span>
         <span className="live">
           <i /> LIVE
         </span>
       </div>
       <div className="term-body" aria-hidden="true">
-        {LINES.map((line, i) => {
-          if (i > li) return <span key={i} className="tline">{' '}</span>;
-          const upto = i < li || finished ? lineLen(line) : ch;
-          const isCursor = !finished && i === li;
-          return (
-            <span key={i} className="tline">
-              {renderLine(line, upto)}
-              {isCursor ? <span className="tcursor" /> : null}
-            </span>
-          );
-        })}
-        {finished ? <span className="tcursor" /> : null}
+        {ROWS.map((r, i) => (
+          <RowView key={i} row={r} on={i < shown} />
+        ))}
+        <span className="tcaret" />
       </div>
     </div>
   );
