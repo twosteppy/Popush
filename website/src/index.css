@@ -586,8 +586,63 @@ section { padding: 40px 0; }
 @media (hover: none), (pointer: coarse) {
   .card:hover, .stat:hover, .stepcard:hover, .faq-item:hover,
   .btn:hover, .btn-primary:hover, .cmd:hover, .icon-btn:hover,
-  .card:hover .kico, .brand:hover img {
+  .card:hover .kico, .brand:hover img, .scrolltop:hover {
     transform: none;
     filter: none;
   }
+}
+
+/* ---- FAQ centred ---- */
+#faq .sec-head { text-align: center; max-width: 62ch; margin-left: auto; margin-right: auto; }
+#faq .faq { margin-left: auto; margin-right: auto; }
+#faq .faq-more { text-align: center; }
+
+/* ---- Scroll-to-top button ---- */
+.scrolltop {
+  position: fixed; right: 22px; bottom: 22px; z-index: 45;
+  width: 46px; height: 46px; display: grid; place-items: center;
+  border: 2px solid var(--accent); border-radius: 14px;
+  background: var(--accent); color: var(--text-inverse);
+  box-shadow: var(--shadow-hard-accent); cursor: pointer;
+  opacity: 0; transform: translateY(14px) scale(0.85); pointer-events: none;
+  transition: opacity .28s var(--bounce), transform .28s var(--bounce),
+    box-shadow .15s ease, background .15s ease;
+}
+.scrolltop.show { opacity: 1; transform: none; pointer-events: auto; }
+.scrolltop:hover { background: var(--accent-hover); box-shadow: var(--shadow-hard-accent-hover); transform: translateY(-3px) scale(1.06) rotate(-4deg); }
+.scrolltop svg { width: 20px; height: 20px; }
+@media (max-width: 520px) { .scrolltop { right: 16px; bottom: 16px; width: 42px; height: 42px; } }
+
+/* ---- Footer, reworked: cute + on theme ---- */
+.site-footer {
+  position: relative; margin-top: 28px; padding: 40px 0 34px;
+  border-top: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--accent) 4%, transparent));
+}
+.foot-flowers {
+  text-align: center; font-family: var(--font-sans); color: var(--accent);
+  letter-spacing: 1.1em; font-size: 13px; opacity: 0.5; margin-bottom: 30px;
+  padding-left: 1.1em;
+}
+.foot-top { display: grid; grid-template-columns: 1.7fr 1fr 1fr; gap: 32px; }
+.foot-brand .brand { margin-bottom: 14px; }
+.foot-brand .brand img { width: 26px; height: 26px; image-rendering: pixelated; }
+.foot-brand .brand span { font-family: var(--font-pixel); font-size: 15px; }
+.foot-tag { color: var(--text-secondary); font-size: 14px; line-height: 1.7; max-width: 34ch; }
+.foot-col { display: flex; flex-direction: column; align-items: flex-start; gap: 11px; }
+.foot-col .label-mono { margin-bottom: 3px; }
+.foot-col a { font-size: 14px; color: var(--text-secondary); transition: color .14s ease, transform .14s var(--bounce); }
+.foot-col a:hover { color: var(--accent); transform: translateX(4px); }
+.foot-bottom {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  flex-wrap: wrap; margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border-subtle);
+}
+.foot-legal { font-family: var(--font-pixel); font-size: 10px; letter-spacing: 0.03em; color: var(--text-tertiary); text-transform: uppercase; }
+.foot-legal .heart { color: var(--accent); display: inline-block; }
+@media (max-width: 720px) {
+  .foot-top { grid-template-columns: 1fr 1fr; gap: 26px; }
+  .foot-brand { grid-column: 1 / -1; }
+}
+@media (max-width: 480px) {
+  .foot-bottom { justify-content: center; text-align: center; }
 }

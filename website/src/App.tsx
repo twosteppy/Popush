@@ -10,6 +10,7 @@ import { Faq } from './components/Faq';
 import { CtaBand } from './components/CtaBand';
 import { Download } from './components/Download';
 import { Footer } from './components/Footer';
+import { ScrollTop } from './components/ScrollTop';
 import { useReveal } from './hooks/useReveal';
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
         <CtaBand />
       </main>
       <Footer />
+      <ScrollTop />
     </>
   );
 }

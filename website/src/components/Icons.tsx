@@ -92,6 +92,12 @@ export const Moon = (p: IconProps) => (
   </svg>
 );
 
+export const ArrowUp = (p: IconProps) => (
+  <svg {...stroke({ strokeWidth: 2.5, ...p })}>
+    <path d="M12 19V5M5 12l7-7 7 7" />
+  </svg>
+);
+
 export const ChevronDown = (p: IconProps) => (
   <svg {...stroke(p)}>
     <path d="m6 9 6 6 6-6" />
