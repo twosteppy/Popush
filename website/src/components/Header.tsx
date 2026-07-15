@@ -21,6 +21,7 @@ export function Header() {
   }, [open]);
 
   return (
+    <>
     <header className="site-header">
       <div className="wrap nav">
         <a className="brand" href="#top" aria-label="Popush home">
@@ -58,29 +59,38 @@ export function Header() {
           </button>
         </nav>
       </div>
-
-      <div className={`mobile-menu${open ? ' open' : ''}`}>
-        <div className="wrap mobile-menu-inner">
-          {LINKS.map((l) => (
-            <a
-              key={l.label}
-              href={l.href}
-              onClick={() => setOpen(false)}
-              {...(l.ext ? { rel: 'noreferrer' } : {})}
-            >
-              {l.label}
-            </a>
-          ))}
-          <a
-            className="btn btn-primary"
-            href="#download"
-            onClick={() => setOpen(false)}
-          >
-            <Download size={16} />
-            Download for Linux
-          </a>
-        </div>
-      </div>
     </header>
+
+    <div className={`mobile-menu${open ? ' open' : ''}`}>
+      <button
+        className="mobile-menu-close"
+        type="button"
+        aria-label="Close menu"
+        onClick={() => setOpen(false)}
+      >
+        <X size={20} />
+      </button>
+      <div className="mobile-menu-inner">
+        {LINKS.map((l) => (
+          <a
+            key={l.label}
+            href={l.href}
+            onClick={() => setOpen(false)}
+            {...(l.ext ? { rel: 'noreferrer' } : {})}
+          >
+            {l.label}
+          </a>
+        ))}
+        <a
+          className="btn btn-primary"
+          href="#download"
+          onClick={() => setOpen(false)}
+        >
+          <Download size={16} />
+          Download for Linux
+        </a>
+      </div>
+    </div>
+    </>
   );
 }
