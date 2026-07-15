@@ -1,4 +1,4 @@
-import type { MouseEvent, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Clock, Rocket, Stack, Lock } from './Icons';
 
 interface Feature {
@@ -30,13 +30,6 @@ const FEATURES: Feature[] = [
   },
 ];
 
-function track(e: MouseEvent<HTMLElement>) {
-  const el = e.currentTarget;
-  const r = el.getBoundingClientRect();
-  el.style.setProperty('--mx', `${e.clientX - r.left}px`);
-  el.style.setProperty('--my', `${e.clientY - r.top}px`);
-}
-
 export function Features() {
   return (
     <section id="features">
@@ -55,7 +48,6 @@ export function Features() {
               className="card reveal"
               key={f.title}
               style={{ transitionDelay: `${i * 70}ms` }}
-              onMouseMove={track}
             >
               <div className="kico">{f.icon}</div>
               <h3>{f.title}</h3>

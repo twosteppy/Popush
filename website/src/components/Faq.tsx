@@ -26,7 +26,7 @@ const QA: { q: string; a: string }[] = [
 ];
 
 export function Faq() {
-  const [open, setOpen] = useState<number | null>(0);
+  const [open, setOpen] = useState<number | null>(null);
 
   return (
     <section id="faq">

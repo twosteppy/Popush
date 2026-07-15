@@ -267,12 +267,7 @@ section { padding: 60px 0; }
   padding: 24px; box-shadow: var(--shadow-hard); overflow: hidden;
   transition: transform .18s cubic-bezier(.2,.7,.2,1), box-shadow .18s ease, border-color .18s ease;
 }
-.card::before {
-  content: ''; position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity .25s ease;
-  background: radial-gradient(340px circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%);
-}
 .card:hover { transform: translate(-3px, -3px); box-shadow: var(--shadow-hard-accent-hover); border-color: var(--accent); }
-.card:hover::before { opacity: 1; }
 .card > * { position: relative; }
 .card .kico { width: 40px; height: 40px; border-radius: 2px; display: grid; place-items: center; margin-bottom: 15px;
   border: 1px solid var(--border-strong); background: var(--surface-overlay); color: var(--accent); transition: transform .2s ease, box-shadow .2s ease; }
@@ -331,15 +326,6 @@ section { padding: 60px 0; }
   background: linear-gradient(90deg, var(--accent), #ffcbe4);
   box-shadow: 0 0 10px var(--accent);
 }
-
-/* ---- Hero cursor spotlight ---- */
-.hero { position: relative; }
-.hero-spot {
-  position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0; transition: opacity .3s ease;
-  background: radial-gradient(340px circle at var(--sx, 50%) var(--sy, 30%), color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%);
-}
-.hero:hover .hero-spot { opacity: 1; }
-.hero-grid { position: relative; z-index: 1; }
 
 /* Terminal ambient glow pulse */
 .term { animation: termGlow 5s ease-in-out infinite; }
