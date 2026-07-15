@@ -646,3 +646,72 @@ section { padding: 40px 0; }
 @media (max-width: 480px) {
   .foot-bottom { justify-content: center; text-align: center; }
 }
+
+/* =====================================================================
+   Navbar glow-up, mobile menu, star-burst hover, mobile polish
+   ===================================================================== */
+
+/* Cuter nav links: pill hover instead of an underline */
+.site-header { background: color-mix(in srgb, var(--surface-base) 74%, transparent); }
+.nav { height: 64px; }
+.brand span { font-size: 16px; }
+.nav-link { padding: 8px 13px; border-radius: 999px; }
+.nav-link::after { display: none; }
+.nav-link:hover { color: var(--accent); background: var(--accent-muted); }
+.nav-right { gap: 8px; }
+.icon-btn { border-radius: 11px; }
+
+/* Hamburger (hidden on desktop) */
+.menu-btn {
+  display: none; place-items: center; width: 38px; height: 38px;
+  border: 1px solid var(--border-strong); border-radius: 11px;
+  background: var(--surface-raised); color: var(--text-secondary); cursor: pointer;
+  transition: color .14s ease, border-color .14s ease, background .14s ease;
+}
+.menu-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--surface-hover); }
+
+/* Slide-down mobile menu */
+.mobile-menu {
+  overflow: hidden; max-height: 0; opacity: 0;
+  background: color-mix(in srgb, var(--surface-base) 94%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid transparent;
+  transition: max-height .32s var(--bounce), opacity .25s ease, border-color .25s ease;
+}
+.mobile-menu.open { max-height: 360px; opacity: 1; border-bottom-color: var(--border-subtle); }
+.mobile-menu-inner { display: flex; flex-direction: column; gap: 5px; padding: 10px 24px 18px; }
+.mobile-menu-inner a { padding: 12px 14px; border-radius: 11px; font-size: 15px; font-weight: 500; color: var(--text-secondary); transition: background .14s ease, color .14s ease; }
+.mobile-menu-inner a:hover { background: var(--surface-hover); color: var(--accent); }
+.mobile-menu-inner .btn { justify-content: center; margin-top: 8px; }
+@media (min-width: 721px) { .mobile-menu { display: none; } }
+
+/* Yellow twinkling stars on the "Star on GitHub" button */
+.starbtn { position: relative; }
+.stars { position: absolute; inset: 0; pointer-events: none; }
+.stars b {
+  position: absolute; color: #ffd23f; font-size: 12px; line-height: 1;
+  opacity: 0; transform: scale(0); text-shadow: 0 0 7px rgba(255, 210, 63, 0.6);
+}
+.starbtn:hover .stars b { animation: starPop 1.15s ease-in-out infinite; }
+@keyframes starPop {
+  0% { opacity: 0; transform: scale(0) translateY(0) rotate(0deg); }
+  35% { opacity: 1; transform: scale(1) translateY(-9px) rotate(18deg); }
+  100% { opacity: 0; transform: scale(.35) translateY(-19px) rotate(46deg); }
+}
+@media (prefers-reduced-motion: reduce) { .starbtn:hover .stars b { animation: none; opacity: 0; } }
+@media (hover: none) { .stars { display: none; } }
+
+/* ---- Mobile responsive polish ---- */
+@media (max-width: 720px) {
+  .hide-sm { display: none !important; }
+  .menu-btn { display: inline-grid; }
+  section { padding: 34px 0; }
+  .hero { padding: 40px 0 20px; }
+}
+@media (max-width: 420px) {
+  .hero h1 { font-size: 22px; line-height: 1.32; }
+  .sec-head h2 { font-size: 20px; }
+  .wrap { padding: 0 18px; }
+  .stat .n { font-size: 30px; }
+  .cta { padding: 30px 20px; }
+}

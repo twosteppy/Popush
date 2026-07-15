@@ -1,5 +1,6 @@
 import { SITE } from '../lib/site';
 import { Download, GitHub } from './Icons';
+import { StarBurst } from './StarBurst';
 
 export function CtaBand() {
   return (
@@ -16,9 +17,10 @@ export function CtaBand() {
               <Download />
               Download for Linux
             </a>
-            <a className="btn" href={SITE.github} rel="noreferrer">
-              <GitHub />
+            <a className="btn starbtn" href={SITE.github} rel="noreferrer">
+              <GitHub size={16} />
               Star on GitHub
+              <StarBurst />
             </a>
           </div>
         </div>

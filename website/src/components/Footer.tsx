@@ -5,9 +5,6 @@ export function Footer() {
   return (
     <footer className="site-footer">
       <div className="wrap">
-        <div className="foot-flowers" aria-hidden="true">
-          ✿ ✦ ✿ ✦ ✿
-        </div>
         <div className="foot-top">
           <div className="foot-brand">
             <a className="brand" href="#top" aria-label="Popush home">

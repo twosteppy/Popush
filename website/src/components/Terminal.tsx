@@ -7,16 +7,57 @@ type Row =
   | { kind: 'step'; name: string; detail: string }
   | { kind: 'done'; text: string };
 
-const ROWS: Row[] = [
-  { kind: 'cmd', text: 'popush ship pook-review' },
-  { kind: 'blank' },
-  { kind: 'step', name: 'check', detail: 'server reachable' },
-  { kind: 'step', name: 'pull', detail: 'fast-forward, 3 files' },
-  { kind: 'step', name: 'build', detail: 'docker compose build' },
-  { kind: 'step', name: 'restart', detail: 'docker compose up -d' },
-  { kind: 'step', name: 'verify', detail: 'pookreview.com  200' },
-  { kind: 'blank' },
-  { kind: 'done', text: 'shipped and live in 2m 14s' },
+interface Scene {
+  title: string;
+  rows: Row[];
+}
+
+const step = (name: string, detail: string): Row => ({ kind: 'step', name, detail });
+const B: Row = { kind: 'blank' };
+
+const SCENES: Scene[] = [
+  {
+    title: 'pook-review · ship it',
+    rows: [
+      { kind: 'cmd', text: 'popush ship pook-review' },
+      B,
+      step('check', 'server reachable'),
+      step('pull', 'fast-forward, 3 files'),
+      step('build', 'docker compose build'),
+      step('restart', 'docker compose up -d'),
+      step('verify', 'pookreview.com  200'),
+      B,
+      { kind: 'done', text: 'shipped and live in 2m 14s' },
+    ],
+  },
+  {
+    title: 'twostep.lol · ship it',
+    rows: [
+      { kind: 'cmd', text: 'popush ship twostep' },
+      B,
+      step('check', 'server reachable'),
+      step('pull', 'fast-forward, 1 file'),
+      step('build', 'vite build'),
+      step('sync', 'copied to /srv/twostep'),
+      step('verify', 'twostep.lol  200'),
+      B,
+      { kind: 'done', text: 'shipped and live in 38s' },
+    ],
+  },
+  {
+    title: 'uoptimise · ship it',
+    rows: [
+      { kind: 'cmd', text: 'popush ship uoptimise' },
+      B,
+      step('check', 'server reachable'),
+      step('pull', 'fast-forward, 7 files'),
+      step('build', 'docker compose build'),
+      step('restart', 'api, portal, admin'),
+      step('verify', 'uoptimise.org  200'),
+      B,
+      { kind: 'done', text: 'shipped and live in 3m 02s' },
+    ],
+  },
 ];
 
 const reduced = () =>
@@ -54,19 +95,28 @@ function RowView({ row, on }: { row: Row; on: boolean }) {
 }
 
 export function Terminal() {
+  const [scene, setScene] = useState(0);
   const [shown, setShown] = useState(0);
+  const rows = SCENES[scene].rows;
 
   useEffect(() => {
     if (reduced()) {
-      setShown(ROWS.length);
+      setShown(rows.length);
       return;
     }
-    const done = shown >= ROWS.length;
-    const cur = ROWS[shown];
-    const delay = done ? 2800 : cur && cur.kind === 'blank' ? 130 : 350;
-    const t = window.setTimeout(() => setShown((s) => (done ? 0 : s + 1)), delay);
+    const done = shown >= rows.length;
+    const cur = rows[shown];
+    const delay = done ? 2600 : cur && cur.kind === 'blank' ? 130 : 350;
+    const t = window.setTimeout(() => {
+      if (done) {
+        setScene((s) => (s + 1) % SCENES.length);
+        setShown(0);
+      } else {
+        setShown((s) => s + 1);
+      }
+    }, delay);
     return () => window.clearTimeout(t);
-  }, [shown]);
+  }, [shown, scene, rows.length]);
 
   return (
     <div className="term-wrap">
@@ -76,23 +126,24 @@ export function Terminal() {
         role="img"
         aria-label="Popush deploying a site: check, pull, build, restart, verify, then shipped and live."
       >
-      <div className="term-bar">
-        <div className="dots">
-          <i />
-          <i />
-          <i />
+        <div className="term-bar">
+          <div className="dots">
+            <i />
+            <i />
+            <i />
+          </div>
+          <span className="title">{SCENES[scene].title}</span>
+          <span className="live">
+            <i /> LIVE
+          </span>
         </div>
-        <span className="title">pook-review · ship it</span>
-        <span className="live">
-          <i /> LIVE
-        </span>
-      </div>
-      <div className="term-body" aria-hidden="true">
-        {ROWS.map((r, i) => (
-          <RowView key={i} row={r} on={i < shown} />
-        ))}
-        <span className="tcaret" />
-      </div>
+        {/* Keyed by scene so each deploy types in fresh, no cross-fade. */}
+        <div className="term-body" key={scene} aria-hidden="true">
+          {rows.map((r, i) => (
+            <RowView key={i} row={r} on={i < shown} />
+          ))}
+          <span className="tcaret" />
+        </div>
       </div>
     </div>
   );

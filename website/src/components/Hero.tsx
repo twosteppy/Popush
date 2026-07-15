@@ -1,6 +1,7 @@
 import { SITE } from '../lib/site';
 import { Download, GitHub, Check } from './Icons';
 import { InstallCommand } from './CopyButton';
+import { StarBurst } from './StarBurst';
 import { Terminal } from './Terminal';
 
 export function Hero() {
@@ -23,9 +24,10 @@ export function Hero() {
               <Download />
               Download for Linux
             </a>
-            <a className="btn" href={SITE.github} rel="noreferrer">
-              <GitHub />
+            <a className="btn starbtn" href={SITE.github} rel="noreferrer">
+              <GitHub size={16} />
               Star on GitHub
+              <StarBurst />
             </a>
           </div>
           <InstallCommand
