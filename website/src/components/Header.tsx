@@ -62,6 +62,15 @@ export function Header() {
     </header>
 
     <div className={`mobile-menu${open ? ' open' : ''}`}>
+      <a
+        className="brand mobile-menu-brand"
+        href="#top"
+        aria-label="Popush home"
+        onClick={() => setOpen(false)}
+      >
+        <img src={logo} alt="" />
+        <span>Popush</span>
+      </a>
       <button
         className="mobile-menu-close"
         type="button"

@@ -711,6 +711,11 @@ section { padding: 40px 0; }
   transition: opacity .28s ease, visibility .28s ease;
 }
 .mobile-menu.open { opacity: 1; visibility: visible; pointer-events: auto; }
+.mobile-menu-brand {
+  position: absolute; top: 20px; left: 22px; gap: 10px;
+}
+.mobile-menu-brand img { width: 28px; height: 28px; image-rendering: pixelated; }
+.mobile-menu-brand span { font-family: var(--font-pixel); font-size: 16px; letter-spacing: 0.02em; }
 .mobile-menu-close {
   position: absolute; top: 16px; right: 18px;
   display: inline-grid; place-items: center; width: 40px; height: 40px;
