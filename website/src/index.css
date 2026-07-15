@@ -431,3 +431,87 @@ section { padding: 60px 0; }
   .hero h1 { font-size: 26px; }
   .term-body { font-size: 12px; }
 }
+
+/* =====================================================================
+   Cute + compact pass: rounder corners, springier motion, tighter rhythm
+   ===================================================================== */
+:root { --bounce: cubic-bezier(.34, 1.56, .64, 1); }
+
+/* Softer, sticker-like rounding */
+.card, .term, .configwin, .dl-box, .cta, .stepcard { border-radius: 14px; }
+.btn, .stat, .faq-item, .cmd, .kico, .icon-btn, .faq-badge { border-radius: 11px; }
+.tab, .copy-btn, .term-bar .live, .shipped .visit { border-radius: 8px; }
+.card .kico { border-radius: 10px; }
+
+/* Compact vertical rhythm */
+section { padding: 40px 0; }
+.hero { padding: 52px 0 30px; }
+.hero-grid { gap: 40px; }
+.hero-sub { margin-top: 16px; }
+.hero-cta { margin-top: 22px; }
+.cmd.hero-cmd { margin-top: 18px; }
+.sec-head { margin-bottom: 24px; }
+.sec-head h2 { margin-top: 10px; }
+.sec-head p { margin-top: 10px; font-size: 15px; }
+.features, .steps { gap: 14px; }
+.stats { gap: 12px; }
+.card { padding: 20px; }
+.stepcard { padding: 20px; }
+.stat { padding: 18px 18px; }
+.dl-box { padding: 28px; gap: 30px; }
+.dl-side { padding-left: 30px; }
+.cta { padding: 36px 30px; }
+.term-body { min-height: 264px; padding: 16px 16px 18px; }
+.site-footer { padding: 26px 0 40px; margin-top: 16px; }
+
+/* Springier, cuter hovers */
+.btn, .card, .stat, .stepcard, .icon-btn, .kico, .cmd { transition-timing-function: var(--bounce); }
+.btn:hover { transform: translate(-2px, -2px) scale(1.015); }
+.card:hover { transform: translateY(-5px) scale(1.015); }
+.stat:hover { transform: translateY(-4px) scale(1.02); }
+.stepcard:hover { transform: translateY(-4px) scale(1.01); }
+.card:hover .kico { transform: translateY(-2px) rotate(-6deg) scale(1.06); }
+
+/* Bobbing pixel-flower logo */
+@keyframes bob { 50% { transform: translateY(-3px); } }
+.brand img { animation: bob 3s ease-in-out infinite; }
+.brand:hover img { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .brand img { animation: none; } }
+
+/* A little flower on every eyebrow label */
+.label-mono::before {
+  content: '✿';
+  margin-right: 7px;
+  font-family: var(--font-sans);
+  -webkit-text-fill-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Beating heart in the footer */
+.foot-legal .heart { color: var(--accent); display: inline-block; animation: beat 1.4s ease-in-out infinite; }
+@keyframes beat { 10%, 30% { transform: scale(1.25); } 20%, 40%, 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .foot-legal .heart { animation: none; } }
+
+/* ---- FAQ, reworked: cuter and tighter ---- */
+.faq { gap: 8px; max-width: 780px; }
+.faq-item { transition: border-color .16s ease, transform .16s var(--bounce), box-shadow .16s ease; }
+.faq-item:hover { transform: translateY(-2px); border-color: var(--accent); }
+.faq-item.open { box-shadow: var(--shadow-hard-sm); }
+.faq-q { gap: 12px; padding: 15px 16px; font-size: 15px; }
+.faq-badge {
+  flex-shrink: 0; width: 24px; height: 24px; display: grid; place-items: center;
+  font-family: var(--font-pixel); font-size: 11px;
+  color: var(--accent); background: var(--accent-muted);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  transition: transform .2s var(--bounce);
+}
+.faq-item.open .faq-badge, .faq-item:hover .faq-badge { transform: rotate(8deg) scale(1.08); }
+.faq-qt { margin-right: auto; }
+.faq-a p { padding: 0 16px 16px 52px; font-size: 14px; }
+.faq-more { margin-top: 16px; font-size: 14px; color: var(--text-tertiary); }
+.faq-more a { color: var(--accent); font-weight: 600; }
+.faq-more a:hover { color: var(--accent-hover); }
+
+@media (max-width: 520px) {
+  .faq-a p { padding-left: 16px; }
+}

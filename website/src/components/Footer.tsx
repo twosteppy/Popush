@@ -19,7 +19,9 @@ export function Footer() {
             Releases
           </a>
         </nav>
-        <span className="foot-legal">Built by twostep · GPL-3.0</span>
+        <span className="foot-legal">
+          made with <span className="heart">♥</span> by twostep · GPL-3.0
+        </span>
       </div>
     </footer>
   );

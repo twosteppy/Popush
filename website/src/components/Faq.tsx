@@ -1,22 +1,23 @@
 import { useState } from 'react';
+import { SITE } from '../lib/site';
 import { ChevronDown } from './Icons';
 
 const QA: { q: string; a: string }[] = [
   {
     q: 'Is my data private?',
-    a: 'Yes. Your servers, SSH keys, and config live in a file on your machine. Popush never uploads, tracks, or phones anything home, and the source is open so you can verify it.',
+    a: "Totally. Your servers, SSH keys, and config live in one file on your machine. Nothing is uploaded or phoned home, and the source is open so you can check for yourself.",
   },
   {
     q: 'Does it install anything on my server?',
-    a: 'No agent, no daemon, nothing. Popush drives your server over ordinary SSH, running the same commands you would run by hand, just behind one button.',
+    a: 'Nope, no agent or daemon. Popush drives your server over plain SSH, running the same commands you would by hand, just behind one button.',
   },
   {
     q: 'Which stacks does it support?',
-    a: 'Docker Compose, systemd, pm2, and plain static sites. Point Popush at the folder, pick the type, and it handles build, restart, and health checks for that stack.',
+    a: 'Docker Compose, systemd, pm2, and plain static sites. Point it at the folder, pick the type, and it handles build, restart, and health checks.',
   },
   {
     q: 'What does one click actually do?',
-    a: 'It commits and pushes your changes, pulls them on the server, rebuilds, recreates the container with the new image, and waits for the site to answer healthy. Every step streams live, and Cancel stops it instantly.',
+    a: 'Commit, push, pull on the server, rebuild, recreate the container with the new image, then wait for the site to answer healthy. Every step streams live, and Cancel stops it instantly.',
   },
   {
     q: 'How much does it cost?',
@@ -45,7 +46,10 @@ export function Faq() {
                   aria-expanded={isOpen}
                   onClick={() => setOpen(isOpen ? null : i)}
                 >
-                  {item.q}
+                  <span className="faq-badge" aria-hidden="true">
+                    ?
+                  </span>
+                  <span className="faq-qt">{item.q}</span>
                   <ChevronDown className="chev" />
                 </button>
                 <div className="faq-a">
@@ -57,6 +61,12 @@ export function Faq() {
             );
           })}
         </div>
+        <p className="faq-more reveal">
+          Still curious?{' '}
+          <a href={`${SITE.github}/issues`} rel="noreferrer">
+            Ask on GitHub &rarr;
+          </a>
+        </p>
       </div>
     </section>
   );
