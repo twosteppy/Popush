@@ -1,25 +1,21 @@
 import { SITE } from '../lib/site';
 import { Download, GitHub, Check } from './Icons';
 import { InstallCommand } from './CopyButton';
-import { PipelineDemo } from './PipelineDemo';
+import { Terminal } from './Terminal';
 
 export function Hero() {
   return (
     <section className="hero">
       <div className="wrap hero-grid">
-        <div>
-          <div className="eyebrow">
-            <span className="dot" />
-            <span className="label-mono">Deploy over SSH · no dashboards</span>
-          </div>
+        <div className="reveal">
           <h1>
             Your VPS,
             <br />
-            <span className="accent">one click</span> away.
+            <span className="grad">one click</span> away.
           </h1>
           <p className="hero-sub">
             A native desktop app that ships your sites over SSH. See honest live
-            status, then commit, push, build, and restart with one button —
+            status, then commit, push, build, and restart with one button, all
             streamed live.
           </p>
           <div className="hero-cta">
@@ -39,10 +35,12 @@ export function Hero() {
           />
           <p className="hero-note">
             <Check strokeWidth={2.5} />
-            Free &amp; open source · Linux .AppImage · nothing leaves your machine
+            Free, open source, Linux .AppImage. Nothing leaves your machine.
           </p>
         </div>
-        <PipelineDemo />
+        <div className="reveal" style={{ transitionDelay: '90ms' }}>
+          <Terminal />
+        </div>
       </div>
     </section>
   );

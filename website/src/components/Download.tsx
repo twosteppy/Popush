@@ -6,12 +6,12 @@ export function Download() {
   return (
     <section id="download">
       <div className="wrap">
-        <div className="dl-box">
+        <div className="dl-box reveal">
           <div>
             <span className="label-mono">Get Popush</span>
-            <h2>Download &amp; run. No account, no setup.</h2>
+            <h2>Download and run. No account, no setup.</h2>
             <p className="lead">
-              Grab the AppImage, make it executable, and launch — or let the
+              Grab the AppImage, make it executable, and launch. Or let the
               one-line installer drop an icon in your app menu and on your
               desktop for you.
             </p>
@@ -25,8 +25,8 @@ export function Download() {
               </a>
             </div>
             <p className="dl-meta">
-              Linux · x86-64 · needs <code>WebKitGTK 4.1</code> &amp;{' '}
-              <code>GTK 3</code>
+              Linux, x86-64, needs <code>WebKitGTK 4.1</code> and{' '}
+              <code>GTK 3</code>.
               <br />
               Verified against <code>SHA256SUMS</code> on every release.
             </p>
@@ -38,10 +38,10 @@ export function Download() {
               command={SITE.installCommand}
             />
             <p className="dl-alt">
-              Downloads the AppImage, checks its hash, and adds a launcher +
+              Downloads the AppImage, checks its hash, and adds a launcher plus
               desktop icon. Prefer to build it yourself?{' '}
               <a href={SITE.readme} rel="noreferrer">
-                Clone &amp; run <code>install.sh</code> →
+                Clone and run <code>install.sh</code> &rarr;
               </a>
             </p>
           </div>
