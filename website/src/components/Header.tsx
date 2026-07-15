@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import logo from '../assets/logo.svg';
 import { SITE } from '../lib/site';
-import { useTheme } from '../hooks/useTheme';
-import { Sun, Moon, Menu, X, Download } from './Icons';
+import { Menu, X, Download } from './Icons';
 
 const LINKS = [
   { href: '#features', label: 'Features' },
@@ -12,8 +11,14 @@ const LINKS = [
 ];
 
 export function Header() {
-  const [theme, toggle] = useTheme();
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
 
   return (
     <header className="site-header">
@@ -37,15 +42,6 @@ export function Header() {
           <a className="nav-link hide-sm" href={SITE.github} rel="noreferrer">
             GitHub
           </a>
-
-          <button
-            className="icon-btn"
-            type="button"
-            onClick={toggle}
-            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
-          >
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
 
           <a className="btn btn-primary btn-sm hide-sm" href="#download">
             Download

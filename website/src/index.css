@@ -652,7 +652,7 @@ section { padding: 40px 0; }
    ===================================================================== */
 
 .site-header { background: color-mix(in srgb, var(--surface-base) 74%, transparent); }
-.nav { height: 64px; }
+.nav { height: 64px; position: relative; z-index: 10; }
 .brand span { font-size: 16px; }
 .nav-right { gap: 22px; }
 .icon-btn { border-radius: 11px; }
@@ -660,7 +660,7 @@ section { padding: 40px 0; }
 /* 8-bit nav links, evenly spaced and vertically aligned */
 .nav-link {
   font-family: var(--font-pixel);
-  font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase;
+  font-size: 12px; letter-spacing: 0.03em; text-transform: uppercase;
   line-height: 1; padding: 8px 2px; border-radius: 0;
   display: inline-flex; align-items: center; height: 34px;
 }
@@ -702,39 +702,46 @@ section { padding: 40px 0; }
 .menu-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--surface-hover); transform: rotate(-6deg) scale(1.05); }
 .menu-btn:active { transform: scale(.94); }
 
-/* Glassy, cute slide-down mobile menu */
+/* Full-screen glass mobile menu */
 .mobile-menu {
-  overflow: hidden; max-height: 0; opacity: 0;
-  padding: 0 16px;
-  transition: max-height .34s var(--bounce), opacity .22s ease, padding .22s ease;
+  position: fixed; inset: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: center; padding: 84px 22px 40px;
+  background: color-mix(in srgb, var(--surface-base) 78%, transparent);
+  backdrop-filter: blur(26px) saturate(1.35);
+  -webkit-backdrop-filter: blur(26px) saturate(1.35);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity .28s ease, visibility .28s ease;
 }
-.mobile-menu.open { max-height: 380px; opacity: 1; padding: 6px 16px 18px; }
+.mobile-menu.open { opacity: 1; visibility: visible; pointer-events: auto; }
 .mobile-menu-inner {
-  display: flex; flex-direction: column; gap: 4px; padding: 10px;
-  border: 1.5px solid color-mix(in srgb, var(--accent) 34%, var(--border-subtle));
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--surface-raised) 55%, transparent);
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  box-shadow: 0 18px 44px -16px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.03) inset,
-              0 2px 0 color-mix(in srgb, var(--accent) 20%, transparent);
+  display: flex; flex-direction: column; gap: 14px;
+  width: 100%; max-width: 460px; padding: 0;
+  transform: translateY(16px) scale(.97);
+  transition: transform .34s var(--bounce);
 }
+.mobile-menu.open .mobile-menu-inner { transform: none; }
 .mobile-menu-inner a:not(.btn) {
   position: relative; display: flex; align-items: center; justify-content: center;
-  padding: 14px 12px; border-radius: 11px;
-  font-family: var(--font-pixel); font-size: 11px; letter-spacing: 0.05em;
-  text-transform: uppercase; color: var(--text-secondary);
-  transition: background .15s ease, color .15s ease, transform .15s var(--bounce);
+  padding: 22px 16px; border-radius: 16px;
+  font-family: var(--font-pixel); font-size: 17px; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--text-primary);
+  border: 1.5px solid color-mix(in srgb, var(--accent) 22%, var(--border-subtle));
+  background: color-mix(in srgb, var(--surface-raised) 50%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background .16s ease, color .16s ease, transform .16s var(--bounce), border-color .16s ease;
 }
-.mobile-menu-inner a:not(.btn):hover {
-  background: var(--accent-muted); color: var(--accent); transform: scale(1.015);
+.mobile-menu-inner a:not(.btn):hover,
+.mobile-menu-inner a:not(.btn):active {
+  background: var(--accent-muted); color: var(--accent);
+  border-color: var(--accent); transform: scale(1.02);
 }
-.mobile-menu-inner a:not(.btn):active { transform: scale(.98); }
 .mobile-menu-inner .btn {
-  justify-content: center; margin-top: 8px;
-  font-family: var(--font-pixel); font-size: 11px; letter-spacing: 0.04em;
+  justify-content: center; margin-top: 6px; padding: 20px;
+  font-family: var(--font-pixel); font-size: 15px; letter-spacing: 0.03em;
   text-transform: uppercase;
 }
+.mobile-menu-inner .btn svg { width: 20px; height: 20px; }
 @media (min-width: 721px) { .mobile-menu { display: none; } }
 
 /* Yellow twinkling stars on the "Star on GitHub" button */
