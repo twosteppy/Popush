@@ -4,6 +4,11 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      publish_tag:
+        description: "Tag to create and publish a Release for (e.g. v1.0.1). Leave blank to only build artifacts."
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -58,10 +63,11 @@ jobs:
         with:
           name: popush-linux-packages
           path: release-artifacts/*
-      - name: Attach packages to the GitHub Release (on tag)
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Attach packages to the GitHub Release
+        if: startsWith(github.ref, 'refs/tags/') || inputs.publish_tag != ''
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.publish_tag != '' && inputs.publish_tag || github.ref_name }}
           files: |
             release-artifacts/*.AppImage
             release-artifacts/*.rpm
@@ -116,10 +122,11 @@ jobs:
         with:
           name: popush-windows-installer
           path: release-artifacts/*
-      - name: Attach installer to the GitHub Release (on tag)
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Attach installer to the GitHub Release
+        if: startsWith(github.ref, 'refs/tags/') || inputs.publish_tag != ''
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.publish_tag != '' && inputs.publish_tag || github.ref_name }}
           files: |
             release-artifacts/*-setup.exe
             release-artifacts/SHA256SUMS-windows.txt
