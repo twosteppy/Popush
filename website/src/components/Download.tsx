@@ -4,10 +4,13 @@ import { Download as DownloadIcon } from './Icons';
 import { InstallCommand } from './CopyButton';
 
 export function Download() {
-  const isWindows = detectOS() === 'windows';
+  const os = detectOS();
+  const isWindows = os === 'windows';
+  const osName =
+    os === 'windows' ? 'Windows' : os === 'mac' ? 'macOS' : 'Linux';
   const winBtn = (
     <a
-      className={`btn ${isWindows ? 'btn-primary' : ''}`}
+      className={`btn dl-btn ${isWindows ? 'btn-primary' : ''}`}
       href={SITE.download.windows}
       rel="noreferrer"
     >
@@ -17,7 +20,7 @@ export function Download() {
   );
   const linuxBtn = (
     <a
-      className={`btn ${isWindows ? '' : 'btn-primary'}`}
+      className={`btn dl-btn ${isWindows ? '' : 'btn-primary'}`}
       href={SITE.download.linux}
       rel="noreferrer"
     >
@@ -37,6 +40,18 @@ export function Download() {
               let the one-line installer drop an icon in your app menu and on
               your desktop for you.
             </p>
+            <span className="dl-detect">
+              <span className="dot" />
+              {os === 'mac' ? (
+                <>
+                  We detected <b>macOS</b>. Pick a build below.
+                </>
+              ) : (
+                <>
+                  We detected <b>{osName}</b> and featured it below.
+                </>
+              )}
+            </span>
             <div className="dl-actions">
               {isWindows ? (
                 <>

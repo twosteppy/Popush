@@ -16,7 +16,7 @@ export function CtaBand() {
           </p>
           <div className="cta-actions">
             <a
-              className="btn btn-primary"
+              className="btn btn-primary dl-btn"
               href={isWindows ? SITE.download.windows : SITE.download.linux}
               rel="noreferrer"
             >
