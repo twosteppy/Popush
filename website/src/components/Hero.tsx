@@ -1,10 +1,12 @@
 import { SITE } from '../lib/site';
+import { detectOS } from '../lib/os';
 import { Download, GitHub, Check } from './Icons';
 import { InstallCommand } from './CopyButton';
 import { StarBurst } from './StarBurst';
 import { Terminal } from './Terminal';
 
 export function Hero() {
+  const isWindows = detectOS() === 'windows';
   return (
     <section className="hero">
       <div className="wrap hero-grid">
@@ -22,7 +24,7 @@ export function Hero() {
           <div className="hero-cta">
             <a className="btn btn-primary" href="#download">
               <Download />
-              Download for Linux
+              {isWindows ? 'Download for Windows' : 'Download for Linux'}
             </a>
             <a className="btn starbtn" href={SITE.github} rel="noreferrer">
               <GitHub size={16} />
@@ -37,7 +39,7 @@ export function Hero() {
           />
           <p className="hero-note">
             <Check strokeWidth={2.5} />
-            Free, open source, Linux .AppImage. Nothing leaves your machine.
+            Free, open source, Linux and Windows. Nothing leaves your machine.
           </p>
         </div>
         <div className="reveal" style={{ transitionDelay: '90ms' }}>

@@ -1,8 +1,30 @@
 import { SITE } from '../lib/site';
+import { detectOS } from '../lib/os';
 import { Download as DownloadIcon } from './Icons';
 import { InstallCommand } from './CopyButton';
 
 export function Download() {
+  const isWindows = detectOS() === 'windows';
+  const winBtn = (
+    <a
+      className={`btn ${isWindows ? 'btn-primary' : ''}`}
+      href={SITE.download.windows}
+      rel="noreferrer"
+    >
+      <DownloadIcon />
+      Download for Windows
+    </a>
+  );
+  const linuxBtn = (
+    <a
+      className={`btn ${isWindows ? '' : 'btn-primary'}`}
+      href={SITE.download.linux}
+      rel="noreferrer"
+    >
+      <DownloadIcon />
+      Download for Linux
+    </a>
+  );
   return (
     <section id="download">
       <div className="wrap">
@@ -11,28 +33,35 @@ export function Download() {
             <span className="label-mono">Get Popush</span>
             <h2>Download and run. No account, no setup.</h2>
             <p className="lead">
-              Grab the AppImage, make it executable, and launch. Or let the
-              one-line installer drop an icon in your app menu and on your
-              desktop for you.
+              Grab the installer for your OS and launch. On Linux you can also
+              let the one-line installer drop an icon in your app menu and on
+              your desktop for you.
             </p>
             <div className="dl-actions">
-              <a className="btn btn-primary" href={SITE.releases} rel="noreferrer">
-                <DownloadIcon />
-                Download .AppImage
-              </a>
+              {isWindows ? (
+                <>
+                  {winBtn}
+                  {linuxBtn}
+                </>
+              ) : (
+                <>
+                  {linuxBtn}
+                  {winBtn}
+                </>
+              )}
               <a className="btn" href={SITE.github} rel="noreferrer">
                 View source
               </a>
             </div>
             <p className="dl-meta">
-              Linux, x86-64, needs <code>WebKitGTK 4.1</code> and{' '}
-              <code>GTK 3</code>.
+              Windows 10/11 (x64) or Linux x86-64 (needs{' '}
+              <code>WebKitGTK 4.1</code> and <code>GTK 3</code>).
               <br />
               Verified against <code>SHA256SUMS</code> on every release.
             </p>
           </div>
           <div className="dl-side">
-            <span className="label-mono">Or, one line in a terminal</span>
+            <span className="label-mono">Or, one line on Linux</span>
             <InstallCommand
               display={SITE.installDisplay}
               command={SITE.installCommand}

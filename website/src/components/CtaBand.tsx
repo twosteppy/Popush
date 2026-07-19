@@ -1,8 +1,10 @@
 import { SITE } from '../lib/site';
+import { detectOS } from '../lib/os';
 import { Download, GitHub } from './Icons';
 import { StarBurst } from './StarBurst';
 
 export function CtaBand() {
+  const isWindows = detectOS() === 'windows';
   return (
     <section aria-label="Download Popush">
       <div className="wrap">
@@ -13,9 +15,13 @@ export function CtaBand() {
             give your VPS the deploy button it always needed.
           </p>
           <div className="cta-actions">
-            <a className="btn btn-primary" href={SITE.releases} rel="noreferrer">
+            <a
+              className="btn btn-primary"
+              href={isWindows ? SITE.download.windows : SITE.download.linux}
+              rel="noreferrer"
+            >
               <Download />
-              Download for Linux
+              {isWindows ? 'Download for Windows' : 'Download for Linux'}
             </a>
             <a className="btn starbtn" href={SITE.github} rel="noreferrer">
               <GitHub size={16} />
