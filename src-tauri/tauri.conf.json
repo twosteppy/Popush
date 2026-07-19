@@ -42,11 +42,17 @@
       "../packaging/desktop/icons/dev.popush.Popush-32.png",
       "../packaging/desktop/icons/dev.popush.Popush-128.png",
       "../packaging/desktop/icons/dev.popush.Popush-256.png",
+      "../packaging/desktop/icons/dev.popush.Popush.ico",
       "../packaging/desktop/icons/dev.popush.Popush.svg"
     ],
     "linux": {
       "rpm": {
         "depends": ["webkit2gtk4.1", "gtk3"]
+      }
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
       }
     }
   }

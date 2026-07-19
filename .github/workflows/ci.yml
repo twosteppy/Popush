@@ -67,6 +67,28 @@ jobs:
       - name: Check Tauri binary compiles
         run: cargo build -p popush --locked
 
+  windows-build:
+    name: Windows binary (build)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install NASM (ring/aws-lc build dependency on Windows)
+        uses: ilammy/setup-nasm@v1
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build frontend
+        run: pnpm build
+      - name: Check Tauri binary compiles on Windows
+        run: cargo build -p popush --locked
+
   audit:
     name: Dependency audit (cargo-audit, cargo-deny)
     runs-on: ubuntu-latest

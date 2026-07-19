@@ -69,6 +69,54 @@ jobs:
           body: |
             Popush, Your VPS, one click away. Built by twostep.
 
-            Download the `.AppImage`, make it executable (`chmod +x`), and run it -
-            or clone the repo and run `bash install.sh` to get a launcher icon and a
-            Desktop shortcut automatically.
+            **Linux:** download the `.AppImage`, make it executable (`chmod +x`),
+            and run it - or clone the repo and run `bash install.sh` to get a
+            launcher icon and a Desktop shortcut automatically.
+
+            **Windows:** download the `*-setup.exe` and run it. It installs per-user
+            (no admin needed). Windows 10/11 already ship the WebView2 runtime the
+            app uses; on older builds the installer fetches it automatically.
+
+  package-windows:
+    name: Build Windows installer (NSIS)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install NASM (ring/aws-lc build dependency on Windows)
+        uses: ilammy/setup-nasm@v1
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build Windows installer via Tauri
+        run: pnpm tauri build --bundles nsis
+      - name: Collect installer and publish checksum
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path release-artifacts | Out-Null
+          $exe = Get-ChildItem -Recurse -Path target,src-tauri/target -Filter *-setup.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $exe) { Write-Error "No NSIS installer found"; exit 1 }
+          Copy-Item $exe.FullName release-artifacts/
+          Set-Location release-artifacts
+          Get-FileHash -Algorithm SHA256 * |
+            ForEach-Object { "{0}  {1}" -f $_.Hash.ToLower(), (Split-Path $_.Path -Leaf) } |
+            Out-File -Encoding ascii SHA256SUMS-windows.txt
+          Get-Content SHA256SUMS-windows.txt
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: popush-windows-installer
+          path: release-artifacts/*
+      - name: Attach installer to the GitHub Release (on tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-artifacts/*-setup.exe
+            release-artifacts/SHA256SUMS-windows.txt
