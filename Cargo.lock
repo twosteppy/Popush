@@ -3440,7 +3440,7 @@ dependencies = [
 
 [[package]]
 name = "popush"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3469,7 +3469,7 @@ dependencies = [
 
 [[package]]
 name = "popush-core"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "chrono",
  "serde",

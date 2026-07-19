@@ -1,7 +1,7 @@
 {
   "name": "popush",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "author": "twostep",
   "description": "Popush, a Linux desktop deployment client.",
